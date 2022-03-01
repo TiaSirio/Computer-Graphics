@@ -75,7 +75,7 @@
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>F:\OneDrive - Politecnico di Milano\Uni - N\Computer graphics\Assignements\A00\A00\headers;C:\VulkanSDK\1.3.204.1\Include;E:\Libraries\glm;E:\Libraries\glfw-3.3.6.bin.WIN64\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>F:\ComputerGraphics\AssignementsComputerGraphics\A00\headers;C:\VulkanSDK\1.3.204.1\Include;E:\Libraries\glm;E:\Libraries\glfw-3.3.6.bin.WIN64\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -92,7 +92,7 @@
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <AdditionalIncludeDirectories>F:\OneDrive - Politecnico di Milano\Uni - N\Computer graphics\Assignements\A00\A00\headers;C:\VulkanSDK\1.3.204.1\Include;E:\Libraries\glm;E:\Libraries\glfw-3.3.6.bin.WIN64\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>F:\ComputerGraphics\AssignementsComputerGraphics\A00\headers;C:\VulkanSDK\1.3.204.1\Include;E:\Libraries\glm;E:\Libraries\glfw-3.3.6.bin.WIN64\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -107,7 +107,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>F:\OneDrive - Politecnico di Milano\Uni - N\Computer graphics\Assignements\A00\A00\headers;C:\VulkanSDK\1.3.204.1\Include;E:\Libraries\glm;E:\Libraries\glfw-3.3.6.bin.WIN64\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>F:\ComputerGraphics\AssignementsComputerGraphics\A00\headers;C:\VulkanSDK\1.3.204.1\Include;E:\Libraries\glm;E:\Libraries\glfw-3.3.6.bin.WIN64\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -117,7 +117,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>F:\OneDrive - Politecnico di Milano\Uni - N\Computer graphics\Assignements\A00\A00\headers;C:\VulkanSDK\1.3.204.1\Include;E:\Libraries\glm;E:\Libraries\glfw-3.3.6.bin.WIN64\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>F:\ComputerGraphics\AssignementsComputerGraphics\A00\headers;C:\VulkanSDK\1.3.204.1\Include;E:\Libraries\glm;E:\Libraries\glfw-3.3.6.bin.WIN64\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
