@@ -109,7 +109,7 @@ void makeModels() {
 	// Resizes the vertices array. Repalce the values with the correct number of
 	// vertices components (3 * number of vertices)
 
-	int NSlice = 360;
+	int NSlice = 36;
 	float radius = 1;
 	float height = 1;
 	//Center
@@ -197,33 +197,114 @@ void makeModels() {
 
 	// Resizes the vertices array. Repalce the values with the correct number of
 	// vertices components (3 * number of vertices)
-	M3_vertices.resize(9);
 
-	// Vertices definitions
-	M3_vertices[0]  =  0.0;
-	M3_vertices[1]  =  1.0;
-	M3_vertices[2]  = -1.2;
-	M3_vertices[3]  = -0.866;
-	M3_vertices[4]  = -0.5;
-	M3_vertices[5]  = -1.2;
-	M3_vertices[6]  =  0.866;
-	M3_vertices[7]  = -0.5;
-	M3_vertices[8]  = -1.2;
+	int NSlice3 = 36;
+	float radius3 = 1;
+	float height3 = 1;
+	int maxJ = 3;
+	int modify = 1/maxJ;
+	//Center
+	float cx3 = 0, cy3 = 0, cz3 = -2;
 
+	M3_vertices.resize(3 * (NSlice3 + 1) * (maxJ + 1));
 
-	// Resizes the indices array. Repalce the values with the correct number of
-	// indices (3 * number of triangles)
-	M3_indices.resize(3);
+	int count = 0;
+	int max = 0;
 
-	// indices definitions
-	M3_indices[0] = 0;
-	M3_indices[1] = 1;
-	M3_indices[2] = 2;
+	M3_vertices[0] = cx3;
+	M3_vertices[1] = cy3 + height3;
+	M3_vertices[2] = cz3;
 
+	for (int j = 0; j < maxJ; j++) {
+		for (int i = 0; i < NSlice3; i++) {
+			M3_vertices[((i + 1) * 3) + 0] = cx3 + float(radius3 - (modify * j)) * cos(((float)i / NSlice3) * (2.0 * M_PI)); //x of the vertex
+			M3_vertices[((i + 1) * 3) + 1] = cy3 + float(j/maxJ); //y of the vertex
+			M3_vertices[((i + 1) * 3) + 2] = cz3 + float(radius3 - (modify * j)) * sin(((float)i / NSlice3) * (2.0 * M_PI)); //z of the vertex
+		}
+	}
 
+	//M3_vertices[((NSlice3 + 1) * 3) + 0] = cx3;
+	//M3_vertices[((NSlice3 + 1) * 3) + 1] = cy3 - height3;
+	//M3_vertices[((NSlice3 + 1) * 3) + 2] = cz3;
 
+	//for (int i = NSlice3 + 1; i < (2 * NSlice3) + 1; i++) {
+	//	M3_vertices[((i + 1) * 3) + 0] = cx3 + radius3 * cos(((float)i / NSlice3) * (2.0 * M_PI)); //x of the vertex
+	//	M3_vertices[((i + 1) * 3) + 1] = cy3; //y of the vertex
+	//	M3_vertices[((i + 1) * 3) + 2] = cz3 + radius3 * sin(((float)i / NSlice3) * (2.0 * M_PI)); //z of the vertex
+	//}
 
+	M3_indices.resize(3 * NSlice3 * maxJ * 2);
 
+	for (int j = 0; j < maxJ - 1; j++) {
+		for (int i = 0; i < NSlice3; i++) {
+			M3_indices[(count * 3) + 0] = i * (j + 1);
+			M3_indices[(count * 3) + 1] = count + 1;
+			M3_indices[(count * 3) + 2] = ((count + 1) % (NSlice3 * (j + 1))) + 1;
+			count++;
+		}
+	}
+
+	for (int i = 0; i < NSlice3; i++) {
+		M3_indices[(count * 3) + 0] = 0;
+		M3_indices[(count * 3) + 1] = count + 1;
+		M3_indices[(count * 3) + 2] = ((count + 1) % (NSlice3 * maxJ)) + 1;
+		count++;
+	}
+
+	//count = NSlice3 + 1;
+
+	/*for (int i = NSlice3; i < 2 * NSlice3; i++) {
+		M3_indices[(i * 3) + 0] = NSlice3 + 1;
+		M3_indices[(i * 3) + 1] = count;
+		M3_indices[(i * 3) + 2] = ((i + 1) % ((2 * NSlice) + 1)) + 1;
+		count++;
+	}*/
+
+	//for (int j = 0; j < NSlice3; j++) {
+	//	for (int i = 0; i < NSlice3; i++) {
+	//		M3_vertices[((count) * 3) + 0] = cx3 + radius3 * cos(((float)i / NSlice3) * (2.0 * M_PI)); //x of the vertex
+	//		M3_vertices[((count) * 3) + 1] = cy3; //y of the vertex
+	//		M3_vertices[((count) * 3) + 2] = cz3 + radius3 * sin(((float)i / NSlice3) * (2.0 * M_PI)); //z of the vertex
+	//		count++;
+	//	}
+	//	cy3 = cy3 + float(j / NSlice3);
+	//}
+
+	//cy3 = 0;
+
+	//for (int j = 0; j < NSlice3; j++) {
+	//	for (int i = 0; i < NSlice3; i++) {
+	//		M3_vertices[((count) * 3) + 0] = cx3 + radius3 * cos(((float)i / NSlice3) * (2.0 * M_PI)); //x of the vertex
+	//		M3_vertices[((count) * 3) + 1] = cy3; //y of the vertex
+	//		M3_vertices[((count) * 3) + 2] = cz3 + radius3 * sin(((float)i / NSlice3) * (2.0 * M_PI)); //z of the vertex
+	//		count++;
+	//	}
+	//	cy3 = cy3 - float(j / NSlice3);
+	//}
+
+	//// Resizes the indices array. Repalce the values with the correct number of
+	//// indices (3 * number of triangles)
+	//M3_indices.resize(3 * NSlice3^4);
+
+	//count = 0;
+
+	//for (int j = 0; j < NSlice3; j++) {
+	//	for (int i = 0; i < NSlice3; i++) {
+	//		M3_indices[(count * 3) + 0] = i;
+	//		M3_indices[(count * 3) + 1] = i + 1;
+	//		M3_indices[(count * 3) + 2] = i + NSlice3;
+	//	}
+	//	count++;
+	//}
+
+	//for (int j = 0; j < NSlice3; j++) {
+	//	for (int i = 0; i < NSlice3; i++) {
+	//		M3_indices[(count * 3) + 0] = i;
+	//		M3_indices[(count * 3) + 1] = i + 1;
+	//		M3_indices[(count * 3) + 2] = i + NSlice3;
+	//	}
+	//	count++;
+	//}
 
 
 
