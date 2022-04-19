@@ -311,10 +311,76 @@ void makeModels() {
 
 	//// M4 : Spring
 	// Replace the code below, that creates a simple octahedron, with the one to create a spring.
-	M4_vertices.resize(3 * 6);
+
+	const int slices = 32;
+	const int step = 5;
+	float thickness = 0.24f;
+	float rounds = 3.0f;
+	int valueOfArray = 0;
+	int valueOfSecondArray = 0;
+	float heightSpring = 2.0f;
+	float radiusSpring = 0.8f;
+
+	float t = 0.0f;
+	float a1 = 0.0f;
+	float a2 = 0.0f;
+	float d = 0.0f;
+
+	M4_vertices.resize(3 * slices * (rounds * 360 + step));
+	M4_indices.resize(2 * 3 * slices * (rounds * 360 + step));
+
+	for (int i = -slices; i <= rounds * 360 + step; i += step)
+	{
+		for (int j = 0; j < slices; j++)
+		{
+			t = float(i) / 360 + float(j) / slices * step / 360;
+			if (float(rounds) <= t) {
+				if (float(rounds) >= 0.0f) {
+					t = float(rounds);
+				}
+				else {
+					t = 0.0f;
+				}
+			}
+			else {
+				if (t >= 0.0f) {
+					t = t;
+				}
+				else {
+					t = 0.0f;
+				}
+			}
+			//t = max_value(0.0f, min_value(float(rounds), t));
+			a1 = t * M_PI * 2;
+			a2 = float(j) / slices * M_PI * 2;
+			d = radiusSpring + thickness * cos(a2);
+			M4_vertices[(valueOfArray * 3) + 0] = d * cos(a1);
+			M4_vertices[(valueOfArray * 3) + 1] = d * sin(a1);
+			M4_vertices[(valueOfArray * 3) + 2] = thickness * sin(a2) + heightSpring * t / rounds;
+			valueOfArray++;
+		}
+	}
+	for (int i = 0; i < int((3 * slices * (rounds * 360 + step))) / 3 - slices; ++i)
+	{
+		M4_indices[valueOfSecondArray] = i;
+		valueOfSecondArray++;
+		M4_indices[valueOfSecondArray] = i + slices;
+		valueOfSecondArray++;
+		M4_indices[valueOfSecondArray] = i + 1;
+		valueOfSecondArray++;
+	}
+	for (int i = 0; i < int((3 * slices * (rounds * 360 + step))) / 3 - slices; ++i)
+	{
+		M4_indices[valueOfSecondArray] = i + slices + 1;
+		valueOfSecondArray++;
+		M4_indices[valueOfSecondArray] = i + slices;
+		valueOfSecondArray++;
+		M4_indices[valueOfSecondArray] = i + 1;
+		valueOfSecondArray++;
+	}
 
 	// Vertices definitions
-	M4_vertices[0]  =  0.0;
+	/*M4_vertices[0] = 0.0;
 	M4_vertices[1]  =  1.414;
 	M4_vertices[2]  = -1.0;
 	M4_vertices[3]  =  0.0;
@@ -362,5 +428,5 @@ void makeModels() {
 	M4_indices[20] = 2;
 	M4_indices[21] = 1;
 	M4_indices[22] = 2;
-	M4_indices[23] = 5;
+	M4_indices[23] = 5;*/
 }
