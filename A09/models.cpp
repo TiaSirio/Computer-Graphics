@@ -1,11 +1,11 @@
 // this function creates the geometries to be shown, and output thems
 // in global variables M1_vertices and M1_indices to M4_vertices and M4_indices
 void makeModels() {
-//// M1 : Cube
-// Replace the code below, that creates a simple square, with the one to create a cube.
+	//// M1 : Cube
+	// Replace the code below, that creates a simple square, with the one to create a cube.
 
-// Resizes the vertices array. Repalce the values with the correct number of
-// vertices components (3 * number of vertices)
+	// Resizes the vertices array. Repalce the values with the correct number of
+	// vertices components (3 * number of vertices)
 
 	M1_vertices.resize(3 * 4 * 6);
 
@@ -122,7 +122,7 @@ void makeModels() {
 	M2_vertices[1] = cy + height;
 	M2_vertices[2] = cz;
 
-	for(int i = 0; i < NSlice; i++) {
+	for (int i = 0; i < NSlice; i++) {
 		M2_vertices[((i + 1) * 3) + 0] = cx + radius * cos(((float)i / NSlice) * (2.0 * M_PI)); //x of the vertex
 		M2_vertices[((i + 1) * 3) + 1] = cy + height; //y of the vertex
 		M2_vertices[((i + 1) * 3) + 2] = cz + radius * sin(((float)i / NSlice) * (2.0 * M_PI)); //z of the vertex
@@ -132,7 +132,7 @@ void makeModels() {
 	M2_vertices[((NSlice + 1) * 3) + 1] = cy - height;
 	M2_vertices[((NSlice + 1) * 3) + 2] = cz;
 
-	for(int i = NSlice + 1; i < (2 * NSlice) + 1; i++) {
+	for (int i = NSlice + 1; i < (2 * NSlice) + 1; i++) {
 		M2_vertices[((i + 1) * 3) + 0] = cx + radius * cos(((float)i / NSlice) * (2.0 * M_PI)); //x of the vertex
 		M2_vertices[((i + 1) * 3) + 1] = cy - height; //y of the vertex
 		M2_vertices[((i + 1) * 3) + 2] = cz + radius * sin(((float)i / NSlice) * (2.0 * M_PI)); //z of the vertex
@@ -195,121 +195,73 @@ void makeModels() {
 	//// M3 : Sphere
 	// Replace the code below, that creates a simple triangle, with the one to create a sphere.
 
-	// Resizes the vertices array. Repalce the values with the correct number of
-	// vertices components (3 * number of vertices)
+	float xCircle, yCircle, zCircle, xyCircle;
+	float radiusCircle = 2.0f;
+	float stackCount = 24.0f;
+	float sectorCount = 72.0f;
+	float sectorStep = 2 * M_PI / sectorCount;
+	float stackStep = M_PI / stackCount;
+	float sectorAngle, stackAngle;
+	int valueOfArrayCircle = 0;
+	int valueOfSecondArrayCircle = 0;
+	int k1Circle, k2Circle;
 
-	int NSlice3 = 36;
-	float radius3 = 1;
-	float height3 = 1;
-	int maxJ = 3;
-	int fraction = 1/maxJ;
-	//Center
-	float cx3 = 0, cy3 = 0, cz3 = -2;
+	M3_vertices.resize(3 * stackCount * sectorCount * 2);
 
-	M3_vertices.resize(3 * (NSlice3 + 1) * (maxJ + 1));
+	for (int i = 0; i <= stackCount; ++i)
+	{
+		stackAngle = M_PI / 2 - i * stackStep;        // starting from pi/2 to -pi/2
+		xyCircle = radiusCircle * cos(stackAngle);             // r * cos(u)
+		zCircle = radiusCircle * sin(stackAngle);              // r * sin(u)
 
-	int count = 0;
-	int count2 = 0;
-	int max = 0;
+		// add (sectorCount+1) vertices per stack
+		// the first and last vertices have same position and normal, but different tex coords
+		for (int j = 0; j <= sectorCount; ++j)
+		{
+			sectorAngle = j * sectorStep;           // starting from 0 to 2pi
 
-	M3_vertices[count] = cx3;
-	M3_vertices[count + 1] = cy3 + height3;
-	M3_vertices[count + 2] = cz3;
-	count++;
-
-	for (int j = 0; j < maxJ; j++) {
-		for (int i = 0; i < NSlice3; i++) {
-			M3_vertices[(count * 3) + 0] = cx3 + float(radius3 - (fraction * j)) * cos(((float)i / NSlice3) * (2.0 * M_PI)); //x of the vertex
-			M3_vertices[(count * 3) + 1] = cy3 + float(j/maxJ); //y of the vertex
-			M3_vertices[(count * 3) + 2] = cz3 + float(radius3 - (fraction * j)) * sin(((float)i / NSlice3) * (2.0 * M_PI)); //z of the vertex
-			count++;
+			// vertex position (x, y, z)
+			xCircle = xyCircle * cos(sectorAngle);             // r * cos(u) * cos(v)
+			yCircle = xyCircle * sin(sectorAngle);             // r * cos(u) * sin(v)
+			M3_vertices[(valueOfArrayCircle * 3) + 0] = xCircle;
+			M3_vertices[(valueOfArrayCircle * 3) + 1] = yCircle;
+			M3_vertices[(valueOfArrayCircle * 3) + 2] = zCircle;
+			valueOfArrayCircle++;
 		}
 	}
 
-	//M3_vertices[((NSlice3 + 1) * 3) + 0] = cx3;
-	//M3_vertices[((NSlice3 + 1) * 3) + 1] = cy3 - height3;
-	//M3_vertices[((NSlice3 + 1) * 3) + 2] = cz3;
+	M3_indices.resize(3 * stackCount * 2 * sectorCount);
 
-	//for (int i = NSlice3 + 1; i < (2 * NSlice3) + 1; i++) {
-	//	M3_vertices[((i + 1) * 3) + 0] = cx3 + radius3 * cos(((float)i / NSlice3) * (2.0 * M_PI)); //x of the vertex
-	//	M3_vertices[((i + 1) * 3) + 1] = cy3; //y of the vertex
-	//	M3_vertices[((i + 1) * 3) + 2] = cz3 + radius3 * sin(((float)i / NSlice3) * (2.0 * M_PI)); //z of the vertex
-	//}
+	for (int i = 0; i < stackCount; ++i)
+	{
+		k1Circle = i * (sectorCount + 1);     // beginning of current stack
+		k2Circle = k1Circle + sectorCount + 1;      // beginning of next stack
+		for (int j = 0; j < sectorCount; ++j, ++k1Circle, ++k2Circle)
+		{
+			// 2 triangles per sector excluding first and last stacks
+			// k1 => k2 => k1+1
+			if (i != 0)
+			{
+				M3_indices[valueOfSecondArrayCircle] = k1Circle;
+				valueOfSecondArrayCircle++;
+				M3_indices[valueOfSecondArrayCircle] = k2Circle;
+				valueOfSecondArrayCircle++;
+				M3_indices[valueOfSecondArrayCircle] = k1Circle + 1;
+				valueOfSecondArrayCircle++;
+			}
 
-	M3_indices.resize(3 * NSlice3 * maxJ * 2);
-
-	for (int j = 0; j < maxJ - 1; j++) {
-		for (int i = 0; i < NSlice3; i++) {
-			M3_indices[(count2 * 3) + 0] = count2;
-			M3_indices[(count2 * 3) + 1] = count2 + (NSlice3 * (j + 1));
-			M3_indices[(count2 * 3) + 2] = count2 + 1;//((count2 + 1) % (NSlice3 * (j + 1))) + 1;
-			count2++;
+			// k1+1 => k2 => k2+1
+			if (i != (stackCount - 1))
+			{
+				M3_indices[valueOfSecondArrayCircle] = k1Circle + 1;
+				valueOfSecondArrayCircle++;
+				M3_indices[valueOfSecondArrayCircle] = k2Circle;
+				valueOfSecondArrayCircle++;
+				M3_indices[valueOfSecondArrayCircle] = k2Circle + 1;
+				valueOfSecondArrayCircle++;
+			}
 		}
 	}
-
-	/*for (int i = 0; i < NSlice3; i++) {
-		M3_indices[(count2 * 3) + 0] = 0;
-		M3_indices[(count2 * 3) + 1] = count2 + 1;
-		M3_indices[(count2 * 3) + 2] = ((count2 + 1) % (NSlice3 * maxJ)) + 1;
-		count2++;
-	}*/
-
-	//count = NSlice3 + 1;
-
-	/*for (int i = NSlice3; i < 2 * NSlice3; i++) {
-		M3_indices[(i * 3) + 0] = NSlice3 + 1;
-		M3_indices[(i * 3) + 1] = count;
-		M3_indices[(i * 3) + 2] = ((i + 1) % ((2 * NSlice) + 1)) + 1;
-		count++;
-	}*/
-
-	//for (int j = 0; j < NSlice3; j++) {
-	//	for (int i = 0; i < NSlice3; i++) {
-	//		M3_vertices[((count) * 3) + 0] = cx3 + radius3 * cos(((float)i / NSlice3) * (2.0 * M_PI)); //x of the vertex
-	//		M3_vertices[((count) * 3) + 1] = cy3; //y of the vertex
-	//		M3_vertices[((count) * 3) + 2] = cz3 + radius3 * sin(((float)i / NSlice3) * (2.0 * M_PI)); //z of the vertex
-	//		count++;
-	//	}
-	//	cy3 = cy3 + float(j / NSlice3);
-	//}
-
-	//cy3 = 0;
-
-	//for (int j = 0; j < NSlice3; j++) {
-	//	for (int i = 0; i < NSlice3; i++) {
-	//		M3_vertices[((count) * 3) + 0] = cx3 + radius3 * cos(((float)i / NSlice3) * (2.0 * M_PI)); //x of the vertex
-	//		M3_vertices[((count) * 3) + 1] = cy3; //y of the vertex
-	//		M3_vertices[((count) * 3) + 2] = cz3 + radius3 * sin(((float)i / NSlice3) * (2.0 * M_PI)); //z of the vertex
-	//		count++;
-	//	}
-	//	cy3 = cy3 - float(j / NSlice3);
-	//}
-
-	//// Resizes the indices array. Repalce the values with the correct number of
-	//// indices (3 * number of triangles)
-	//M3_indices.resize(3 * NSlice3^4);
-
-	//count = 0;
-
-	//for (int j = 0; j < NSlice3; j++) {
-	//	for (int i = 0; i < NSlice3; i++) {
-	//		M3_indices[(count * 3) + 0] = i;
-	//		M3_indices[(count * 3) + 1] = i + 1;
-	//		M3_indices[(count * 3) + 2] = i + NSlice3;
-	//	}
-	//	count++;
-	//}
-
-	//for (int j = 0; j < NSlice3; j++) {
-	//	for (int i = 0; i < NSlice3; i++) {
-	//		M3_indices[(count * 3) + 0] = i;
-	//		M3_indices[(count * 3) + 1] = i + 1;
-	//		M3_indices[(count * 3) + 2] = i + NSlice3;
-	//	}
-	//	count++;
-	//}
-
-
 
 
 	//// M4 : Spring
