@@ -202,24 +202,27 @@ void makeModels() {
 	float radius3 = 1;
 	float height3 = 1;
 	int maxJ = 3;
-	int modify = 1/maxJ;
+	int fraction = 1/maxJ;
 	//Center
 	float cx3 = 0, cy3 = 0, cz3 = -2;
 
 	M3_vertices.resize(3 * (NSlice3 + 1) * (maxJ + 1));
 
 	int count = 0;
+	int count2 = 0;
 	int max = 0;
 
-	M3_vertices[0] = cx3;
-	M3_vertices[1] = cy3 + height3;
-	M3_vertices[2] = cz3;
+	M3_vertices[count] = cx3;
+	M3_vertices[count + 1] = cy3 + height3;
+	M3_vertices[count + 2] = cz3;
+	count++;
 
 	for (int j = 0; j < maxJ; j++) {
 		for (int i = 0; i < NSlice3; i++) {
-			M3_vertices[((i + 1) * 3) + 0] = cx3 + float(radius3 - (modify * j)) * cos(((float)i / NSlice3) * (2.0 * M_PI)); //x of the vertex
-			M3_vertices[((i + 1) * 3) + 1] = cy3 + float(j/maxJ); //y of the vertex
-			M3_vertices[((i + 1) * 3) + 2] = cz3 + float(radius3 - (modify * j)) * sin(((float)i / NSlice3) * (2.0 * M_PI)); //z of the vertex
+			M3_vertices[(count * 3) + 0] = cx3 + float(radius3 - (fraction * j)) * cos(((float)i / NSlice3) * (2.0 * M_PI)); //x of the vertex
+			M3_vertices[(count * 3) + 1] = cy3 + float(j/maxJ); //y of the vertex
+			M3_vertices[(count * 3) + 2] = cz3 + float(radius3 - (fraction * j)) * sin(((float)i / NSlice3) * (2.0 * M_PI)); //z of the vertex
+			count++;
 		}
 	}
 
@@ -237,19 +240,19 @@ void makeModels() {
 
 	for (int j = 0; j < maxJ - 1; j++) {
 		for (int i = 0; i < NSlice3; i++) {
-			M3_indices[(count * 3) + 0] = i * (j + 1);
-			M3_indices[(count * 3) + 1] = count + 1;
-			M3_indices[(count * 3) + 2] = ((count + 1) % (NSlice3 * (j + 1))) + 1;
-			count++;
+			M3_indices[(count2 * 3) + 0] = count2;
+			M3_indices[(count2 * 3) + 1] = count2 + (NSlice3 * (j + 1));
+			M3_indices[(count2 * 3) + 2] = count2 + 1;//((count2 + 1) % (NSlice3 * (j + 1))) + 1;
+			count2++;
 		}
 	}
 
-	for (int i = 0; i < NSlice3; i++) {
-		M3_indices[(count * 3) + 0] = 0;
-		M3_indices[(count * 3) + 1] = count + 1;
-		M3_indices[(count * 3) + 2] = ((count + 1) % (NSlice3 * maxJ)) + 1;
-		count++;
-	}
+	/*for (int i = 0; i < NSlice3; i++) {
+		M3_indices[(count2 * 3) + 0] = 0;
+		M3_indices[(count2 * 3) + 1] = count2 + 1;
+		M3_indices[(count2 * 3) + 2] = ((count2 + 1) % (NSlice3 * maxJ)) + 1;
+		count2++;
+	}*/
 
 	//count = NSlice3 + 1;
 
@@ -315,7 +318,7 @@ void makeModels() {
 	const int slices = 32;
 	const int step = 5;
 	float thickness = 0.24f;
-	float rounds = 3.0f;
+	float rounds = 2.0f;
 	int valueOfArray = 0;
 	int valueOfSecondArray = 0;
 	float heightSpring = 2.0f;
@@ -360,7 +363,8 @@ void makeModels() {
 			valueOfArray++;
 		}
 	}
-	for (int i = 0; i < int((3 * slices * (rounds * 360 + step))) / 3 - slices; ++i)
+
+	for (int i = 0; i < (int(M4_vertices.size()) / 3) - slices; ++i)
 	{
 		M4_indices[valueOfSecondArray] = i;
 		valueOfSecondArray++;
@@ -369,7 +373,8 @@ void makeModels() {
 		M4_indices[valueOfSecondArray] = i + 1;
 		valueOfSecondArray++;
 	}
-	for (int i = 0; i < int((3 * slices * (rounds * 360 + step))) / 3 - slices; ++i)
+
+	for (int i = 0; i < (int(M4_vertices.size()) / 3) - slices; ++i)
 	{
 		M4_indices[valueOfSecondArray] = i + slices + 1;
 		valueOfSecondArray++;
@@ -378,6 +383,8 @@ void makeModels() {
 		M4_indices[valueOfSecondArray] = i + 1;
 		valueOfSecondArray++;
 	}
+
+	//(3 * slices * (rounds * 360 + step)
 
 	// Vertices definitions
 	/*M4_vertices[0] = 0.0;
