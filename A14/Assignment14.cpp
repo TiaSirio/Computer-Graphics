@@ -126,6 +126,7 @@ private:
             if (result != VK_SUCCESS) {
                 throw std::runtime_error("failed to create image view!");
             }
+            std::cout << "\n\tImageView " << i << " created!";
             swapChainImageViews[i] = imageView;
         }
     }
@@ -179,6 +180,7 @@ private:
         if (result != VK_SUCCESS) {
             throw std::runtime_error("failed to create swap chain!");
         }
+        std::cout << "\n\tSwapChain created!";
         vkGetSwapchainImagesKHR(logicalDevice, swapChain, &imageCount, nullptr);
         swapChainImages.resize(imageCount);
         vkGetSwapchainImagesKHR(logicalDevice, swapChain, &imageCount, swapChainImages.data());

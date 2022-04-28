@@ -89,6 +89,7 @@ private:
         if (result != VK_SUCCESS) {
             throw std::runtime_error("failed to allocate command buffer!");
         }
+        std::cout << "\n\tCommand buffer created! (" << commandBuffer << ")";
     }
 
     void createCommandPool() {
@@ -100,6 +101,7 @@ private:
         if (result != VK_SUCCESS) {
             throw std::runtime_error("failed to create command pool!");
         }
+        std::cout << "\n\tCommand pool created! (" << commandPool << ")";
     }
 
     void createLogicalDevice() {
@@ -134,7 +136,7 @@ private:
         if (result != VK_SUCCESS) {
             throw std::runtime_error("failed to create logical device!");
         }
-
+        std::cout << "\n\tLogical device created! (" << logicalDevice << ")";
         vkGetDeviceQueue(logicalDevice, indicesDevice.aQueueWithGraphicsCapability.value(), 0, &graphicsQueue);
         vkGetDeviceQueue(logicalDevice, indicesDevice.aQueueWithPresentationCapability.value(), 0, &presentQueue);
     }
@@ -183,6 +185,7 @@ private:
         for (const auto& device : devices) {
             if (isDeviceSuitable(device)) {
                 physicalDevice = device;
+                std::cout << "\n\tPhysical device chosen! (" << physicalDevice << ")";
                 break;
             }
         }
@@ -281,6 +284,7 @@ private:
         if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS) {
             throw std::runtime_error("failed to create window surface!");
         }
+        std::cout << "\n\tPresentation surface created! (" << surface << ")";
     }
 
     void createInstance() {

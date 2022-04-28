@@ -109,7 +109,7 @@ void makeModels() {
 	// Resizes the vertices array. Repalce the values with the correct number of
 	// vertices components (3 * number of vertices)
 
-	int NSlice = 36;
+	int NSlice = 108;//36;
 	float radius = 1;
 	float height = 1;
 	//Center
@@ -197,8 +197,8 @@ void makeModels() {
 
 	float xCircle, yCircle, zCircle, xyCircle;
 	float radiusCircle = 2.0f;
-	float stackCount = 24.0f;
-	float sectorCount = 72.0f;
+	float stackCount = 48.0f;//24.0f;
+	float sectorCount = 144.0f;//72.0f;
 	float sectorStep = 2 * M_PI / sectorCount;
 	float stackStep = M_PI / stackCount;
 	float sectorAngle, stackAngle;
@@ -267,22 +267,23 @@ void makeModels() {
 	//// M4 : Spring
 	// Replace the code below, that creates a simple octahedron, with the one to create a spring.
 
-	const int slices = 32;
-	const int step = 5;
+	const int slices = 64;//32;
+	const int step = 3;
 	float thickness = 0.24f;
 	float rounds = 2.0f;
 	int valueOfArray = 0;
 	int valueOfSecondArray = 0;
 	float heightSpring = 2.0f;
 	float radiusSpring = 0.8f;
+	bool firstIteration = true;
 
 	float t = 0.0f;
 	float a1 = 0.0f;
 	float a2 = 0.0f;
 	float d = 0.0f;
 
-	M4_vertices.resize(3 * slices * (rounds * 360 + step));
-	M4_indices.resize(2 * 3 * slices * (rounds * 360 + step));
+	M4_vertices.resize(3 * slices * (rounds * 360 + step + 2));
+	M4_indices.resize(2 * 3 * ((slices * (rounds * 360 + step + slices - 2)) / step) * slices);
 
 	for (int i = -slices; i <= rounds * 360 + step; i += step)
 	{
@@ -309,6 +310,13 @@ void makeModels() {
 			a1 = t * M_PI * 2;
 			a2 = float(j) / slices * M_PI * 2;
 			d = radiusSpring + thickness * cos(a2);
+			if (firstIteration) {
+				M4_vertices[0] = d * cos(a1);
+				M4_vertices[1] = d * sin(a1);
+				M4_vertices[2] = thickness * sin(a2) + heightSpring * t / rounds;
+				valueOfArray++;
+				firstIteration = false;
+			}
 			M4_vertices[(valueOfArray * 3) + 0] = d * cos(a1);
 			M4_vertices[(valueOfArray * 3) + 1] = d * sin(a1);
 			M4_vertices[(valueOfArray * 3) + 2] = thickness * sin(a2) + heightSpring * t / rounds;
@@ -316,7 +324,21 @@ void makeModels() {
 		}
 	}
 
-	for (int i = 0; i < (int(M4_vertices.size()) / 3) - slices; ++i)
+	M4_vertices[(valueOfArray * 3) + 0] = d * cos(a1);
+	M4_vertices[(valueOfArray * 3) + 1] = d * sin(a1);
+	M4_vertices[(valueOfArray * 3) + 2] = thickness * sin(a2) + heightSpring * t / rounds;
+
+	for (int i = 1; i <= slices; ++i)
+	{
+		M4_indices[valueOfSecondArray] = i;
+		valueOfSecondArray++;
+		M4_indices[valueOfSecondArray] = 0;
+		valueOfSecondArray++;
+		M4_indices[valueOfSecondArray] = i + 1;
+		valueOfSecondArray++;
+	}
+
+	for (int i = 0; i < ((slices * (rounds * 360 + step + slices - 2)) / step); ++i)
 	{
 		M4_indices[valueOfSecondArray] = i;
 		valueOfSecondArray++;
@@ -326,7 +348,7 @@ void makeModels() {
 		valueOfSecondArray++;
 	}
 
-	for (int i = 0; i < (int(M4_vertices.size()) / 3) - slices; ++i)
+	for (int i = 0; i < ((slices * (rounds * 360 + step + slices - 2)) / step) - 1; ++i)
 	{
 		M4_indices[valueOfSecondArray] = i + slices + 1;
 		valueOfSecondArray++;
@@ -336,56 +358,13 @@ void makeModels() {
 		valueOfSecondArray++;
 	}
 
-	//(3 * slices * (rounds * 360 + step)
-
-	// Vertices definitions
-	/*M4_vertices[0] = 0.0;
-	M4_vertices[1]  =  1.414;
-	M4_vertices[2]  = -1.0;
-	M4_vertices[3]  =  0.0;
-	M4_vertices[4]  = -1.414;
-	M4_vertices[5]  = -1.0;
-	M4_vertices[6]  = -1.0;
-	M4_vertices[7]  =  0.0;
-	M4_vertices[8]  = -2.0;
-	M4_vertices[9]  = -1.0;
-	M4_vertices[10] =  0.0;
-	M4_vertices[11] =  0.0;
-	M4_vertices[12] =  1.0;
-	M4_vertices[13] =  0.0;
-	M4_vertices[14] =  0.0;
-	M4_vertices[15] =  1.0;
-	M4_vertices[16] =  0.0;
-	M4_vertices[17] = -2.0;
-
-
-	// Resizes the indices array. Repalce the values with the correct number of
-	// indices (3 * number of triangles)
-	M4_indices.resize(3 * 8);
-
-	// indices definitions
-	M4_indices[0]  = 0;
-	M4_indices[1]  = 2;
-	M4_indices[2]  = 3;
-	M4_indices[3]  = 1;
-	M4_indices[4]  = 3;
-	M4_indices[5]  = 2;
-	M4_indices[6]  = 0;
-	M4_indices[7]  = 3;
-	M4_indices[8]  = 4;
-	M4_indices[9]  = 1;
-	M4_indices[10] = 4;
-	M4_indices[11] = 3;
-	M4_indices[12] = 0;
-	M4_indices[13] = 4;
-	M4_indices[14] = 5;
-	M4_indices[15] = 1;
-	M4_indices[16] = 5;
-	M4_indices[17] = 4;
-	M4_indices[18] = 0;
-	M4_indices[19] = 5;
-	M4_indices[20] = 2;
-	M4_indices[21] = 1;
-	M4_indices[22] = 2;
-	M4_indices[23] = 5;*/
+	for (int i = 1; i <= slices; ++i)
+	{
+		M4_indices[valueOfSecondArray] = ((slices * (rounds * 360 + step + slices - 2)) / step) + i;
+		valueOfSecondArray++;
+		M4_indices[valueOfSecondArray] = valueOfArray;
+		valueOfSecondArray++;
+		M4_indices[valueOfSecondArray] = ((slices * (rounds * 360 + step + slices - 2)) / step) + i + 1;
+		valueOfSecondArray++;
+	}
 }
