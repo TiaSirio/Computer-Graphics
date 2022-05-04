@@ -270,10 +270,10 @@ void makeModels() {
 	const int slices = 64;//32;
 	const int step = 3;
 	float thickness = 0.24f;
-	float rounds = 2.0f;
+	float rounds = 5.0f;
 	int valueOfArray = 0;
 	int valueOfSecondArray = 0;
-	float heightSpring = 2.0f;
+	float heightSpring = rounds;
 	float radiusSpring = 0.8f;
 	bool firstIteration = true;
 
