@@ -18,6 +18,10 @@ glm::mat4 PO1(float a) {
 	return out;
 }
 
+
+
+
+
 // Create a matrix for Perspecrtive projection with the given aspect ratio a,
 // and a FovY = 120o
 glm::mat4 PO2(float a) {
@@ -30,6 +34,10 @@ glm::mat4 PO2(float a) {
 	return out;
 }
 
+
+
+
+
 // Create a matrix for Perspecrtive projection with the given aspect ratio a,
 // and a FovY = 30o
 glm::mat4 PO3(float a) {
@@ -41,6 +49,10 @@ glm::mat4 PO3(float a) {
 
 	return out;
 }
+
+
+
+
 
 // Create a matrix for Perspecrtive projection, with the given aspect ratio a.
 // Here the perspective should only show the left side of the view
@@ -58,4 +70,3 @@ glm::mat4 PO4(float a) {
 
 	return out;
 }
-

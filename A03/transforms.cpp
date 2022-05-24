@@ -29,6 +29,9 @@ MT1 = rotate(glm::mat4(1), glm::radians(-60.0f), glm::vec3(0, 1, 0)) * MT1;
 MT1 = translate(glm::mat4(1), glm::vec3(1, 0, -1)) * MT1;
 
 
+
+
+
 // Half the size of an object, using as fixed point (5,0,-2).
 
 //Inverse of the translation on 5, 0, -2.
@@ -39,6 +42,9 @@ MT2 = scale(glm::mat4(1), glm::vec3(0.5, 0.5, 0.5)) * MT2;
 
 //Translation on 5, 0, -2.
 MT2 = translate(glm::mat4(1), glm::vec3(5, 0, -2)) * MT2;
+
+
+
 
 
 // Mirror the starship along a plane passing through (1,1,1), and obtained rotating 15 degree around the x axis the xz plane.
@@ -57,6 +63,10 @@ MT3 = rotate(glm::mat4(1), glm::radians(15.0f), glm::vec3(1, 0, 0)) * MT3;
 
 //Translation on 1, 1, 1.
 MT3 = translate(glm::mat4(1), glm::vec3(1, 1, 1)) * MT3;
+
+
+
+
 
 // Apply the inverse of the following sequence of transforms: Translation of (0, 0, 5) then rotation of 30 degree around the Y axis, and finally a uniform scaling of a factor of 3.
 

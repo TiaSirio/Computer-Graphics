@@ -12,6 +12,10 @@ glm::mat4 LookInDirMat(glm::vec3 Pos, glm::vec3 Angs) {
 	return out;
 }
 
+
+
+
+
  // Create a look at matrix
  // Pos    -> Position of the camera (c)
  // aim    -> Posizion of the target (a)
@@ -21,6 +25,9 @@ glm::mat4 LookAtMat(glm::vec3 Pos, glm::vec3 aim, float Roll) {
 	//glm::mat4 out = glm::lookAt(Pos, aim, glm::vec3(0, 1, 0));
 	//Add Roll
 	//out = glm::rotate(glm::mat4(1.0), -Roll, glm::vec3(0, 0, 1)) * out;
+
+
+
 
 
 	//Second working method
@@ -46,6 +53,9 @@ glm::mat4 LookAtMat(glm::vec3 Pos, glm::vec3 aim, float Roll) {
 	//glm::mat4 out = glm::inverse(glm::mat4(vx, vy, vz, glm::vec4(Pos, 1)));
 	//Add Roll
 	//out = glm::rotate(glm::mat4(1.0), -Roll, glm::vec3(0, 0, 1)) * out;
+
+
+
 
 
 	//Third working method

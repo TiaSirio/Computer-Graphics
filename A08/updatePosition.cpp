@@ -18,6 +18,7 @@ glm::mat4 getRobotWorldMatrix(GLFWwindow* window) {
 	float deltaT = time - lastTime;
 	lastTime = time;
 
+	//To the left
 	if (glfwGetKey(window, GLFW_KEY_A)) {
 		pos += ux * glm::vec3(-1.0f, 0, 0) * deltaT;
 		if (glfwGetKey(window, GLFW_KEY_W)) {
@@ -39,6 +40,7 @@ glm::mat4 getRobotWorldMatrix(GLFWwindow* window) {
 			roll = 0.0f;
 		}
 	}
+	//To the right
 	if (glfwGetKey(window, GLFW_KEY_D)) {
 		pos += ux * glm::vec3(1.0f, 0, 0) * deltaT;
 		if (glfwGetKey(window, GLFW_KEY_W)) {
@@ -60,6 +62,7 @@ glm::mat4 getRobotWorldMatrix(GLFWwindow* window) {
 			roll = 0.0f;
 		}
 	}
+	//Straight ahead
 	if (glfwGetKey(window, GLFW_KEY_W)) {
 		pos += uz * glm::vec3(0, 0, -1.0f) * deltaT;
 		if (glfwGetKey(window, GLFW_KEY_A)) {
@@ -81,6 +84,7 @@ glm::mat4 getRobotWorldMatrix(GLFWwindow* window) {
 			roll = 0.0f;
 		}
 	}
+	//Backwards
 	if (glfwGetKey(window, GLFW_KEY_S)) {
 		pos += uz * glm::vec3(0, 0, 1.0f) * deltaT;
 		if (glfwGetKey(window, GLFW_KEY_A)) {
@@ -102,6 +106,7 @@ glm::mat4 getRobotWorldMatrix(GLFWwindow* window) {
 			roll = 0.0f;
 		}
 	}
+	//Go up
 	if (glfwGetKey(window, GLFW_KEY_UP)) {
 		pos += uy * glm::vec3(0, 1.0f, 0) * deltaT;
 		if (glfwGetKey(window, GLFW_KEY_W) || glfwGetKey(window, GLFW_KEY_A) || glfwGetKey(window, GLFW_KEY_S) || glfwGetKey(window, GLFW_KEY_D)) {
@@ -111,6 +116,7 @@ glm::mat4 getRobotWorldMatrix(GLFWwindow* window) {
 			roll = 90.0f;
 		}
 	}
+	//Go down (not below terrain)
 	if (glfwGetKey(window, GLFW_KEY_DOWN)) {
 		if (pos[1] > 0.0f) {
 			pos += uy * glm::vec3(0, -1.0f, 0) * deltaT;
@@ -123,21 +129,26 @@ glm::mat4 getRobotWorldMatrix(GLFWwindow* window) {
 		}
 	}
 
+	//Roll left
 	if (glfwGetKey(window, GLFW_KEY_Q)) {
 		pitch -= 0.5f;
 	}
+	//Roll right
 	if (glfwGetKey(window, GLFW_KEY_E)) {
 		pitch += 0.5f;
 	}
 	
+	//Get bigger
 	if (glfwGetKey(window, GLFW_KEY_M)) {
 		size += glm::vec3(0.005f, 0.005f, 0.005f);
 	}
+	//Get smaller (not more than 0)
 	if (glfwGetKey(window, GLFW_KEY_N)) {
 		if (size[0] >= 0.005f) {
 			size -= glm::vec3(0.005f, 0.005f, 0.005f);
 		}
 	}
+	//Reset the initial configuration
 	if (glfwGetKey(window, GLFW_KEY_R)) {
 		yaw = 0.0f;
 		pitch = 0.0f;
@@ -146,6 +157,7 @@ glm::mat4 getRobotWorldMatrix(GLFWwindow* window) {
 		pos = glm::vec3(-3, 0, 2);
 	}
 
+	//Done with quaternions
 	quat = glm::quat(glm::vec3(0, glm::radians(yaw), 0)) *
 		glm::quat(glm::vec3(glm::radians(pitch), 0, 0)) *
 		glm::quat(glm::vec3(0, 0, glm::radians(roll)));
