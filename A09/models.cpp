@@ -342,7 +342,7 @@ void makeModels() {
 		valueOfSecondArray++;
 	}
 
-	for (int i = 0; i < ((slices * (rounds * 360 + step + slices - 1)) / step); ++i)
+	for (int i = 0; i < ((slices * ((rounds * 360 + step) + slices - step)) / step); ++i)
 	{
 		M4_indices[valueOfSecondArray] = i;
 		valueOfSecondArray++;
@@ -352,7 +352,7 @@ void makeModels() {
 		valueOfSecondArray++;
 	}
 
-	for (int i = 0; i < ((slices * (rounds * 360 + step + slices - 1)) / step); ++i)
+	for (int i = 0; i < ((slices * ((rounds * 360 + step) + slices - step)) / step); ++i)
 	{
 		M4_indices[valueOfSecondArray] = i + slices + 1;
 		valueOfSecondArray++;
@@ -362,14 +362,16 @@ void makeModels() {
 		valueOfSecondArray++;
 	}
 
-	std::cout << valueOfArray;
-	std::cout << "\n";
+	//std::cout << ((slices * (rounds * 360 + step + slices - 1)) / step) + slices + 1;
+	//std::cout << "\n";
+	//std::cout << valueOfArray;
+	//std::cout << "\n";
 
 	for (int i = 1; i <= slices; ++i)
 	{
 		M4_indices[valueOfSecondArray] = ((slices * (rounds * 360 + step + slices - 1)) / step) + i;
-		std::cout << ((slices * (rounds * 360 + step + slices - 1)) / step) + i;
-		std::cout << "\n";
+		//std::cout << ((slices * (rounds * 360 + step + slices - 1)) / step) + i;
+		//std::cout << "\n";
 		valueOfSecondArray++;
 		M4_indices[valueOfSecondArray] = valueOfArray;
 		valueOfSecondArray++;
