@@ -630,7 +630,6 @@ void makeModels() {
 
 	//First part of the spring
 	//for (int i = 0; i < ((slices * ((rounds * 360 + step) + slices - 1)) / step) + 1; i++)
-	//Commented for, are valid for 10 slices
 	for (int i = 0; i < ((slices * ((rounds * 360 + step) + slices - 1)) / step) + 1; i++)
 	{
 		M4_indices[valueOfSecondArray] = i;

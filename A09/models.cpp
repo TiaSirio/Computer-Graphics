@@ -1,5 +1,6 @@
 // this function creates the geometries to be shown, and output thems
 // in global variables M1_vertices and M1_indices to M4_vertices and M4_indices
+
 void makeModels() {
 	//// M1 : Cube
 	// Replace the code below, that creates a simple square, with the one to create a cube.
@@ -196,7 +197,6 @@ void makeModels() {
 
 	//// M3 : Sphere
 	// Replace the code below, that creates a simple triangle, with the one to create a sphere.
-
 	float xCircle, yCircle, zCircle, xyCircle;
 	float radiusCircle = 2.0f;
 	float stackCount = 48.0f;//24.0f;
@@ -270,18 +270,18 @@ void makeModels() {
 	// Replace the code below, that creates a simple octahedron, with the one to create a spring.
 	const int slices = 64;//32;
 	const int step = 3;
-	float thickness = 0.24f;
+	float internalSpringRadius = 0.24f;
 	float rounds = 3.0f;
 	int valueOfArray = 0;
 	int valueOfSecondArray = 0;
 	float heightSpring = rounds;
-	float radiusSpring = 0.8f;
+	float totalSpringRadius = 0.8f;
 	bool firstIteration = true;
 
-	float t = 0.0f;
-	float a1 = 0.0f;
-	float a2 = 0.0f;
-	float d = 0.0f;
+	float temp = 0.0f;
+	float uSpringValue = 0.0f;
+	float vSpringValue = 0.0f;
+	float intermediateValueForXY = 0.0f;
 
 	M4_vertices.resize(3 * slices * (rounds * 360 + step + 2));
 	M4_indices.resize(2 * 3 * ((slices * (rounds * 360 + step + slices)) / step) * slices);
@@ -290,48 +290,49 @@ void makeModels() {
 	{
 		for (int j = 0; j < slices; j++)
 		{
-			t = float(i) / 360 + float(j) / slices * step / 360;
-			if (float(rounds) <= t) {
+			temp = float(i) / 360 + float(j) / slices * step / 360;
+			if (float(rounds) <= temp) {
 				if (float(rounds) >= 0.0f) {
-					t = float(rounds);
+					temp = float(rounds);
 				}
 				else {
-					t = 0.0f;
+					temp = 0.0f;
 				}
 			}
 			else {
-				if (t >= 0.0f) {
-					t = t;
+				if (temp >= 0.0f) {
+					temp = temp;
 				}
 				else {
-					t = 0.0f;
+					temp = 0.0f;
 				}
 			}
 			//t = max_value(0.0f, min_value(float(rounds), t));
-			a1 = t * M_PI * 2;
-			a2 = float(j) / slices * M_PI * 2;
-			d = radiusSpring + thickness * cos(a2);
+			uSpringValue = temp * M_PI * 2;
+			vSpringValue = float(j) / slices * M_PI * 2;
+			intermediateValueForXY = totalSpringRadius + internalSpringRadius * cos(vSpringValue);
 			if (firstIteration) {
-				M4_vertices[(valueOfArray * 3) + 0] = d * cos(a1);
-				M4_vertices[(valueOfArray * 3) + 1] = d * sin(a1);
-				M4_vertices[(valueOfArray * 3) + 2] = thickness * sin(a2) + heightSpring * t / rounds;
+				M4_vertices[(valueOfArray * 3) + 0] = intermediateValueForXY * cos(uSpringValue);
+				M4_vertices[(valueOfArray * 3) + 1] = intermediateValueForXY * sin(uSpringValue);
+				M4_vertices[(valueOfArray * 3) + 2] = internalSpringRadius * sin(vSpringValue) + heightSpring * temp / rounds;
 				valueOfArray++;
 				firstIteration = false;
 			}
-			M4_vertices[(valueOfArray * 3) + 0] = d * cos(a1);
-			M4_vertices[(valueOfArray * 3) + 1] = d * sin(a1);
+			M4_vertices[(valueOfArray * 3) + 0] = intermediateValueForXY * cos(uSpringValue);
+			M4_vertices[(valueOfArray * 3) + 1] = intermediateValueForXY * sin(uSpringValue);
 			//Per una molla a foglio
 			//M4_vertices[(valueOfArray * 3) + 0] = cos(a1);
 			//M4_vertices[(valueOfArray * 3) + 1] = sin(a1);
-			M4_vertices[(valueOfArray * 3) + 2] = thickness * sin(a2) + heightSpring * t / rounds;
+			M4_vertices[(valueOfArray * 3) + 2] = internalSpringRadius * sin(vSpringValue) + heightSpring * temp / rounds;
 			valueOfArray++;
 		}
 	}
 
-	M4_vertices[(valueOfArray * 3) + 0] = d * cos(a1);
-	M4_vertices[(valueOfArray * 3) + 1] = d * sin(a1);
-	M4_vertices[(valueOfArray * 3) + 2] = thickness * sin(a2) + heightSpring * t / rounds;
+	M4_vertices[(valueOfArray * 3) + 0] = intermediateValueForXY * cos(uSpringValue);
+	M4_vertices[(valueOfArray * 3) + 1] = intermediateValueForXY * sin(uSpringValue);
+	M4_vertices[(valueOfArray * 3) + 2] = internalSpringRadius * sin(vSpringValue) + heightSpring * temp / rounds;
 
+	//First plain surface
 	for (int i = 1; i <= slices; ++i)
 	{
 		M4_indices[valueOfSecondArray] = i;
@@ -342,6 +343,7 @@ void makeModels() {
 		valueOfSecondArray++;
 	}
 
+	//First part of the spring
 	for (int i = 0; i < ((slices * ((rounds * 360 + step) + slices - step)) / step); ++i)
 	{
 		M4_indices[valueOfSecondArray] = i;
@@ -352,6 +354,7 @@ void makeModels() {
 		valueOfSecondArray++;
 	}
 
+	//Second part of the spring
 	for (int i = 0; i < ((slices * ((rounds * 360 + step) + slices - step)) / step); ++i)
 	{
 		M4_indices[valueOfSecondArray] = i + slices + 1;
@@ -366,7 +369,8 @@ void makeModels() {
 	//std::cout << "\n";
 	//std::cout << valueOfArray;
 	//std::cout << "\n";
-
+	
+	//Second plain surface
 	for (int i = 1; i <= slices; ++i)
 	{
 		M4_indices[valueOfSecondArray] = ((slices * (rounds * 360 + step + slices - 1)) / step) + i;
