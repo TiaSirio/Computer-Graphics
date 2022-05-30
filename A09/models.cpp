@@ -8,55 +8,55 @@ void makeModels() {
 	// Resizes the vertices array. Repalce the values with the correct number of
 	// vertices components (3 * number of vertices)
 
-	float size = 1.0f;
+	float sizeCube = 1.0f;
 
 	M1_vertices.resize(3 * 4 * 6);
 
-	// first vertex of M1
-	M1_vertices[0] = -size;
-	M1_vertices[1] = -size;
-	M1_vertices[2] = -size;
+	//First vertex of M1
+	M1_vertices[0] = -sizeCube;
+	M1_vertices[1] = -sizeCube;
+	M1_vertices[2] = -sizeCube;
 
-	// second vertex of M1
-	M1_vertices[3] = -size;
-	M1_vertices[4] = -size;
-	M1_vertices[5] = size;
+	//Second vertex of M1
+	M1_vertices[3] = -sizeCube;
+	M1_vertices[4] = -sizeCube;
+	M1_vertices[5] = sizeCube;
 
-	// third vertex of M1
-	M1_vertices[6] = -size;
-	M1_vertices[7] = size;
-	M1_vertices[8] = size;
+	//Third vertex of M1
+	M1_vertices[6] = -sizeCube;
+	M1_vertices[7] = sizeCube;
+	M1_vertices[8] = sizeCube;
 
-	// fourth vertex of M1
-	M1_vertices[9] = -size;
-	M1_vertices[10] = size;
-	M1_vertices[11] = -size;
+	//Fourth vertex of M1
+	M1_vertices[9] = -sizeCube;
+	M1_vertices[10] = sizeCube;
+	M1_vertices[11] = -sizeCube;
 
-	// fifth vertex of M1
-	M1_vertices[12] = size;
-	M1_vertices[13] = -size;
-	M1_vertices[14] = -size;
+	//Fifth vertex of M1
+	M1_vertices[12] = sizeCube;
+	M1_vertices[13] = -sizeCube;
+	M1_vertices[14] = -sizeCube;
 
-	// sixth vertex of M1
-	M1_vertices[15] = size;
-	M1_vertices[16] = -size;
-	M1_vertices[17] = size;
+	//Sixth vertex of M1
+	M1_vertices[15] = sizeCube;
+	M1_vertices[16] = -sizeCube;
+	M1_vertices[17] = sizeCube;
 
-	// seventh vertex of M1
-	M1_vertices[18] = size;
-	M1_vertices[19] = size;
-	M1_vertices[20] = size;
+	//Seventh vertex of M1
+	M1_vertices[18] = sizeCube;
+	M1_vertices[19] = sizeCube;
+	M1_vertices[20] = sizeCube;
 
-	// eigth vertex of M1
-	M1_vertices[21] = size;
-	M1_vertices[22] = size;
-	M1_vertices[23] = -size;
+	//Eigth vertex of M1
+	M1_vertices[21] = sizeCube;
+	M1_vertices[22] = sizeCube;
+	M1_vertices[23] = -sizeCube;
 
 	// Resizes the indices array. Repalce the values with the correct number of
 	// indices (3 * number of triangles)
 	M1_indices.resize(3 * 2 * 6);
 
-	// first square
+	//First square
 	M1_indices[0] = 0;
 	M1_indices[1] = 1;
 	M1_indices[2] = 2;
@@ -64,7 +64,7 @@ void makeModels() {
 	M1_indices[4] = 3;
 	M1_indices[5] = 0;
 
-	// second square
+	//Second square
 	M1_indices[6] = 0;
 	M1_indices[7] = 3;
 	M1_indices[8] = 4;
@@ -72,7 +72,7 @@ void makeModels() {
 	M1_indices[10] = 3;
 	M1_indices[11] = 7;
 
-	// third square
+	//Third square
 	M1_indices[12] = 5;
 	M1_indices[13] = 6;
 	M1_indices[14] = 7;
@@ -80,7 +80,7 @@ void makeModels() {
 	M1_indices[16] = 4;
 	M1_indices[17] = 5;
 
-	// fourth square
+	//Fourth square
 	M1_indices[18] = 1;
 	M1_indices[19] = 6;
 	M1_indices[20] = 5;
@@ -88,7 +88,7 @@ void makeModels() {
 	M1_indices[22] = 2;
 	M1_indices[23] = 6;
 
-	// fifth square
+	//Fifth square
 	M1_indices[24] = 7;
 	M1_indices[25] = 6;
 	M1_indices[26] = 2;
@@ -96,7 +96,7 @@ void makeModels() {
 	M1_indices[28] = 2;
 	M1_indices[29] = 7;
 
-	// sixth square
+	//Sixth square
 	M1_indices[30] = 4;
 	M1_indices[31] = 5;
 	M1_indices[32] = 0;
@@ -109,85 +109,91 @@ void makeModels() {
 	//// M2 : Cylinder
 	// Replace the code below, that creates a simple rotated square, with the one to create a cylinder.
 
-	// Resizes the vertices array. Repalce the values with the correct number of
+	// Resizes the vertices array. Replace the values with the correct number of
 	// vertices components (3 * number of vertices)
 
-	int NSlice = 108;//36;
-	float radius = 1;
-	float height = 1;
-	//Center
-	float cx = 0, cy = 0, cz = -2;
+	int slicesCylinder = 36;
+	float radiusCylinder = 1;
+	float heightCylinder = 1;
+	//Center of the cylinder
+	float xCylinder = 0, yCylinder = 0, zCylinder = -2;
 
-	M2_vertices.resize(2 * ((NSlice + 1) * 3));
+	M2_vertices.resize(2 * ((slicesCylinder + 1) * 3));
 
 	// Vertices definitions
-	M2_vertices[0] = cx;
-	M2_vertices[1] = cy + height;
-	M2_vertices[2] = cz;
+	M2_vertices[0] = xCylinder;
+	M2_vertices[1] = yCylinder + heightCylinder;
+	M2_vertices[2] = zCylinder;
 
-	for (int i = 0; i < NSlice; i++) {
-		M2_vertices[((i + 1) * 3) + 0] = cx + radius * cos(((float)i / NSlice) * (2.0 * M_PI)); //x of the vertex
-		M2_vertices[((i + 1) * 3) + 1] = cy + height; //y of the vertex
-		M2_vertices[((i + 1) * 3) + 2] = cz + radius * sin(((float)i / NSlice) * (2.0 * M_PI)); //z of the vertex
+	//Vertices of the upper surface
+	for (int i = 0; i < slicesCylinder; i++) {
+		M2_vertices[((i + 1) * 3) + 0] = xCylinder + radiusCylinder * cos(((float)i / slicesCylinder) * (2.0 * M_PI)); //x of the vertex
+		M2_vertices[((i + 1) * 3) + 1] = yCylinder + heightCylinder; //y of the vertex
+		M2_vertices[((i + 1) * 3) + 2] = zCylinder + radiusCylinder * sin(((float)i / slicesCylinder) * (2.0 * M_PI)); //z of the vertex
 	}
 
-	M2_vertices[((NSlice + 1) * 3) + 0] = cx;
-	M2_vertices[((NSlice + 1) * 3) + 1] = cy - height;
-	M2_vertices[((NSlice + 1) * 3) + 2] = cz;
+	M2_vertices[((slicesCylinder + 1) * 3) + 0] = xCylinder;
+	M2_vertices[((slicesCylinder + 1) * 3) + 1] = yCylinder - heightCylinder;
+	M2_vertices[((slicesCylinder + 1) * 3) + 2] = zCylinder;
 
-	for (int i = NSlice + 1; i < (2 * NSlice) + 1; i++) {
-		M2_vertices[((i + 1) * 3) + 0] = cx + radius * cos(((float)i / NSlice) * (2.0 * M_PI)); //x of the vertex
-		M2_vertices[((i + 1) * 3) + 1] = cy - height; //y of the vertex
-		M2_vertices[((i + 1) * 3) + 2] = cz + radius * sin(((float)i / NSlice) * (2.0 * M_PI)); //z of the vertex
+	//Vertices of the lower surface
+	for (int i = slicesCylinder + 1; i < (2 * slicesCylinder) + 1; i++) {
+		M2_vertices[((i + 1) * 3) + 0] = xCylinder + radiusCylinder * cos(((float)i / slicesCylinder) * (2.0 * M_PI)); //x of the vertex
+		M2_vertices[((i + 1) * 3) + 1] = yCylinder - heightCylinder; //y of the vertex
+		M2_vertices[((i + 1) * 3) + 2] = zCylinder + radiusCylinder * sin(((float)i / slicesCylinder) * (2.0 * M_PI)); //z of the vertex
 	}
 
 	// Resizes the indices array. Repalce the values with the correct number of
 	// indices (3 * number of triangles)
-	M2_indices.resize(3 * 2 * NSlice * 2);
+	M2_indices.resize(3 * 2 * slicesCylinder * 2);
 
 	int counter = 0;
 	int counter2 = 0;
 
-	for (int i = 0; i < NSlice; i++) {
+	//Upper surface
+	for (int i = 0; i < slicesCylinder; i++) {
 		M2_indices[(i * 3) + 0] = 0;
 		M2_indices[(i * 3) + 1] = i + 1;
-		M2_indices[(i * 3) + 2] = ((i + 1) % NSlice) + 1;
+		M2_indices[(i * 3) + 2] = ((i + 1) % slicesCylinder) + 1;
 	}
 
-	counter = NSlice + 1;
+	counter = slicesCylinder + 1;
 
-	for (int i = NSlice; i < 2 * NSlice; i++) {
-		M2_indices[(i * 3) + 0] = NSlice + 1;
+	//Lower surface
+	for (int i = slicesCylinder; i < 2 * slicesCylinder; i++) {
+		M2_indices[(i * 3) + 0] = slicesCylinder + 1;
 		M2_indices[(i * 3) + 1] = counter + 1;
-		if ((i + 1) == (2 * NSlice)) {
-			M2_indices[(i * 3) + 2] = ((counter + 1) % ((2 * NSlice) + 1)) + NSlice + 2;
+		if ((i + 1) == (2 * slicesCylinder)) {
+			M2_indices[(i * 3) + 2] = ((counter + 1) % ((2 * slicesCylinder) + 1)) + slicesCylinder + 2;
 		}
 		else {
-			M2_indices[(i * 3) + 2] = ((counter + 1) % ((2 * NSlice) + 1)) + 1;
+			M2_indices[(i * 3) + 2] = ((counter + 1) % ((2 * slicesCylinder) + 1)) + 1;
 		}
 		counter++;
 	}
 
 	counter = 0;
 
-	for (int i = 2 * NSlice; i < 3 * NSlice; i++) {
+	//Triangles of the cylinder
+	for (int i = 2 * slicesCylinder; i < 3 * slicesCylinder; i++) {
 		M2_indices[(i * 3) + 0] = counter + 1;
-		M2_indices[(i * 3) + 1] = ((counter + 1) % NSlice) + 1;
-		M2_indices[(i * 3) + 2] = (NSlice + 1) + counter + 1;
+		M2_indices[(i * 3) + 1] = ((counter + 1) % slicesCylinder) + 1;
+		M2_indices[(i * 3) + 2] = (slicesCylinder + 1) + counter + 1;
 		counter++;
 	}
 
-	counter = NSlice + 1;
+	counter = slicesCylinder + 1;
 
-	for (int i = 3 * NSlice; i < 4 * NSlice; i++) {
+	//Triangles of the cylinder
+	for (int i = 3 * slicesCylinder; i < 4 * slicesCylinder; i++) {
 		M2_indices[(i * 3) + 0] = counter + 1;
-		if ((i + 1) == (4 * NSlice)) {
-			M2_indices[(i * 3) + 1] = ((counter + 1) % ((2 * NSlice) + 1)) + NSlice + 2;
+		if ((i + 1) == (4 * slicesCylinder)) {
+			M2_indices[(i * 3) + 1] = ((counter + 1) % ((2 * slicesCylinder) + 1)) + slicesCylinder + 2;
 		}
 		else {
-			M2_indices[(i * 3) + 1] = ((counter + 1) % ((2 * NSlice) + 1)) + 1;
+			M2_indices[(i * 3) + 1] = ((counter + 1) % ((2 * slicesCylinder) + 1)) + 1;
 		}
-		M2_indices[(i * 3) + 2] = ((counter2 + 1) % NSlice) + 1;
+		M2_indices[(i * 3) + 2] = ((counter2 + 1) % slicesCylinder) + 1;
 		counter2++;
 		counter++;
 	}
@@ -197,34 +203,39 @@ void makeModels() {
 
 	//// M3 : Sphere
 	// Replace the code below, that creates a simple triangle, with the one to create a sphere.
-	float xCircle, yCircle, zCircle, xyCircle;
+	float xCircle, yCircle, zCircle, xAndyCircle;
 	float radiusCircle = 2.0f;
-	float stackCount = 48.0f;//24.0f;
-	float sectorCount = 144.0f;//72.0f;
-	float sectorStep = 2 * M_PI / sectorCount;
-	float stackStep = M_PI / stackCount;
-	float sectorAngle, stackAngle;
+	float stackCountCircle = 24.0f;
+	float sectorCountCircle = 72.0f;
+	float sectorStepCircle = 2 * M_PI / sectorCountCircle;
+	float stackStepCircle = M_PI / stackCountCircle;
+	float sectorAngleCircle, stackAngleCircle;
 	int valueOfArrayCircle = 0;
 	int valueOfSecondArrayCircle = 0;
-	int k1Circle, k2Circle;
+	int currentStackCircle, nextStackCircle;
 
-	M3_vertices.resize(3 * stackCount * sectorCount * 2);
+	M3_vertices.resize(3 * stackCountCircle * sectorCountCircle * 2);
 
-	for (int i = 0; i <= stackCount; ++i)
+	for (int i = 0; i <= stackCountCircle; ++i)
 	{
-		stackAngle = M_PI / 2 - i * stackStep;        // starting from pi/2 to -pi/2
-		xyCircle = radiusCircle * cos(stackAngle);             // r * cos(u)
-		zCircle = radiusCircle * sin(stackAngle);              // r * sin(u)
+		//Starting from pi/2 to -pi/2
+		stackAngleCircle = M_PI / 2 - i * stackStepCircle;
+		//r * cos(theta)
+		xAndyCircle = radiusCircle * cos(stackAngleCircle);
+		//r * sin(theta)
+		zCircle = radiusCircle * sin(stackAngleCircle);
 
-		// add (sectorCount+1) vertices per stack
-		// the first and last vertices have same position and normal, but different tex coords
-		for (int j = 0; j <= sectorCount; ++j)
+		//Add (sectorCount + 1) vertices per stack
+		//First and last vertices have the same position
+		for (int j = 0; j <= sectorCountCircle; ++j)
 		{
-			sectorAngle = j * sectorStep;           // starting from 0 to 2pi
+			// starting from 0 to 2pi
+			sectorAngleCircle = j * sectorStepCircle;
 
-			// vertex position (x, y, z)
-			xCircle = xyCircle * cos(sectorAngle);             // r * cos(u) * cos(v)
-			yCircle = xyCircle * sin(sectorAngle);             // r * cos(u) * sin(v)
+			//r * cos(theta) * cos(phi)
+			xCircle = xAndyCircle * cos(sectorAngleCircle);
+			//r * cos(theta) * sin(phi)
+			yCircle = xAndyCircle * sin(sectorAngleCircle);
 			M3_vertices[(valueOfArrayCircle * 3) + 0] = xCircle;
 			M3_vertices[(valueOfArrayCircle * 3) + 1] = yCircle;
 			M3_vertices[(valueOfArrayCircle * 3) + 2] = zCircle;
@@ -232,34 +243,34 @@ void makeModels() {
 		}
 	}
 
-	M3_indices.resize(3 * stackCount * 2 * sectorCount);
+	M3_indices.resize(3 * stackCountCircle * 2 * sectorCountCircle);
 
-	for (int i = 0; i < stackCount; ++i)
+	for (int i = 0; i < stackCountCircle; ++i)
 	{
-		k1Circle = i * (sectorCount + 1);     // beginning of current stack
-		k2Circle = k1Circle + sectorCount + 1;      // beginning of next stack
-		for (int j = 0; j < sectorCount; ++j, ++k1Circle, ++k2Circle)
+		//Beginning of current stack
+		currentStackCircle = i * (sectorCountCircle + 1);
+		//Beginning of next stack
+		nextStackCircle = currentStackCircle + sectorCountCircle + 1;      
+		for (int j = 0; j < sectorCountCircle; ++j, ++currentStackCircle, ++nextStackCircle)
 		{
-			// 2 triangles per sector excluding first and last stacks
-			// k1 => k2 => k1+1
+			//Two triangles per sector excluding first and last stacks
 			if (i != 0)
 			{
-				M3_indices[valueOfSecondArrayCircle] = k1Circle;
+				M3_indices[valueOfSecondArrayCircle] = currentStackCircle;
 				valueOfSecondArrayCircle++;
-				M3_indices[valueOfSecondArrayCircle] = k2Circle;
+				M3_indices[valueOfSecondArrayCircle] = nextStackCircle;
 				valueOfSecondArrayCircle++;
-				M3_indices[valueOfSecondArrayCircle] = k1Circle + 1;
+				M3_indices[valueOfSecondArrayCircle] = currentStackCircle + 1;
 				valueOfSecondArrayCircle++;
 			}
 
-			// k1+1 => k2 => k2+1
-			if (i != (stackCount - 1))
+			if (i != (stackCountCircle - 1))
 			{
-				M3_indices[valueOfSecondArrayCircle] = k1Circle + 1;
+				M3_indices[valueOfSecondArrayCircle] = currentStackCircle + 1;
 				valueOfSecondArrayCircle++;
-				M3_indices[valueOfSecondArrayCircle] = k2Circle;
+				M3_indices[valueOfSecondArrayCircle] = nextStackCircle;
 				valueOfSecondArrayCircle++;
-				M3_indices[valueOfSecondArrayCircle] = k2Circle + 1;
+				M3_indices[valueOfSecondArrayCircle] = nextStackCircle + 1;
 				valueOfSecondArrayCircle++;
 			}
 		}
@@ -268,7 +279,7 @@ void makeModels() {
 
 	//// M4 : Spring
 	// Replace the code below, that creates a simple octahedron, with the one to create a spring.
-	const int slices = 64;//32;
+	const int slices = 64;
 	const int step = 3;
 	float internalSpringRadius = 0.24f;
 	float rounds = 3.0f;
@@ -291,26 +302,14 @@ void makeModels() {
 		for (int j = 0; j < slices; j++)
 		{
 			temp = float(i) / 360 + float(j) / slices * step / 360;
-			if (float(rounds) <= temp) {
-				if (float(rounds) >= 0.0f) {
-					temp = float(rounds);
-				}
-				else {
-					temp = 0.0f;
-				}
-			}
-			else {
-				if (temp >= 0.0f) {
-					temp = temp;
-				}
-				else {
-					temp = 0.0f;
-				}
-			}
-			//t = max_value(0.0f, min_value(float(rounds), t));
+			temp = glm::max(0.0f, glm::min(float(rounds), temp));
+			//u in [0, 2*n*pi)
 			uSpringValue = temp * M_PI * 2;
+			//v in [0, 2*pi)
 			vSpringValue = float(j) / slices * M_PI * 2;
+			//Intermediate value = R + (r * cos(v))
 			intermediateValueForXY = totalSpringRadius + internalSpringRadius * cos(vSpringValue);
+			//First done to iterate in order to create the first plain surface
 			if (firstIteration) {
 				M4_vertices[(valueOfArray * 3) + 0] = intermediateValueForXY * cos(uSpringValue);
 				M4_vertices[(valueOfArray * 3) + 1] = intermediateValueForXY * sin(uSpringValue);
@@ -318,16 +317,22 @@ void makeModels() {
 				valueOfArray++;
 				firstIteration = false;
 			}
+			//x(u,v) = (R + (r * cos(v))) * cos(u)
 			M4_vertices[(valueOfArray * 3) + 0] = intermediateValueForXY * cos(uSpringValue);
+			//y(u,v) = (R + (r * cos(v))) * sin(u)
 			M4_vertices[(valueOfArray * 3) + 1] = intermediateValueForXY * sin(uSpringValue);
+			
 			//Per una molla a foglio
 			//M4_vertices[(valueOfArray * 3) + 0] = cos(a1);
 			//M4_vertices[(valueOfArray * 3) + 1] = sin(a1);
+
+			//z(u,v) = (r * sin(v)) + (h * temp)/rounds
 			M4_vertices[(valueOfArray * 3) + 2] = internalSpringRadius * sin(vSpringValue) + heightSpring * temp / rounds;
 			valueOfArray++;
 		}
 	}
 
+	//Last done to iterate in order to create the second plain surface
 	M4_vertices[(valueOfArray * 3) + 0] = intermediateValueForXY * cos(uSpringValue);
 	M4_vertices[(valueOfArray * 3) + 1] = intermediateValueForXY * sin(uSpringValue);
 	M4_vertices[(valueOfArray * 3) + 2] = internalSpringRadius * sin(vSpringValue) + heightSpring * temp / rounds;
@@ -364,11 +369,6 @@ void makeModels() {
 		M4_indices[valueOfSecondArray] = i + 1;
 		valueOfSecondArray++;
 	}
-
-	//std::cout << ((slices * (rounds * 360 + step + slices - 1)) / step) + slices + 1;
-	//std::cout << "\n";
-	//std::cout << valueOfArray;
-	//std::cout << "\n";
 	
 	//Second plain surface
 	for (int i = 1; i <= slices; ++i)
