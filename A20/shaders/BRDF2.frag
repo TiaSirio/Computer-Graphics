@@ -1,4 +1,5 @@
 #version 450
+#extension GL_ARB_separate_shader_objects : enable
 
 layout(set = 0, binding = 1) uniform sampler2D texSampler;
 
@@ -39,14 +40,21 @@ void main() {
 	vec3 norm = normalize(fragNorm);
 	vec3 eyeDir = normalize(gubo.eyePos.xyz - fragPos);
 	
+	const vec3 diffColor = texture(texSampler, fragTexCoord).rgb;
+	const vec3 specColor = texture(texel, fragTexCoord).rgb;
+	const float refExponent = texture(texel, fragTexCoord).a;
+	//vec3 view = normalize(fragPos);
+	
 	vec3 lightDirection = direct_light_dir(fragPos);
 	vec3 lightColor = direct_light_color(fragPos);
 	
-	vec3 ambient = lightDirection * lightColor;
-	vec3 blinn = blinn_specular(norm, lightDirection, eyeDir, texel.rgb, 200.0f * texel.a);
+	vec3 ambient = diffColor * vec3(1.0f);
+	vec3 blinn = blinn_specular(norm, lightDirection, eyeDir, specColor, 200.0f * refExponent);
 	
-	//vec3 blinn = blinn_specular(norm, lightDirection, eyeDir, lightColor, 200.0f * texel.a);
-	//vec3(pow(max(dot(eyeDir, -reflect(lightDirection, norm)),0.0f), 200.0f * texel.a));
+	outColor = vec4((ambient + blinn) * lightColor, 1.0f);
 	
-	outColor = vec4((ambient + blinn), 1.0f);
+	//vec3 ambient = diffColor * lightDirection;
+	//vec3 blinn = blinn_specular(norm, lightDirection, view, specColor, 200.0f * refExponent);
+	
+	//outColor = vec4((ambient + blinn), 1.0f);
 }

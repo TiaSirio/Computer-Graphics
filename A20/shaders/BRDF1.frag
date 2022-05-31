@@ -1,4 +1,5 @@
 #version 450
+#extension GL_ARB_separate_shader_objects : enable
 
 layout(set = 0, binding = 1) uniform sampler2D texSampler;
 
@@ -25,10 +26,10 @@ vec3 spot_light_dir(vec3 pos) {
 
 vec3 spot_light_color(vec3 pos) {
 	// Spot light color
-	float g = lightParams.w;
-	float beta = lightParams.z;
-	float cosOut = lightParams.y;
-	float cosIn = lightParams.x;
+	float g = gubo.lightParams.w;
+	float beta = gubo.lightParams.z;
+	float cosOut = gubo.lightParams.y;
+	float cosIn = gubo.lightParams.x;
 
 	return (gubo.lightColor * pow(g/(length(gubo.lightPos - pos)), beta)) *
 	clamp((dot(normalize(gubo.lightPos - pos), gubo.lightDir) - cosOut)/(cosIn - cosOut), 0, 1);
@@ -42,11 +43,22 @@ void main() {
 	vec3 norm = normalize(fragNorm);
 	vec3 eyeDir = normalize(gubo.eyePos.xyz - fragPos);
 	
+	const vec3 diffColor = texture(texSampler, fragTexCoord).rgb;
+	const vec3 specColor = texture(texel, fragTexCoord).rgb;
+	const float refExponent = texture(texel, fragTexCoord).a;
+	
 	vec3 lightDirection = spot_light_dir(fragPos);
 	vec3 lightColor = spot_light_color(fragPos);
 	
-	vec3 lambert = lambert_diffuse(lightDirection, norm, lightColor);
-	vec3 phong = vec3(texel.rgb * pow(max(dot(eyeDir, -reflect(lightDirection, norm)),0.0f), 200.0f * texel.a));
+	vec3 lambert = lambert_diffuse(lightDirection, norm, diffColor);
+	vec3 phong = specColor * pow(max(dot(eyeDir, -reflect(lightDirection, norm)),0.0f), 200.0f * refExponent);
+		
+	outColor = vec4((lambert + phong) * lightColor, 1.0f);
 	
-	outColor = vec4((lambert + phong), 1.0f);
+	//vec3 lambert = diffColor * lambert_diffuse(lightDirection, norm, lightColor);
+	
+	//vec3 lambert = lambert_diffuse(lightDirection, norm, lightColor);
+	//vec3 phong = vec3(texel.rgb * pow(max(dot(eyeDir, -reflect(lightDirection, norm)),0.0f), 200.0f * texel.a));
+	
+	//outColor = vec4((lambert + phong), 1.0f);
 }
