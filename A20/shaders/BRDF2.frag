@@ -43,7 +43,6 @@ void main() {
 	const vec3 diffColor = texture(texSampler, fragTexCoord).rgb;
 	const vec3 specColor = texture(texel, fragTexCoord).rgb;
 	const float refExponent = texture(texel, fragTexCoord).a;
-	//vec3 view = normalize(fragPos);
 	
 	vec3 lightDirection = direct_light_dir(fragPos);
 	vec3 lightColor = direct_light_color(fragPos);
@@ -52,9 +51,4 @@ void main() {
 	vec3 blinn = blinn_specular(norm, lightDirection, eyeDir, specColor, 200.0f * refExponent);
 	
 	outColor = vec4((ambient + blinn) * lightColor, 1.0f);
-	
-	//vec3 ambient = diffColor * lightDirection;
-	//vec3 blinn = blinn_specular(norm, lightDirection, view, specColor, 200.0f * refExponent);
-	
-	//outColor = vec4((ambient + blinn), 1.0f);
 }

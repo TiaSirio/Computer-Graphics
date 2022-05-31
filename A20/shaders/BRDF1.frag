@@ -54,11 +54,4 @@ void main() {
 	vec3 phong = specColor * pow(max(dot(eyeDir, -reflect(lightDirection, norm)),0.0f), 200.0f * refExponent);
 		
 	outColor = vec4((lambert + phong) * lightColor, 1.0f);
-	
-	//vec3 lambert = diffColor * lambert_diffuse(lightDirection, norm, lightColor);
-	
-	//vec3 lambert = lambert_diffuse(lightDirection, norm, lightColor);
-	//vec3 phong = vec3(texel.rgb * pow(max(dot(eyeDir, -reflect(lightDirection, norm)),0.0f), 200.0f * texel.a));
-	
-	//outColor = vec4((lambert + phong), 1.0f);
 }
