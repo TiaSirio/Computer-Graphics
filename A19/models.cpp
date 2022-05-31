@@ -17,7 +17,7 @@ void makeModels() {
 	int arrayOfNormCube = 0;
 	int startingOfNormCube = 0;
 	float sizeCube = 2.0f;
-	M1_vertices.resize(3 * 4 * 6 * 3 * 100);
+	M1_vertices.resize(3 * 4 * 6);
 
 	// Resizes the vertices array. Repalce the values with the correct number of
 	// vertices
@@ -135,7 +135,7 @@ void makeModels() {
 	int indicesCube = 0;
 	int valueOfCubeIndices = 0;
 	int startingOfFace = 0;
-	M1_indices.resize(3 * 2 * 6 * 3 * 100);
+	M1_indices.resize(3 * 2 * 6);
 
 	for (int i = 0; i < 6; i++) {
 		startingOfFace = indicesCube;

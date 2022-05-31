@@ -15,7 +15,6 @@ glm::vec3 surface_normal(glm::vec3 vector0, glm::vec3 vector1, glm::vec3 vector2
 	glm::vec3 v1 = vector1 - vector0;
 	glm::vec3 v2 = vector2 - vector0;
 	glm::vec3 surfNormal = normalize(cross(v1, v2));
-	//surfNormal *= glm::sign(glm::dot(surfNormal, vertexN[0] + vertexN[1] + vertexN[2]));
 	return surfNormal;
 }
 
@@ -27,7 +26,7 @@ void makeModels() {
 	int arrayOfCube = 0;
 	int arrayOfNormCube = 0;
 	int startingOfNormCube = 0;
-	M1_vertices.resize(3 * 4 * 6 * 3 * 100);
+	M1_vertices.resize(3 * 4 * 6);
 
 	// Resizes the vertices array. Repalce the values with the correct number of
 	// vertices
@@ -145,7 +144,8 @@ void makeModels() {
 	int indicesCube = 0;
 	int valueOfCubeIndices = 0;
 	int startingOfFace = 0;
-	M1_indices.resize(3 * 2 * 6 * 3 * 100);
+	//Two triangles per face
+	M1_indices.resize(3 * 2 * 6);
 
 	for (int i = 0; i < 6; i++) {
 		startingOfFace = indicesCube;
@@ -455,8 +455,10 @@ void makeModels() {
 	float intermediateValueForXY = 0.0f;
 	int valueToStoreForSecondsurface;
 
-	M4_vertices.resize(3 * slicesSpring * (roundsSpring * 360 + stepSpring + 2) * 3);
-	M4_indices.resize(2 * 3 * ((slicesSpring * (roundsSpring * 360 + stepSpring + slicesSpring)) / stepSpring) * slicesSpring * 3);
+	//Add two comodity vertices + vertices for the spring + different vertices for the two plain surfaces (done to have different normal vectors)
+	M4_vertices.resize(3 * ((slicesSpring * (roundsSpring * 360 + stepSpring + slicesSpring))) + (3 * 2) + (3 * 2 * (slicesSpring + 1)));
+	//Indices for double spring rotation and for double plain surface
+	M4_indices.resize(2 * 3 * ((slicesSpring * ((roundsSpring * 360 + stepSpring + 1) + slicesSpring + 1)) / stepSpring) + (3 * 2 * (slicesSpring + 1)));
 
 	for (int i = -slicesSpring; i <= roundsSpring * 360 + stepSpring; i += stepSpring)
 	{
