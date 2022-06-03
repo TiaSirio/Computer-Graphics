@@ -295,7 +295,7 @@ void makeModels() {
 	float intermediateValueForXY = 0.0f;
 
 	//Add two comodity vertices
-	M4_vertices.resize(3 * ((slices * (rounds * 360 + step)) + 2));
+	M4_vertices.resize(3 * (slices * (rounds * 360 + step)) + 3 * 2);
 	//Indices for double spring rotation and for double plain surface
 	M4_indices.resize((2 * 3 * ((slices * (rounds * 360 + step + slices)) / step)) + 2 * 3 * slices);
 

@@ -3047,14 +3047,6 @@ private:
         glfwTerminate();
     }
 
-
-
-
-
-
-
-//// To put in the right place
-
 };
 
 int main() {

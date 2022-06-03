@@ -582,45 +582,13 @@ void makeModels() {
 		secondNormalVector = M4_vertices[valueSpring2].pos;
 		thirdNormalVector = M4_vertices[valueSpring3].pos;
 
-		//M4_vertices[valueSpring1].norm = glm::vec3(0.0f, 1.0f, 0.0f);
-		//M4_vertices[valueSpring2].norm = glm::vec3(0.0f, 1.0f, 0.0f);
-		//M4_vertices[valueSpring3].norm = glm::vec3(0.0f, 1.0f, 0.0f);
 		M4_vertices[valueSpring1].norm = surface_normal(firstNormalVector, secondNormalVector, thirdNormalVector);
 		M4_vertices[valueSpring2].norm = surface_normal(secondNormalVector, thirdNormalVector, firstNormalVector);
 		M4_vertices[valueSpring3].norm = surface_normal(thirdNormalVector, firstNormalVector, secondNormalVector);
 	}
 
-
-
 	//First part of the spring
-	//for (int i = 0; i < ((slices * ((rounds * 360 + step) + slices - 1)) / step) + 1; i++)
-	for (int i = 0; i < ((slicesSpring * ((roundsSpring * 360 + stepSpring) + slicesSpring - 1)) / stepSpring) + 1; i++)
-	{
-		//Take two value in the actual turn
-		M4_indices[valueOfSecondArraySpring] = i;
-		valueOfSecondArraySpring++;
-		//And one after a full turn
-		M4_indices[valueOfSecondArraySpring] = i + slicesSpring;
-		valueOfSecondArraySpring++;
-		M4_indices[valueOfSecondArraySpring] = i + 1;
-		valueOfSecondArraySpring++;
-
-		valueSpring1 = i;
-		valueSpring2 = i + slicesSpring;
-		valueSpring3 = i + 1;
-
-		firstNormalVector = M4_vertices[valueSpring1].pos;
-		secondNormalVector = M4_vertices[valueSpring2].pos;
-		thirdNormalVector = M4_vertices[valueSpring3].pos;
-
-		M4_vertices[valueSpring1].norm = -surface_normal(firstNormalVector, secondNormalVector, thirdNormalVector);
-		M4_vertices[valueSpring2].norm = -surface_normal(secondNormalVector, thirdNormalVector, firstNormalVector);
-		M4_vertices[valueSpring3].norm = -surface_normal(thirdNormalVector, firstNormalVector, secondNormalVector);
-	}
-
-	//Second part of the spring
-	//for (int i = 0; i < ((slices * ((rounds * 360 + step) + slices - 1)) / step); i++)
-	for (int i = 0; i < ((slicesSpring * ((roundsSpring * 360 + stepSpring) + slicesSpring - 1)) / stepSpring); i++)
+	for (int i = 0; i <= ((slicesSpring * ((roundsSpring * 360 + stepSpring) + slicesSpring - 1)) / stepSpring); i++)
 	{
 		//Take two value after a full turn
 		M4_indices[valueOfSecondArraySpring] = i + slicesSpring + 1;
@@ -639,9 +607,59 @@ void makeModels() {
 		secondNormalVector = M4_vertices[valueSpring2].pos;
 		thirdNormalVector = M4_vertices[valueSpring3].pos;
 
-		M4_vertices[valueSpring1].norm = -surface_normal(firstNormalVector, secondNormalVector, thirdNormalVector);
-		M4_vertices[valueSpring2].norm = -surface_normal(secondNormalVector, thirdNormalVector, firstNormalVector);
-		M4_vertices[valueSpring3].norm = -surface_normal(thirdNormalVector, firstNormalVector, secondNormalVector);
+		M4_vertices[valueSpring1].norm = surface_normal(firstNormalVector, secondNormalVector, thirdNormalVector);
+		M4_vertices[valueSpring2].norm = surface_normal(secondNormalVector, thirdNormalVector, firstNormalVector);
+		M4_vertices[valueSpring3].norm = surface_normal(thirdNormalVector, firstNormalVector, secondNormalVector);
+	}
+
+	//Second part of the spring
+	for (int i = 0; i <= ((slicesSpring * ((roundsSpring * 360 + stepSpring) + slicesSpring - 1)) / stepSpring); i++)
+	{
+		//For the last value i take the norm correspondent to slicesSpring precedent
+		if (i == ((slicesSpring * ((roundsSpring * 360 + stepSpring) + slicesSpring - 1)) / stepSpring)) {
+			//Take two value in the actual turn
+			M4_indices[valueOfSecondArraySpring] = i;
+			valueOfSecondArraySpring++;
+			//And one after a full turn
+			M4_indices[valueOfSecondArraySpring] = i + slicesSpring;
+			valueOfSecondArraySpring++;
+			M4_indices[valueOfSecondArraySpring] = i + 1;
+			valueOfSecondArraySpring++;
+
+			valueSpring1 = i;
+			valueSpring2 = i + slicesSpring;
+			valueSpring3 = i + 1;
+
+			firstNormalVector = M4_vertices[valueSpring1].pos;
+			secondNormalVector = M4_vertices[valueSpring2].pos;
+			thirdNormalVector = M4_vertices[valueSpring3].pos;
+
+			M4_vertices[valueSpring1].norm = surface_normal(firstNormalVector, secondNormalVector, thirdNormalVector);
+			M4_vertices[valueSpring2].norm = surface_normal(secondNormalVector, thirdNormalVector, firstNormalVector);
+			M4_vertices[valueSpring3].norm = M4_vertices[valueSpring3 - slicesSpring].norm;
+		}
+		else {
+			//Take two value in the actual turn
+			M4_indices[valueOfSecondArraySpring] = i;
+			valueOfSecondArraySpring++;
+			//And one after a full turn
+			M4_indices[valueOfSecondArraySpring] = i + slicesSpring;
+			valueOfSecondArraySpring++;
+			M4_indices[valueOfSecondArraySpring] = i + 1;
+			valueOfSecondArraySpring++;
+
+			valueSpring1 = i;
+			valueSpring2 = i + slicesSpring;
+			valueSpring3 = i + 1;
+
+			firstNormalVector = M4_vertices[valueSpring1].pos;
+			secondNormalVector = M4_vertices[valueSpring2].pos;
+			thirdNormalVector = M4_vertices[valueSpring3].pos;
+
+			M4_vertices[valueSpring1].norm = surface_normal(firstNormalVector, secondNormalVector, thirdNormalVector);
+			M4_vertices[valueSpring2].norm = surface_normal(secondNormalVector, thirdNormalVector, firstNormalVector);
+			M4_vertices[valueSpring3].norm = surface_normal(thirdNormalVector, firstNormalVector, secondNormalVector);
+		}
 	}
 }
 	
