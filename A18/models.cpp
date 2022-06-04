@@ -588,6 +588,7 @@ void makeModels() {
 	}
 
 	//First part of the spring
+	//for (int i = 0; i <= ((slicesSpring * ((roundsSpring * 360 + stepSpring) + slicesSpring - stepSpring + 1)) / stepSpring); i++)
 	for (int i = 0; i <= ((slicesSpring * ((roundsSpring * 360 + stepSpring) + slicesSpring - 1)) / stepSpring); i++)
 	{
 		//Take two value after a full turn
@@ -613,6 +614,7 @@ void makeModels() {
 	}
 
 	//Second part of the spring
+	//for (int i = 0; i <= ((slicesSpring * ((roundsSpring * 360 + stepSpring) + slicesSpring - stepSpring + 1)) / stepSpring); i++)
 	for (int i = 0; i <= ((slicesSpring * ((roundsSpring * 360 + stepSpring) + slicesSpring - 1)) / stepSpring); i++)
 	{
 		//For the last value i take the norm correspondent to slicesSpring precedent
