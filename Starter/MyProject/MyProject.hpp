@@ -1555,6 +1555,7 @@ void Model::loadModel(std::string file) {
 }
 
 // Lesson 21
+//Implemented staging buffer
 void Model::createVertexBuffer() {
 	VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
 	
@@ -1591,6 +1592,7 @@ void Model::createVertexBuffer() {
 	vkUnmapMemory(BP->device, vertexBufferMemory);*/			
 }
 
+//Implemented staging buffer
 void Model::createIndexBuffer() {
 	VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
 
