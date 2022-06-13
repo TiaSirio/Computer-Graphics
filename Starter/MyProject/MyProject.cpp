@@ -31,9 +31,9 @@ class MyProject : public BaseProject {
 	
 	// Here you set the main application parameters
 	void setWindowParameters() {
-		// window size, titile and initial background
-		windowWidth = 800;
-		windowHeight = 600;
+		// window size, title and initial background
+		windowWidth = 800;//1920;
+		windowHeight = 600;//1080;
 		windowTitle = "My Project";
 		initialBackgroundColor = {0.0f, 0.0f, 0.0f, 1.0f};
 		
@@ -66,7 +66,7 @@ class MyProject : public BaseProject {
 		DS1.init(this, &DSL1, {
 		// the second parameter, is a pointer to the Uniform Set Layout of this set
 		// the last parameter is an array, with one element per binding of the set.
-		// first  elmenet : the binding number
+		// first  element : the binding number
 		// second element : UNIFORM or TEXTURE (an enum) depending on the type
 		// third  element : only for UNIFORMs, the size of the corresponding C++ object
 		// fourth element : only for TEXTUREs, the pointer to the corresponding texture object
@@ -74,6 +74,18 @@ class MyProject : public BaseProject {
 					{1, TEXTURE, 0, &T1}
 				});
 	}
+
+	/*void localPipelineInit() {
+		DSL1.init(this, {
+			// this array contains the binding:
+			// first  element : the binding number
+			// second element : the time of element (buffer or texture)
+			// third  element : the pipeline stage where it will be used
+			{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT},
+			{1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}
+			});
+		P1.init(this, "shaders/vert.spv", "shaders/frag.spv", { &DSL1 });
+	}*/
 
 	// Here you destroy all the objects you created!		
 	void localCleanup() {
@@ -83,6 +95,11 @@ class MyProject : public BaseProject {
 		P1.cleanup();
 		DSL1.cleanup();
 	}
+
+	/*void localPipelineCleanup() {
+		P1.cleanup();
+		DSL1.cleanup();
+	}*/
 	
 	// Here it is the creation of the command buffer:
 	// You send to the GPU all the objects you want to draw,
