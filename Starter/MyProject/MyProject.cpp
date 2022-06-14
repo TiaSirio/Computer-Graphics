@@ -75,17 +75,10 @@ class MyProject : public BaseProject {
 				});
 	}
 
-	/*void localPipelineInit() {
-		DSL1.init(this, {
-			// this array contains the binding:
-			// first  element : the binding number
-			// second element : the time of element (buffer or texture)
-			// third  element : the pipeline stage where it will be used
-			{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT},
-			{1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}
-			});
+	void localPipelineInit() {
+		//Here init all the pipelines.
 		P1.init(this, "shaders/vert.spv", "shaders/frag.spv", { &DSL1 });
-	}*/
+	}
 
 	// Here you destroy all the objects you created!		
 	void localCleanup() {
@@ -96,10 +89,10 @@ class MyProject : public BaseProject {
 		DSL1.cleanup();
 	}
 
-	/*void localPipelineCleanup() {
+	void localPipelineCleanup() {
+		//Here clean all the pipelines.
 		P1.cleanup();
-		DSL1.cleanup();
-	}*/
+	}
 	
 	// Here it is the creation of the command buffer:
 	// You send to the GPU all the objects you want to draw,
