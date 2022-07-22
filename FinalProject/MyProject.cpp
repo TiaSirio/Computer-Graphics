@@ -136,49 +136,103 @@ static float lookYaw = 0.0f;
 static float lookPitch = 0.0f;
 static float lookRoll = 0.0f;
 
-std::vector<int> doorOpenOrNot = { 1,1,1,1,1 };
+std::vector<int> doorOpenOrNot = { 0,0,0,0,0 };
 std::vector<int> leverUsedOrNot = { 0,0,0 };
+std::vector<int> keyTakenOrNot = { 0,0 };
 
 bool win = false;
 
-int checkCorrectDoor(float x, float y) {
-	int pixDoorX = round(x);
-	int pixDoorY = round(y);
+int checkCorrectDoor(float x, float y, int pixDoorX, int pixDoorY) {
 	if (pixDoorX == 4 && pixDoorY == 3) {
+		//Lever door - third lever
 		return doorOpenOrNot[0];
 	}
 	else if (pixDoorX == 7 && pixDoorY == 8) {
+		//Copper key (last door)
 		return doorOpenOrNot[1];
 	}
 	else if (pixDoorX == 9 && pixDoorY == 3) {
+		//Lever door - second lever
 		return doorOpenOrNot[2];
 	}
 	else if (pixDoorX == 4 && pixDoorY == -2) {
+		//Lever door - first lever (first door)
 		return doorOpenOrNot[3];
 	} else {
+		//Gold key door
 		return doorOpenOrNot[4];
 	}
+	//x = 12; y = 4
 }
 
 stbi_uc* map;
 int mapWidth, mapHeight;
 bool canStepPoint(float x, float y) {
 	int correctDoor;
+	//Posso usare anche ceil() e floor()
+	int roundX = round(x);
+	int roundY = round(y);
 	int pixX = round(fmax(0.0f, fmin(mapWidth - 1, (x + 16.9) * mapWidth / 33.8)));
 	int pixY = round(fmax(0.0f, fmin(mapHeight - 1, (y + 16.9) * mapHeight / 33.8)));
 	int pix = (int)map[mapWidth * pixY + pixX];
 	//std::cout << pixX << " " << pixY << " " << x << " " << y << " \t P = " << pix << "\n";
+	float goldKeyX = round(x * 10.0) / 10.0;
+	float goldKeyY = round(y * 10.0) / 10.0;
+	if (goldKeyX == 10 && goldKeyY == -8 && keyTakenOrNot[0] == 0) {
+		//GoldKey
+		keyTakenOrNot[0] = 1;
+	}
+	//float keyHoleGoldX = round(x * 10.0) / 10.0;
+	//float keyHoleGoldY = round(y * 10.0) / 10.0;
+	if (roundX == 12 && roundY == 4 && keyTakenOrNot[0] == 1) {
+		//GoldKey
+		doorOpenOrNot[4] = 1;
+	}
+	float copperKeyX = round(x * 10.0) / 10.0;
+	float copperKeyY = round(y * 10.0) / 10.0;
+	if (copperKeyX == 15 && copperKeyY == 3 && keyTakenOrNot[1] == 0) {
+		//CopperKey
+		keyTakenOrNot[1] = 1;
+	}
+	//float keyHoleCopperX = round(x * 10.0) / 10.0;
+	//float keyHoleCopperY = round(y * 10.0) / 10.0;
+	if (roundX == 7 && roundY == 8 && keyTakenOrNot[1] == 1 && doorOpenOrNot[1] == 0) {
+		//GoldKey
+		doorOpenOrNot[1] = 1;
+	}
+	//float firstLeverX = round(x * 10.0) / 10.0;
+	//float firstLeverY = round(y * 10.0) / 10.0;
+	//x = 3.3, y = 1.5
+	if (roundX == 3 && roundY == -1 && leverUsedOrNot[2] == 0 && doorOpenOrNot[3] == 0) {
+		//First lever
+		doorOpenOrNot[3] = 1;
+		leverUsedOrNot[2] = 1;
+	}
+	//float secondLeverX = round(x * 10.0) / 10.0;
+	//float secondLeverY = round(y * 10.0) / 10.0;
+	//x = 8.3, y = 3.5
+	if (roundX == 8 && roundY == 4 && leverUsedOrNot[1] == 0 && doorOpenOrNot[2] == 0) {
+		//Second lever
+		doorOpenOrNot[2] = 1;
+		leverUsedOrNot[1] = 1;
+	}
+	//float thirdLeverX = round(x * 10.0) / 10.0;
+	//float thirdLeverY = round(y * 10.0) / 10.0;
+	//x = 2.5, y = 2.2
+	if (roundX == 2 && roundY == 2 && leverUsedOrNot[0] == 0 && doorOpenOrNot[0] == 0) {
+		//Third lever
+		doorOpenOrNot[0] = 1;
+		leverUsedOrNot[0] = 1;
+	}
 	if (pix > 200) {
 		//Function to check the closest door and check if open or not
-		correctDoor = checkCorrectDoor(x, y);
+		correctDoor = checkCorrectDoor(x, y, roundX, roundY);
 		return correctDoor == 1;
 	}
 	//If the last door is open
 	if (doorOpenOrNot[1] == 1) {
 		//Check final area and set win to true if arrived
-		int finishX = round(x);
-		int finishY = round(y);
-		if ((finishX == 7 && finishY == 8) || (finishX == 8 && finishY == 8)) {
+		if ((roundX == 7 && roundY == 8) || (roundX == 8 && roundY == 8)) {
 			win = true;
 			return pix >= 0;
 		}
@@ -456,6 +510,7 @@ class MyProject : public BaseProject {
 
 		//Gold key
 		ubo.model = glm::mat4(1.0f);
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, keyTakenOrNot[0] * 1.01f, 0)) * ubo.model;
 		updateObject(goldKeyObject, ubo, currentImage);
 		ubo.model = glm::mat4(1.0f);
 		updateObject(goldKeyHoleObject, ubo, currentImage);
@@ -464,6 +519,7 @@ class MyProject : public BaseProject {
 
 		//Copper key
 		ubo.model = glm::mat4(1.0f);
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, keyTakenOrNot[1] * 1.01f, 0)) * ubo.model;
 		updateObject(copperKeyObject, ubo, currentImage);
 		ubo.model = glm::mat4(1.0f);
 		updateObject(copperKeyHoleObject, ubo, currentImage);
@@ -532,14 +588,14 @@ class MyProject : public BaseProject {
 		//ubo.model = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)) * ubo.model;
 		//ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(5.8f, 0, 1.3f)) * ubo.model;
 		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(5.8f, 0, 1.3f)) * ubo.model;
-		ubo.model = glm::rotate(glm::mat4(1.0f), leverUsedOrNot[1] * glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)) * ubo.model;
+		ubo.model = glm::rotate(glm::mat4(1.0f), leverUsedOrNot[1] * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)) * ubo.model;
 		updateOneInstanceOfObject(levers, ubo, currentImage, 1);
 		ubo.model = glm::mat4(1.0f);
 		//ubo.model = glm::inverse(glm::translate(glm::mat4(1.0f), glm::vec3(0.8f, 0, -3.7f))) * ubo.model;
 		//ubo.model = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)) * ubo.model;
 		//ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0.8f, 0, -3.7f)) * ubo.model;
 		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0.8f, 0, -3.7f)) * ubo.model;
-		ubo.model = glm::rotate(glm::mat4(1.0f), leverUsedOrNot[2] * glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)) * ubo.model;
+		ubo.model = glm::rotate(glm::mat4(1.0f), leverUsedOrNot[2] * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)) * ubo.model;
 		updateOneInstanceOfObject(levers, ubo, currentImage, 2);
 
 		//bool test = checkCollision(CamPos, levers..model.vertices);
@@ -780,9 +836,9 @@ class MyProject : public BaseProject {
 			pos -= MOVE_SPEED * glm::vec3(0, 1, 0) * deltaT;
 		}
 
-		/*if (!canStep(pos.x, pos.z)) {
+		if (!canStep(pos.x, pos.z)) {
 			pos = oldPos;
-		}*/
+		}
 
 		glm::mat4 out =
 			glm::transpose(glm::mat4(CamDir)) *
