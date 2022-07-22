@@ -1,0 +1,1081 @@
+// This has been adapted from the Vulkan tutorial
+
+#include "MyProject.hpp"
+
+namespace utils {
+	struct DescriptorPoolSize {
+		int numberOfUniformBlocksInPool;
+		int numberOfTexturesInPool;
+		int numberOfSetsInPool;
+
+		DescriptorPoolSize() : numberOfUniformBlocksInPool(0), numberOfTexturesInPool(0), numberOfSetsInPool(0) {};
+
+		void addObject() {
+			numberOfTexturesInPool++;
+			numberOfUniformBlocksInPool++;
+			numberOfSetsInPool++;
+		}
+
+		void addMultipleInstanceObject(int numberOfInstances) {
+			for (int i = 0; i < numberOfInstances; i++) {
+				numberOfTexturesInPool++;
+				numberOfUniformBlocksInPool++;
+				numberOfSetsInPool++;
+			}
+		}
+
+		void addDescriptorSet() {
+			numberOfUniformBlocksInPool++;
+			numberOfSetsInPool++;
+		}
+	};
+
+	DescriptorPoolSize descriptorPoolSize;
+
+	void addObject() {
+		descriptorPoolSize.addObject();
+	}
+
+	void addMultipleInstanceObject(int numberOfInstances) {
+		descriptorPoolSize.addMultipleInstanceObject(numberOfInstances);
+	}
+
+	void addDescriptor() {
+		descriptorPoolSize.addDescriptorSet();
+	}
+};
+
+struct GlobalUniformBufferObject {
+	alignas(16) glm::mat4 view;
+	alignas(16) glm::mat4 proj;
+	alignas(16) glm::vec3 eyePos;
+};
+
+struct UniformBufferObject {
+	alignas(16) glm::mat4 model;
+};
+
+
+struct DescriptorSetLayoutObject {
+	DescriptorSetLayout descriptorSetLayout;
+	std::vector<uint32_t> set;
+	std::vector<VkDescriptorType> vkDescriptorType;
+	std::vector<VkShaderStageFlagBits> vkShaderStageFlagBits;
+	std::vector<DescriptorSetElementType> descriptorSetElementType;
+	uint64_t sizeOfUniformBufferObject;
+	uint64_t sizeOfGlobalUniformBufferObject;
+
+	DescriptorSetLayoutObject(std::vector<uint32_t> set, std::vector<VkDescriptorType> vkDescriptorType, std::vector<VkShaderStageFlagBits> vkShaderStageFlagBits) {
+		this->set = set;
+		this->vkDescriptorType = vkDescriptorType;
+		this->vkShaderStageFlagBits = vkShaderStageFlagBits;
+		getCorrectDescriptorSetElementType();
+		sizeOfUniformBufferObject = sizeof(UniformBufferObject);
+		sizeOfGlobalUniformBufferObject = sizeof(GlobalUniformBufferObject);
+	}
+
+	void getCorrectDescriptorSetElementType() {
+		this->descriptorSetElementType.resize(set.size());
+		for (int i = 0; i < vkDescriptorType.size(); i++) {
+			if (vkDescriptorType[i] == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER) {
+				this->descriptorSetElementType[i] = UNIFORM;
+			}
+			else if (vkDescriptorType[i] == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER) {
+				this->descriptorSetElementType[i] = TEXTURE;
+			}
+			else {
+				this->descriptorSetElementType[i] = UNIFORM;
+			}
+		}
+	}
+
+	void cleanup() {
+		descriptorSetLayout.cleanup();
+	}
+};
+
+
+
+struct Object {
+	Model model;
+	Texture texture;
+	DescriptorSet descriptorSet;
+
+	Object() {
+		utils::addObject();
+	}
+
+	void cleanup() {
+		descriptorSet.cleanup();
+		texture.cleanup();
+		model.cleanup();
+	}
+};
+
+struct MultipleObject {
+	Model model;
+	Texture texture;
+	std::vector<DescriptorSet> descriptorSets;
+	int numberOfinstances;
+
+	MultipleObject(int numberOfInstances) {
+		numberOfinstances = numberOfInstances;
+		utils::addMultipleInstanceObject(numberOfInstances);
+	}
+
+	void cleanup() {
+		for (DescriptorSet descriptorSet : descriptorSets) {
+			descriptorSet.cleanup();
+		}
+		texture.cleanup();
+		model.cleanup();
+	}
+};
+
+static float lookYaw = 0.0f;
+static float lookPitch = 0.0f;
+static float lookRoll = 0.0f;
+
+stbi_uc* map;
+int mapWidth, mapHeight;
+bool canStepPoint(float x, float y) {
+	//int pixX = round(fmax(0.0f, fmin(mapWidth - 1, (x + 10) * mapWidth / 20.0)));
+	//int pixY = round(fmax(0.0f, fmin(mapHeight - 1, (y + 10) * mapHeight / 20.0)));
+	int pixX = round(fmax(0.0f, fmin(mapWidth - 1, (x + 16.9) * mapWidth / 33.8)));
+	int pixY = round(fmax(0.0f, fmin(mapHeight - 1, (y + 16.9) * mapHeight / 33.8)));
+	//int pixX = round(fmax(0.0f, fmin((mapWidth - 222) - 1, ((x + 10) * mapWidth / 20.0) - 222)));
+	//int pixY = round(fmax(0.0f, fmin((mapHeight - 112) - 1, ((y + 10) * mapHeight / 20.0) - 112)));
+	//int pixX = round(fmax(0.0f, fmin(mapWidth - 1, ((x + 10) * mapWidth / 20.0) - 222)));
+	//int pixY = round(fmax(0.0f, fmin(mapHeight - 1, ((y + 10) * mapHeight / 20.0) - 112)));
+	//int pixX = round(fmax(0.0f, fmin(mapWidth - 1, ((x + 10) * mapWidth / 20.0)) - 222));
+	//int pixY = round(fmax(0.0f, fmin(mapHeight - 1, ((y + 10) * mapHeight / 20.0)) - 112));
+	//int pix = (int)map[mapWidth * (pixY - 112) + (pixX - 222)];
+	//110 pixY
+	//230 pixX
+	int pix = (int)map[mapWidth * pixY + pixX];
+	//std::cout << pixX << " " << pixY << " " << x << " " << y << " \t P = " << pix << "\n";
+	/*if (pix > 100) {
+		return 
+	}*/
+	return pix > 6;//10;//128;
+}
+
+const float checkRadius = 0.1;
+const int checkSteps = 12;
+/*bool canStep(float x, float y) {
+	for (int i = 0; i < checkSteps; i++) {
+		if (!canStepPoint(x, y)) {
+			return false;
+		}
+	}
+	return true;
+}*/
+bool canStep(float x, float y) {
+	for (int i = 0; i < checkSteps; i++) {
+		if (!canStepPoint(x + cos(6.2832 * i / (float)checkSteps) * checkRadius,
+			y + sin(6.2832 * i / (float)checkSteps) * checkRadius)) {
+			return false;
+		}
+	}
+	return true;
+}
+
+const std::string MODEL_PATH = "models/";
+const std::string TEXTURE_PATH = "textures/";
+bool first = true;
+
+std::vector<int> doorOpenOrNot = { 0,0,0,0,0 };
+std::vector<int> leverUsedOrNot = { 0,0,0 };
+
+// MAIN ! 
+class MyProject : public BaseProject {
+	protected:
+	// Here you list all the Vulkan objects you need:
+
+	std::vector<uint32_t> set = {0,1};
+	std::vector<VkDescriptorType> vkDescriptorType = { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER };
+	std::vector<VkShaderStageFlagBits> vkShaderStageFlagBits = { VK_SHADER_STAGE_VERTEX_BIT, VK_SHADER_STAGE_FRAGMENT_BIT };
+
+	DescriptorSetLayoutObject descriptorSetLayoutObject = DescriptorSetLayoutObject(set, vkDescriptorType, vkShaderStageFlagBits);
+
+	std::vector<uint32_t> set2 = {0};
+	std::vector<VkDescriptorType> vkDescriptorType2 = { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER };
+	std::vector<VkShaderStageFlagBits> vkShaderStageFlagBits2 = { VK_SHADER_STAGE_ALL_GRAPHICS };
+
+	DescriptorSetLayoutObject descriptorSetLayoutGlobal = DescriptorSetLayoutObject(set2, vkDescriptorType2, vkShaderStageFlagBits2);
+
+	// Pipelines [Shader couples]
+	Pipeline P1;
+
+	// Models, textures and Descriptors (values assigned to the uniforms)
+	//Object bodyObject;
+
+	Object floorObject;
+	Object ceilingObject;
+
+	Object wallEastObject;
+	Object wallNorthObject;
+	Object wallWestObject;
+	Object wallSouthObject;
+
+	Object goldKeyObject;
+	Object copperKeyObject;
+
+	Object goldKeyHoleObject;
+	Object copperKeyHoleObject;
+
+	Object doorBorders;
+	MultipleObject doors = MultipleObject(5);
+
+	MultipleObject levers = MultipleObject(3);
+
+	/*Object bodyObject;
+	
+	Object handleObject;
+
+	MultipleObject wheelObject = MultipleObject(3);*/
+
+	//Object labyrinth;
+
+	DescriptorSet DS_global;
+
+	// Here you set the main application parameters
+	void setWindowParameters() {
+		// window size, title and initial background
+		windowWidth = 800;//1920;
+		windowHeight = 600;//1080;
+		windowTitle = "My Project";
+		initialBackgroundColor = {1.0f, 1.0f, 0.0f, 1.0f};
+
+		//Done for DS_global
+		utils::addDescriptor();
+
+		// Descriptor pool sizes
+		uniformBlocksInPool = utils::descriptorPoolSize.numberOfUniformBlocksInPool;
+		texturesInPool = utils::descriptorPoolSize.numberOfTexturesInPool;
+		setsInPool = utils::descriptorPoolSize.numberOfSetsInPool;
+	}
+
+
+
+
+
+	// Here you load and setup all your Vulkan objects
+	void localInit() {
+
+		descriptorSetLayoutInit(&descriptorSetLayoutObject);
+
+		descriptorSetLayoutInit(&descriptorSetLayoutGlobal);
+
+		localPipelineInit();
+
+		//Floor and ceiling
+		objectInit(&floorObject, MODEL_PATH + "FloorAndCeiling/Floor.obj", TEXTURE_PATH + "Floor.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
+		objectInit(&ceilingObject, MODEL_PATH + "FloorAndCeiling/Ceiling.obj", TEXTURE_PATH + "Ceiling.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
+
+		//Walls
+		objectInit(&wallEastObject, MODEL_PATH + "Wall/TEST/WallEast.obj", TEXTURE_PATH + "Walls.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
+		objectInit(&wallNorthObject, MODEL_PATH + "Wall/TEST/WallNorth.obj", TEXTURE_PATH + "Walls.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
+		objectInit(&wallSouthObject, MODEL_PATH + "Wall/TEST/WallSouth.obj", TEXTURE_PATH + "Walls.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
+		objectInit(&wallWestObject, MODEL_PATH + "Wall/TEST/WallWest.obj", TEXTURE_PATH + "Walls.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
+		
+		//Gold key
+		objectInit(&goldKeyObject, MODEL_PATH + "Key/GoldKey.obj", TEXTURE_PATH + "GoldKeyColor.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
+		objectInit(&goldKeyHoleObject, MODEL_PATH + "KeyHole/GoldKeyHole.obj", TEXTURE_PATH + "GoldKeyColor.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
+
+		//Copper key
+		objectInit(&copperKeyObject, MODEL_PATH + "Key/CopperKey.obj", TEXTURE_PATH + "CopperKeyColor.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
+		objectInit(&copperKeyHoleObject, MODEL_PATH + "KeyHole/CopperKeyHole.obj", TEXTURE_PATH + "CopperKeyColor.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
+
+		//Doors
+		objectInit(&doorBorders, MODEL_PATH + "Door/DoorsBorder.obj", TEXTURE_PATH + "DoorBorder.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
+		multipleInstanceObjectInit(&doors, MODEL_PATH + "Door/Door.obj", TEXTURE_PATH + "Door.png", descriptorSetLayoutObject.descriptorSetLayout, 5, descriptorSetLayoutObject);
+
+		//Levers
+		multipleInstanceObjectInit(&levers, MODEL_PATH + "Lever/Lever2.obj", TEXTURE_PATH + "Levers2.png", descriptorSetLayoutObject.descriptorSetLayout, 3, descriptorSetLayoutObject);
+
+
+		//objectInit(&bodyObject, "models/SlotBody.obj", "textures/SlotBody.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
+
+		//objectInit(&handleObject, "models/SlotHandle.obj", "textures/SlotHandle.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
+
+		//multipleInstanceObjectInit(&wheelObject, "models/SlotWheel.obj", "textures/SlotWheel.png", descriptorSetLayoutObject.descriptorSetLayout, 3, descriptorSetLayoutObject);
+
+		descriptorSetInit(&DS_global, descriptorSetLayoutGlobal.descriptorSetLayout, descriptorSetLayoutGlobal);
+
+		map = stbi_load((TEXTURE_PATH + "displ5.png").c_str(),
+			&mapWidth, &mapHeight,
+			NULL, 1);
+		if (!map) {
+			std::cout << (TEXTURE_PATH + "displ5.png").c_str() << "\n";
+			throw std::runtime_error("failed to load map image!");
+		}
+		std::cout << "map -> size: " << mapWidth
+			<< "x" << mapHeight << "\n";
+	}
+
+	void localPipelineInit() {
+		P1.init(this, "shaders/vert.spv", "shaders/frag.spv", { &descriptorSetLayoutGlobal.descriptorSetLayout, &descriptorSetLayoutObject.descriptorSetLayout });
+	}
+
+
+
+
+
+	void localPipelineCleanup() {
+		//Here clean all the pipelines.
+		P1.cleanup();
+	}
+
+	void descriptorLayoutsCleanup() {
+		descriptorSetLayoutGlobal.cleanup();
+		descriptorSetLayoutObject.cleanup();
+	}
+
+	void descriptorsCleanup() {
+		DS_global.cleanup();
+	}
+
+	void objectsCleanup() {
+		floorObject.cleanup();
+		ceilingObject.cleanup();
+
+		wallEastObject.cleanup();
+		wallNorthObject.cleanup();
+		wallSouthObject.cleanup();
+		wallWestObject.cleanup();
+
+		goldKeyObject.cleanup();
+		goldKeyHoleObject.cleanup();
+
+		copperKeyObject.cleanup();
+		copperKeyHoleObject.cleanup();
+
+		doorBorders.cleanup();
+		doors.cleanup();
+
+		levers.cleanup();
+
+		//labyrinth.cleanup();
+		//bodyObject.cleanup();
+		/*handleObject.cleanup();
+		wheelObject.cleanup();*/
+	}
+
+	// Here you destroy all the objects you created!		
+	void localCleanup() {
+
+		objectsCleanup();
+
+		descriptorsCleanup();
+
+		localPipelineCleanup();
+
+		descriptorLayoutsCleanup();
+	}
+
+
+
+
+
+	// Here it is the creation of the command buffer:
+	// You send to the GPU all the objects you want to draw,
+	// with their buffers and textures
+	void populateCommandBuffer(VkCommandBuffer commandBuffer, int currentImage) {
+		drawSingleInstanceInGlobal(commandBuffer, currentImage, P1, DS_global, 0);
+
+		drawSingleInstance(commandBuffer, currentImage, P1, floorObject, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, ceilingObject, 1);
+
+		drawSingleInstance(commandBuffer, currentImage, P1, wallEastObject, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, wallNorthObject, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, wallSouthObject, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, wallWestObject, 1);
+
+		drawSingleInstance(commandBuffer, currentImage, P1, goldKeyObject, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, goldKeyHoleObject, 1);
+
+		drawSingleInstance(commandBuffer, currentImage, P1, copperKeyObject, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, copperKeyHoleObject, 1);
+
+		drawSingleInstance(commandBuffer, currentImage, P1, doorBorders, 1);
+
+		drawMultipleInstance(commandBuffer, currentImage, P1, doors, 1);
+
+		drawMultipleInstance(commandBuffer, currentImage, P1, levers, 1);
+
+
+		//drawSingleInstance(commandBuffer, currentImage, P1, labyrinth, 1);
+		//drawSingleInstance(commandBuffer, currentImage, P1, bodyObject, 1);
+		//drawSingleInstance(commandBuffer, currentImage, P1, handleObject, 1);
+
+		//drawMultipleInstance(commandBuffer, currentImage, P1, wheelObject, 1);
+	}
+
+
+
+
+
+	// Here is where you update the uniforms.
+	// Very likely this will be where you will be writing the logic of your application.
+	void updateUniformBuffer(uint32_t currentImage) {
+		/*static auto startTime = std::chrono::high_resolution_clock::now();
+		auto currentTime = std::chrono::high_resolution_clock::now();
+		float time = std::chrono::duration<float, std::chrono::seconds::period>
+			(currentTime - startTime).count();
+		static float lastTime = 0.0f;
+		float deltaT = time - lastTime;
+
+		static int state = 0;		// 0 - everything is still.
+									// 3 - three wheels are turning
+									// 2 - two wheels are turning
+									// 1 - one wheels is turning
+
+		static float debounce = time;
+		static float ang1 = 0.0f;
+		static float ang2 = 0.0f;
+		static float ang3 = 0.0f;*/
+
+		/*if (glfwGetKey(window, GLFW_KEY_SPACE)) {
+			if (time - debounce > 0.33) {
+				debounce = time;
+				if (state == 0) {
+					state = 3;
+				}
+				else {
+					state--;
+				}
+			}
+		}
+
+		if (state == 3) {
+			ang3 += deltaT;
+		}
+		if (state >= 2) {
+			ang2 += deltaT;
+		}
+		if (state >= 1) {
+			ang1 += deltaT;
+		}*/
+
+
+		glm::mat4 CamMat = glm::mat4(1);
+		glm::vec3 CamPos = glm::vec3(0);
+
+		glm::mat4 CharacterPos = updateCameraPosition(window);
+		//EyePos
+		CamPos = glm::vec3(CharacterPos * glm::vec4(0, 0, 0, 1));
+
+
+		//glm::mat4 CharacterPos = updateCameraPosition(window);
+		//EyePos
+		//CamPos = glm::vec3(CharacterPos * glm::vec4(0, 0, 0, 1));
+		//CamMat = glm::translate(glm::mat4(1), -CamPos);
+
+		GlobalUniformBufferObject gubo{};
+		UniformBufferObject ubo{};
+
+
+		void* data;
+		gubo.view = CharacterPos;
+		//gubo.view = CamMat;//glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		//gubo.proj = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 10.0f);
+		gubo.proj = glm::perspective(glm::radians(90.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 50.0f);
+		gubo.proj[1][1] *= -1;
+		gubo.eyePos = CamPos;
+
+		vkMapMemory(device, DS_global.uniformBuffersMemory[0][currentImage], 0,
+			sizeof(gubo), 0, &data);
+		memcpy(data, &gubo, sizeof(gubo));
+		vkUnmapMemory(device, DS_global.uniformBuffersMemory[0][currentImage]);
+
+
+
+
+		//Floor and ceiling
+		ubo.model = glm::mat4(1.0f);
+		updateObject(floorObject, ubo, currentImage);
+		ubo.model = glm::mat4(1.0f);
+		updateObject(ceilingObject, ubo, currentImage);
+
+
+		//Walls
+		ubo.model = glm::mat4(1.0f);
+		updateObject(wallEastObject, ubo, currentImage);
+		ubo.model = glm::mat4(1.0f);
+		updateObject(wallNorthObject, ubo, currentImage);
+		ubo.model = glm::mat4(1.0f);
+		updateObject(wallSouthObject, ubo, currentImage);
+		ubo.model = glm::mat4(1.0f);
+		updateObject(wallWestObject, ubo, currentImage);
+
+
+		//Gold key
+		ubo.model = glm::mat4(1.0f);
+		updateObject(goldKeyObject, ubo, currentImage);
+		ubo.model = glm::mat4(1.0f);
+		updateObject(goldKeyHoleObject, ubo, currentImage);
+
+		//bool test = checkCollision(CamPos, goldKeyObject.model.vertices);
+
+		//Copper key
+		ubo.model = glm::mat4(1.0f);
+		updateObject(copperKeyObject, ubo, currentImage);
+		ubo.model = glm::mat4(1.0f);
+		updateObject(copperKeyHoleObject, ubo, currentImage);
+
+
+		//Door borders
+		ubo.model = glm::mat4(1.0f);
+		updateObject(doorBorders, ubo, currentImage);
+
+		//door1
+		ubo.model = glm::mat4(1.0f);
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, doorOpenOrNot[0] * 1, 0)) * ubo.model;
+		updateOneInstanceOfObject(doors, ubo, currentImage, 0);
+		ubo.model = glm::mat4(1.0f) * glm::translate(glm::mat4(1.0f), glm::vec3(3, 0, 5));
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, doorOpenOrNot[1] * 1, 0)) * ubo.model;
+		//ubo.model = glm::mat4(1.0f);
+		updateOneInstanceOfObject(doors, ubo, currentImage, 1);
+		ubo.model = glm::mat4(1.0f);
+		//ubo.model = glm::inverse(glm::translate(glm::mat4(1.0f), glm::vec3(5, 0, 0))) * ubo.model;
+		//ubo.model = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)) * ubo.model;
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(5, 0, 0)) * ubo.model;
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, doorOpenOrNot[2] * 1, 0)) * ubo.model;
+		updateOneInstanceOfObject(doors, ubo, currentImage, 2);
+		ubo.model = glm::mat4(1.0f);
+		//ubo.model = glm::inverse(glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, -5))) * ubo.model;
+		//ubo.model = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)) * ubo.model;
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, -5)) * ubo.model;
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, doorOpenOrNot[3] * 1, 0)) * ubo.model;
+		updateOneInstanceOfObject(doors, ubo, currentImage, 3);
+		ubo.model = glm::mat4(1.0f);
+		//ubo.model = glm::inverse(glm::translate(glm::mat4(1.0f), glm::vec3(8, 0, 1))) * ubo.model;
+		//ubo.model = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)) * ubo.model;
+		//ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(8, 0, 0)) * ubo.model;
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(8, 0, 1)) * ubo.model;
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, doorOpenOrNot[4] * 1, 0)) * ubo.model;
+		updateOneInstanceOfObject(doors, ubo, currentImage, 4);
+
+		//door2
+		/*ubo.model = glm::mat4(1.0f);
+		updateOneInstanceOfObject(doors, ubo, currentImage, 0);
+		ubo.model = glm::mat4(1.0f) * glm::translate(glm::mat4(1.0f), glm::vec3(-3, 0, -5));
+		updateOneInstanceOfObject(doors, ubo, currentImage, 1);
+		ubo.model = glm::mat4(1.0f);
+		ubo.model = glm::inverse(glm::translate(glm::mat4(1.0f), glm::vec3(2, 0, -5))) * ubo.model;
+		ubo.model = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)) * ubo.model;
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(2, 0, -5)) * ubo.model;
+		updateOneInstanceOfObject(doors, ubo, currentImage, 2);
+		ubo.model = glm::mat4(1.0f);
+		ubo.model = glm::inverse(glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, -5))) * ubo.model;
+		ubo.model = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)) * ubo.model;
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, -5)) * ubo.model;
+		updateOneInstanceOfObject(doors, ubo, currentImage, 3);
+		ubo.model = glm::mat4(1.0f);
+		ubo.model = glm::inverse(glm::translate(glm::mat4(1.0f), glm::vec3(8, 0, -1))) * ubo.model;
+		ubo.model = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)) * ubo.model;
+		//ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(8, 0, 0)) * ubo.model;
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(8, 0, -1)) * ubo.model;
+		updateOneInstanceOfObject(doors, ubo, currentImage, 4);*/
+
+		//Levers
+		ubo.model = glm::mat4(1.0f);
+		ubo.model = glm::rotate(glm::mat4(1.0f), leverUsedOrNot[0] * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)) * ubo.model;
+		updateOneInstanceOfObject(levers, ubo, currentImage, 0);
+		ubo.model = glm::mat4(1.0f);
+		//ubo.model = glm::inverse(glm::translate(glm::mat4(1.0f), glm::vec3(5.8f, 0, 1.3f))) * ubo.model;
+		//ubo.model = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)) * ubo.model;
+		//ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(5.8f, 0, 1.3f)) * ubo.model;
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(5.8f, 0, 1.3f)) * ubo.model;
+		ubo.model = glm::rotate(glm::mat4(1.0f), leverUsedOrNot[1] * glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)) * ubo.model;
+		updateOneInstanceOfObject(levers, ubo, currentImage, 1);
+		ubo.model = glm::mat4(1.0f);
+		//ubo.model = glm::inverse(glm::translate(glm::mat4(1.0f), glm::vec3(0.8f, 0, -3.7f))) * ubo.model;
+		//ubo.model = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)) * ubo.model;
+		//ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0.8f, 0, -3.7f)) * ubo.model;
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0.8f, 0, -3.7f)) * ubo.model;
+		ubo.model = glm::rotate(glm::mat4(1.0f), leverUsedOrNot[2] * glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)) * ubo.model;
+		updateOneInstanceOfObject(levers, ubo, currentImage, 2);
+
+		//bool test = checkCollision(CamPos, levers..model.vertices);
+		//std::cout << test;
+	}
+
+	
+	
+	
+	
+	void descriptorSetLayoutInit(DescriptorSetLayoutObject* descriptorSetLayoutObject) {
+		std::vector<DescriptorSetLayoutBinding> elementOfDSL;
+		elementOfDSL.resize(descriptorSetLayoutObject->set.size());
+		for (int i = 0; i < descriptorSetLayoutObject->set.size(); i++) {
+			elementOfDSL[i].binding = descriptorSetLayoutObject->set[i];
+			elementOfDSL[i].type = descriptorSetLayoutObject->vkDescriptorType[i];
+			elementOfDSL[i].flags = descriptorSetLayoutObject->vkShaderStageFlagBits[i];
+		}
+		descriptorSetLayoutObject->descriptorSetLayout.init(this, {elementOfDSL});
+	}
+	
+	uint64_t getSizeForObject(DescriptorSetElementType descriptorSetElementType, bool isAnObject) {
+		if (descriptorSetElementType == TEXTURE) {
+			return 0;
+		}
+		else if (isAnObject) {
+			return sizeof(UniformBufferObject);
+		}
+		else {
+			return sizeof(GlobalUniformBufferObject);
+		}
+	}
+
+	Texture* getPointerOfTexture(DescriptorSetElementType descriptorSetElementType, Object* object) {
+		if (descriptorSetElementType == TEXTURE) {
+			return &object->texture;
+		}
+		else {
+			return nullptr;
+		}
+	}
+
+	void objectInit(Object *object, std::string modelPath, std::string texturePath, DescriptorSetLayout descriptorSetLayout, DescriptorSetLayoutObject descriptorSetLayoutObject) {
+		object->model.init(this, modelPath);
+		object->texture.init(this, texturePath);
+		std::vector<DescriptorSetElement> descriptorSetElements;
+		/*for (int i = 0; i < 1000; i++) {
+			std::cout << descriptorSetLayoutObject.set.size();
+		}*/
+		descriptorSetElements.resize(descriptorSetLayoutObject.set.size());
+		for (int i = 0; i < descriptorSetLayoutObject.set.size(); i++) {
+			descriptorSetElements[i].binding = descriptorSetLayoutObject.set[i];
+			descriptorSetElements[i].type = descriptorSetLayoutObject.descriptorSetElementType[i];
+			descriptorSetElements[i].size = getSizeForObject(descriptorSetLayoutObject.descriptorSetElementType[i], true);
+			descriptorSetElements[i].tex = getPointerOfTexture(descriptorSetLayoutObject.descriptorSetElementType[i], object);
+		}
+		object->descriptorSet.init(this, &descriptorSetLayout, {descriptorSetElements});
+	}
+
+	Texture* getPointerOfTextureForMultipleObject(DescriptorSetElementType descriptorSetElementType, MultipleObject* object) {
+		if (descriptorSetElementType == TEXTURE) {
+			return &object->texture;
+		}
+		else {
+			return nullptr;
+		}
+	}
+
+	void multipleInstanceObjectInit(MultipleObject* object, std::string modelPath, std::string texturePath, DescriptorSetLayout descriptorSetLayout, int numberOfInstances, DescriptorSetLayoutObject descriptorSetLayoutObject) {
+		object->model.init(this, modelPath);
+		object->texture.init(this, texturePath);
+		object->descriptorSets.resize(numberOfInstances);
+		std::vector<DescriptorSetElement> descriptorSetElements;
+		descriptorSetElements.resize(descriptorSetLayoutObject.set.size());
+		for (int i = 0; i < descriptorSetLayoutObject.set.size(); i++) {
+			descriptorSetElements[i].binding = descriptorSetLayoutObject.set[i];
+			descriptorSetElements[i].type = descriptorSetLayoutObject.descriptorSetElementType[i];
+			descriptorSetElements[i].size = getSizeForObject(descriptorSetLayoutObject.descriptorSetElementType[i], true);
+			descriptorSetElements[i].tex = getPointerOfTextureForMultipleObject(descriptorSetLayoutObject.descriptorSetElementType[i], object);
+		}
+		for (int i = 0; i < numberOfInstances; i++) {
+			object->descriptorSets[i].init(this, &descriptorSetLayout, {descriptorSetElements});
+		}
+	}
+
+	void descriptorSetInit(DescriptorSet *descriptorSet, DescriptorSetLayout descriptorSetLayout, DescriptorSetLayoutObject descriptorSetLayoutObject) {
+		std::vector<DescriptorSetElement> descriptorSetElements;
+		descriptorSetElements.resize(descriptorSetLayoutObject.set.size());
+		for (int i = 0; i < descriptorSetLayoutObject.set.size(); i++) {
+			descriptorSetElements[i].binding = descriptorSetLayoutObject.set[i];
+			descriptorSetElements[i].type = descriptorSetLayoutObject.descriptorSetElementType[i];
+			descriptorSetElements[i].size = getSizeForObject(descriptorSetLayoutObject.descriptorSetElementType[i], false);
+			descriptorSetElements[i].tex = nullptr;
+		}
+		descriptorSet->init(this, &descriptorSetLayout, {descriptorSetElements});
+	}
+
+	void drawSingleInstanceInGlobal(VkCommandBuffer commandBuffer, int currentImage,
+		Pipeline pipeline, DescriptorSet descriptorSet, int setUsed) {
+		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+			pipeline.graphicsPipeline);
+		vkCmdBindDescriptorSets(commandBuffer,
+			VK_PIPELINE_BIND_POINT_GRAPHICS,
+			pipeline.pipelineLayout, setUsed, 1, &descriptorSet.descriptorSets[currentImage],
+			0, nullptr);
+	}
+
+	void drawSingleInstance(VkCommandBuffer commandBuffer, int currentImage,
+		Pipeline pipeline, Object object, int setUsed) {
+		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+			pipeline.graphicsPipeline);
+
+		VkBuffer vertexBuffers[] = { object.model.vertexBuffer };
+		// property .vertexBuffer of models, contains the VkBuffer handle to its vertex buffer
+		VkDeviceSize offsets[] = { 0 };
+		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+		// property .indexBuffer of models, contains the VkBuffer handle to its index buffer
+		vkCmdBindIndexBuffer(commandBuffer, object.model.indexBuffer, 0,
+			VK_INDEX_TYPE_UINT32);
+
+		// property .pipelineLayout of a pipeline contains its layout.
+		// property .descriptorSets of a descriptor set contains its elements.
+		vkCmdBindDescriptorSets(commandBuffer,
+			VK_PIPELINE_BIND_POINT_GRAPHICS,
+			pipeline.pipelineLayout, setUsed, 1, &object.descriptorSet.descriptorSets[currentImage],
+			0, nullptr);
+
+		// property .indices.size() of models, contains the number of triangles * 3 of the mesh.
+		vkCmdDrawIndexed(commandBuffer,
+			static_cast<uint32_t>(object.model.indices.size()), 1, 0, 0, 0);
+	}
+
+	void drawMultipleInstance(VkCommandBuffer commandBuffer, int currentImage,
+		Pipeline pipeline, MultipleObject object, int setUsed) {
+		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+			pipeline.graphicsPipeline);
+
+		VkBuffer vertexBuffers[] = { object.model.vertexBuffer };
+		VkDeviceSize offsets[] = { 0 };
+		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+		vkCmdBindIndexBuffer(commandBuffer, object.model.indexBuffer, 0,
+			VK_INDEX_TYPE_UINT32);
+
+		for (int i = 0; i < object.descriptorSets.size(); i++) {
+			vkCmdBindDescriptorSets(commandBuffer,
+				VK_PIPELINE_BIND_POINT_GRAPHICS,
+				pipeline.pipelineLayout, setUsed, 1, &object.descriptorSets[i].descriptorSets[currentImage],
+				0, nullptr);
+
+			vkCmdDrawIndexed(commandBuffer,
+				static_cast<uint32_t>(object.model.indices.size()), 1, 0, 0, 0);
+		}
+	}
+
+	void updateObject(Object object, UniformBufferObject ubo, uint32_t currentImage) {
+		void* data;
+		vkMapMemory(device, object.descriptorSet.uniformBuffersMemory[0][currentImage], 0,
+			sizeof(ubo), 0, &data);
+		memcpy(data, &ubo, sizeof(ubo));
+		vkUnmapMemory(device, object.descriptorSet.uniformBuffersMemory[0][currentImage]);
+	}
+
+	void updateOneInstanceOfObject(MultipleObject object, UniformBufferObject ubo, uint32_t currentImage, int descriptorSetInstance) {
+		void* data;
+		vkMapMemory(device, object.descriptorSets[descriptorSetInstance].uniformBuffersMemory[0][currentImage], 0,
+			sizeof(ubo), 0, &data);
+		memcpy(data, &ubo, sizeof(ubo));
+		vkUnmapMemory(device, object.descriptorSets[descriptorSetInstance].uniformBuffersMemory[0][currentImage]);
+	}
+
+	glm::mat4 updateCameraPosition(GLFWwindow* window) {
+		/*static float yaw = 0.0f;
+		static float pitch = 0.0f;
+		static float roll = 0.0f;*/
+
+		//static glm::vec3 pos = glm::vec3(-4.73021, 0.5f, 12.7025);
+		static glm::vec3 pos = glm::vec3(0.0f, 0.5f, 0.0f);
+		//static glm::vec3 pos = glm::vec3(0.063467f, 0.052469f, -0.0205f);
+		if (first) {
+			first = false;
+			lookYaw += glm::radians(-45.0f);
+		}
+		static glm::vec3 size = glm::vec3(1, 1, 1);
+		glm::vec3 ux = glm::vec3(1, 0, 0);
+		glm::vec3 uy = glm::vec3(0, 1, 0);
+		glm::vec3 uz = glm::vec3(0, 0, 1);
+		static glm::quat quat = glm::quat(glm::vec3(0, 0, 0));
+		static glm::mat4 quatMatrix = glm::mat4(quat);
+
+		const float ROT_SPEED = glm::radians(90.0f);//glm::radians(60.0f);
+		const float MOVE_SPEED = 2.0f;//0.75f;
+		const float MOUSE_RES = 500.0f;
+
+		static auto startTime = std::chrono::high_resolution_clock::now();
+		static float lastTime = 0.0f;
+		auto currentTime = std::chrono::high_resolution_clock::now();
+		float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+		float deltaT = time - lastTime;
+		lastTime = time;
+
+		glm::vec3 oldPos = pos;
+
+
+		if (glfwGetKey(window, GLFW_KEY_LEFT)) {
+			lookYaw += deltaT * ROT_SPEED;
+		}
+		if (glfwGetKey(window, GLFW_KEY_RIGHT)) {
+			lookYaw -= deltaT * ROT_SPEED;
+		}
+		if (glfwGetKey(window, GLFW_KEY_UP) && lookPitch < 1) {
+			lookPitch += deltaT * ROT_SPEED;
+		}
+		if (glfwGetKey(window, GLFW_KEY_DOWN) && lookPitch > -1) {
+			lookPitch -= deltaT * ROT_SPEED;
+		}
+
+
+		glm::mat3 CamDir = glm::mat3(glm::rotate(glm::mat4(1.0f), lookYaw, glm::vec3(0.0f, 1.0f, 0.0f))) *
+			glm::mat3(glm::rotate(glm::mat4(1.0f), lookPitch, glm::vec3(1.0f, 0.0f, 0.0f)));
+
+
+
+		if (glfwGetKey(window, GLFW_KEY_A)) {
+			pos -= MOVE_SPEED * glm::vec3(glm::rotate(glm::mat4(1.0f), lookYaw,
+				glm::vec3(0.0f, 1.0f, 0.0f)) * glm::vec4(1, 0, 0, 1)) * deltaT;
+		}
+		if (glfwGetKey(window, GLFW_KEY_D)) {
+			pos += MOVE_SPEED * glm::vec3(glm::rotate(glm::mat4(1.0f), lookYaw,
+				glm::vec3(0.0f, 1.0f, 0.0f)) * glm::vec4(1, 0, 0, 1)) * deltaT;
+		}
+		if (glfwGetKey(window, GLFW_KEY_W)) {
+			pos -= MOVE_SPEED * glm::vec3(glm::rotate(glm::mat4(1.0f), lookYaw,
+				glm::vec3(0.0f, 1.0f, 0.0f)) * glm::vec4(0, 0, 1, 1)) * deltaT;
+		}
+		if (glfwGetKey(window, GLFW_KEY_S)) {
+			pos += MOVE_SPEED * glm::vec3(glm::rotate(glm::mat4(1.0f), lookYaw,
+				glm::vec3(0.0f, 1.0f, 0.0f)) * glm::vec4(0, 0, 1, 1)) * deltaT;
+		}
+
+		if (glfwGetKey(window, GLFW_KEY_SPACE)) {
+			pos += MOVE_SPEED * glm::vec3(0, 1, 0) * deltaT;
+		}
+		if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT)) {
+			pos -= MOVE_SPEED * glm::vec3(0, 1, 0) * deltaT;
+		}
+
+		if (!canStep(pos.x, pos.z)) {
+			pos = oldPos;
+		}
+
+		/*if (glfwGetKey(window, GLFW_KEY_LEFT)) {
+			yaw += deltaT * ROT_SPEED;
+		}
+		if (glfwGetKey(window, GLFW_KEY_RIGHT)) {
+			yaw -= deltaT * ROT_SPEED;
+		}
+		if (glfwGetKey(window, GLFW_KEY_UP)) {
+			pitch += deltaT * ROT_SPEED;
+		}
+		if (glfwGetKey(window, GLFW_KEY_DOWN)) {
+			pitch -= deltaT * ROT_SPEED;
+		}
+		if (glfwGetKey(window, GLFW_KEY_A)) {
+			pos -= MOVE_SPEED * glm::vec3(glm::rotate(glm::mat4(1.0f), yaw,
+				glm::vec3(0.0f, 1.0f, 0.0f)) * glm::vec4(1, 0, 0, 1)) * deltaT;
+		}
+		if (glfwGetKey(window, GLFW_KEY_D)) {
+			pos += MOVE_SPEED * glm::vec3(glm::rotate(glm::mat4(1.0f), yaw,
+				glm::vec3(0.0f, 1.0f, 0.0f)) * glm::vec4(1, 0, 0, 1)) * deltaT;
+		}
+		if (glfwGetKey(window, GLFW_KEY_W)) {
+			pos -= MOVE_SPEED * glm::vec3(glm::rotate(glm::mat4(1.0f), yaw,
+				glm::vec3(0.0f, 1.0f, 0.0f)) * glm::vec4(0, 0, 1, 1)) * deltaT;
+		}
+		if (glfwGetKey(window, GLFW_KEY_S)) {
+			pos += MOVE_SPEED * glm::vec3(glm::rotate(glm::mat4(1.0f), yaw,
+				glm::vec3(0.0f, 1.0f, 0.0f)) * glm::vec4(0, 0, 1, 1)) * deltaT;
+		}*/
+
+		//To the left
+		/*if (glfwGetKey(window, GLFW_KEY_A)) {
+			pos += ux * glm::vec3(-1.0f, 0, 0) * deltaT * glm::vec3(glm::rotate(glm::mat4(1.0f), yaw, glm::vec3(0.0f, 1.0f, 0.0f)) * glm::vec4(1, 0, 0, 1));
+			if (glfwGetKey(window, GLFW_KEY_W)) {
+				yaw = 135.0f;
+			}
+			else if (glfwGetKey(window, GLFW_KEY_S)) {
+				yaw = -135.0f;
+			}
+			else {
+				yaw = 180.0f;
+			}
+			if (glfwGetKey(window, GLFW_KEY_UP)) {
+				roll = 45.0f;
+			}
+			else if (glfwGetKey(window, GLFW_KEY_DOWN)) {
+				roll = -45.0f;
+			}
+			else {
+				roll = 0.0f;
+			}
+		}
+		//To the right
+		if (glfwGetKey(window, GLFW_KEY_D)) {
+			pos += ux * glm::vec3(1.0f, 0, 0) * deltaT * glm::vec3(glm::rotate(glm::mat4(1.0f), yaw, glm::vec3(0.0f, 1.0f, 0.0f)) * glm::vec4(1, 0, 0, 1));
+			if (glfwGetKey(window, GLFW_KEY_W)) {
+				yaw = 45.0f;
+			}
+			else if (glfwGetKey(window, GLFW_KEY_S)) {
+				yaw = -45.0f;
+			}
+			else {
+				yaw = 0.0f;
+			}
+			if (glfwGetKey(window, GLFW_KEY_UP)) {
+				roll = 45.0f;
+			}
+			else if (glfwGetKey(window, GLFW_KEY_DOWN)) {
+				roll = -45.0f;
+			}
+			else {
+				roll = 0.0f;
+			}
+		}
+		//Straight ahead
+		if (glfwGetKey(window, GLFW_KEY_W)) {
+			pos += uz * glm::vec3(0, 0, -1.0f) * deltaT * glm::vec3(glm::rotate(glm::mat4(1.0f), yaw, glm::vec3(0.0f, 1.0f, 0.0f)) * glm::vec4(1, 0, 0, 1));
+			if (glfwGetKey(window, GLFW_KEY_A)) {
+				yaw = 135.0f;
+			}
+			else if (glfwGetKey(window, GLFW_KEY_D)) {
+				yaw = 45.0f;
+			}
+			else {
+				yaw = 90.0f;
+			}
+			if (glfwGetKey(window, GLFW_KEY_UP)) {
+				roll = 45.0f;
+			}
+			else if (glfwGetKey(window, GLFW_KEY_DOWN)) {
+				roll = -45.0f;
+			}
+			else {
+				roll = 0.0f;
+			}
+		}
+		//Backwards
+		if (glfwGetKey(window, GLFW_KEY_S)) {
+			pos += uz * glm::vec3(0, 0, 1.0f) * deltaT * glm::vec3(glm::rotate(glm::mat4(1.0f), yaw, glm::vec3(0.0f, 1.0f, 0.0f)) * glm::vec4(1, 0, 0, 1));
+			if (glfwGetKey(window, GLFW_KEY_A)) {
+				yaw = -135.0f;
+			}
+			else if (glfwGetKey(window, GLFW_KEY_D)) {
+				yaw = -45.0f;
+			}
+			else {
+				yaw = -90.0f;
+			}
+			if (glfwGetKey(window, GLFW_KEY_UP)) {
+				roll = 45.0f;
+			}
+			else if (glfwGetKey(window, GLFW_KEY_DOWN)) {
+				roll = -45.0f;
+			}
+			else {
+				roll = 0.0f;
+			}
+		}
+
+
+
+		//Go up
+		if (glfwGetKey(window, GLFW_KEY_UP)) {
+			pos += uy * glm::vec3(0, 1.0f, 0) * deltaT;
+			if (glfwGetKey(window, GLFW_KEY_W) || glfwGetKey(window, GLFW_KEY_A) || glfwGetKey(window, GLFW_KEY_S) || glfwGetKey(window, GLFW_KEY_D)) {
+				roll = 45.0f;
+			}
+			else {
+				roll = 90.0f;
+			}
+		}
+		//Go down (not below terrain)
+		if (glfwGetKey(window, GLFW_KEY_DOWN)) {
+			if (pos[1] > 0.0f) {
+				pos += uy * glm::vec3(0, -1.0f, 0) * deltaT;
+			}
+			if (glfwGetKey(window, GLFW_KEY_W) || glfwGetKey(window, GLFW_KEY_A) || glfwGetKey(window, GLFW_KEY_S) || glfwGetKey(window, GLFW_KEY_D)) {
+				roll = -45.0f;
+			}
+			else {
+				roll = -90.0f;
+			}
+		}*/
+
+		//Roll left
+		/*if (glfwGetKey(window, GLFW_KEY_Q)) {
+			pitch -= 0.5f;
+		}
+		//Roll right
+		if (glfwGetKey(window, GLFW_KEY_E)) {
+			pitch += 0.5f;
+		}
+
+		//Get bigger
+		if (glfwGetKey(window, GLFW_KEY_M)) {
+			size += glm::vec3(0.005f, 0.005f, 0.005f);
+		}
+		//Get smaller (not more than 0)
+		if (glfwGetKey(window, GLFW_KEY_N)) {
+			if (size[0] >= 0.005f) {
+				size -= glm::vec3(0.005f, 0.005f, 0.005f);
+			}
+		}
+		//Reset the initial configuration
+		if (glfwGetKey(window, GLFW_KEY_R)) {
+			yaw = 0.0f;
+			pitch = 0.0f;
+			roll = 0.0f;
+			size = glm::vec3(1, 1, 1);
+			pos = glm::vec3(-3, 0, 2);
+		}*/
+
+		//Done with quaternions
+		/*/quat = glm::quat(glm::vec3(0, glm::radians(yaw), 0)) *
+			glm::quat(glm::vec3(glm::radians(pitch), 0, 0)) *
+			glm::quat(glm::vec3(0, 0, glm::radians(roll)));
+
+		quatMatrix = glm::mat4(quat);
+
+		glm::mat4 out =
+			glm::translate(glm::mat4(1.0), pos) *
+			quatMatrix *
+			glm::scale(glm::mat4(1.0), size);
+		return out;*/
+
+		/*glm::mat4 out =
+			glm::translate(glm::mat4(1.0), pos) *
+			glm::rotate(glm::mat4(1.0), glm::radians(yaw), glm::vec3(0, 1, 0)) *
+			glm::rotate(glm::mat4(1.0), glm::radians(pitch), glm::vec3(1, 0, 0)) *
+			glm::rotate(glm::mat4(1.0), glm::radians(roll), glm::vec3(0, 0, 1)) *
+			glm::scale(glm::mat4(1.0), size);
+		return out;*/
+
+		glm::mat4 out =
+			/*glm::rotate(glm::mat4(1.0), glm::radians(-lookRoll), glm::vec3(0, 0, 1)) *
+			glm::rotate(glm::mat4(1.0), glm::radians(-lookPitch), glm::vec3(1, 0, 0)) *
+			glm::rotate(glm::mat4(1.0), glm::radians(-lookYaw), glm::vec3(0, 1, 0)) * */
+			glm::transpose(glm::mat4(CamDir)) *
+			glm::translate(glm::mat4(1.0), -pos);
+		return out;
+
+		/*glm::mat4 out =
+			glm::translate(glm::transpose(glm::mat4(CamDir)), -pos);
+		return out;*/
+	}
+
+
+	/*bool checkCollision(glm::vec3 pos, std::vector<Vertex> object)
+	{
+		for (int i = 0; i < object.size(); i++) {
+			if (round(pos.x) >= round(object[i].pos.x) && round(object[i].pos.x) >= round(pos.x)) {
+				std::cout << "\t" << pos.x << "\t" << pos.z;
+				if (pos.z >= object[i].pos.z && object[i].pos.z >= pos.z) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}*/
+};
+
+// This is the main: probably you do not need to touch this!
+int main() {
+    MyProject app;
+
+    try {
+        app.run();
+    } catch (const std::exception& e) {
+        std::cerr << e.what() << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    return EXIT_SUCCESS;
+}
