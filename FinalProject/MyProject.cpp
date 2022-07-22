@@ -139,37 +139,18 @@ static float lookRoll = 0.0f;
 stbi_uc* map;
 int mapWidth, mapHeight;
 bool canStepPoint(float x, float y) {
-	//int pixX = round(fmax(0.0f, fmin(mapWidth - 1, (x + 10) * mapWidth / 20.0)));
-	//int pixY = round(fmax(0.0f, fmin(mapHeight - 1, (y + 10) * mapHeight / 20.0)));
 	int pixX = round(fmax(0.0f, fmin(mapWidth - 1, (x + 16.9) * mapWidth / 33.8)));
 	int pixY = round(fmax(0.0f, fmin(mapHeight - 1, (y + 16.9) * mapHeight / 33.8)));
-	//int pixX = round(fmax(0.0f, fmin((mapWidth - 222) - 1, ((x + 10) * mapWidth / 20.0) - 222)));
-	//int pixY = round(fmax(0.0f, fmin((mapHeight - 112) - 1, ((y + 10) * mapHeight / 20.0) - 112)));
-	//int pixX = round(fmax(0.0f, fmin(mapWidth - 1, ((x + 10) * mapWidth / 20.0) - 222)));
-	//int pixY = round(fmax(0.0f, fmin(mapHeight - 1, ((y + 10) * mapHeight / 20.0) - 112)));
-	//int pixX = round(fmax(0.0f, fmin(mapWidth - 1, ((x + 10) * mapWidth / 20.0)) - 222));
-	//int pixY = round(fmax(0.0f, fmin(mapHeight - 1, ((y + 10) * mapHeight / 20.0)) - 112));
-	//int pix = (int)map[mapWidth * (pixY - 112) + (pixX - 222)];
-	//110 pixY
-	//230 pixX
 	int pix = (int)map[mapWidth * pixY + pixX];
 	//std::cout << pixX << " " << pixY << " " << x << " " << y << " \t P = " << pix << "\n";
 	/*if (pix > 100) {
 		return 
 	}*/
-	return pix > 6;//10;//128;
+	return pix > 6;
 }
 
 const float checkRadius = 0.1;
 const int checkSteps = 12;
-/*bool canStep(float x, float y) {
-	for (int i = 0; i < checkSteps; i++) {
-		if (!canStepPoint(x, y)) {
-			return false;
-		}
-	}
-	return true;
-}*/
 bool canStep(float x, float y) {
 	for (int i = 0; i < checkSteps; i++) {
 		if (!canStepPoint(x + cos(6.2832 * i / (float)checkSteps) * checkRadius,
@@ -208,7 +189,6 @@ class MyProject : public BaseProject {
 	Pipeline P1;
 
 	// Models, textures and Descriptors (values assigned to the uniforms)
-	//Object bodyObject;
 
 	Object floorObject;
 	Object ceilingObject;
@@ -229,13 +209,6 @@ class MyProject : public BaseProject {
 
 	MultipleObject levers = MultipleObject(3);
 
-	/*Object bodyObject;
-	
-	Object handleObject;
-
-	MultipleObject wheelObject = MultipleObject(3);*/
-
-	//Object labyrinth;
 
 	DescriptorSet DS_global;
 
@@ -295,12 +268,6 @@ class MyProject : public BaseProject {
 		multipleInstanceObjectInit(&levers, MODEL_PATH + "Lever/Lever2.obj", TEXTURE_PATH + "Levers2.png", descriptorSetLayoutObject.descriptorSetLayout, 3, descriptorSetLayoutObject);
 
 
-		//objectInit(&bodyObject, "models/SlotBody.obj", "textures/SlotBody.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
-
-		//objectInit(&handleObject, "models/SlotHandle.obj", "textures/SlotHandle.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
-
-		//multipleInstanceObjectInit(&wheelObject, "models/SlotWheel.obj", "textures/SlotWheel.png", descriptorSetLayoutObject.descriptorSetLayout, 3, descriptorSetLayoutObject);
-
 		descriptorSetInit(&DS_global, descriptorSetLayoutGlobal.descriptorSetLayout, descriptorSetLayoutGlobal);
 
 		map = stbi_load((TEXTURE_PATH + "displ5.png").c_str(),
@@ -355,11 +322,6 @@ class MyProject : public BaseProject {
 		doors.cleanup();
 
 		levers.cleanup();
-
-		//labyrinth.cleanup();
-		//bodyObject.cleanup();
-		/*handleObject.cleanup();
-		wheelObject.cleanup();*/
 	}
 
 	// Here you destroy all the objects you created!		
@@ -403,13 +365,6 @@ class MyProject : public BaseProject {
 		drawMultipleInstance(commandBuffer, currentImage, P1, doors, 1);
 
 		drawMultipleInstance(commandBuffer, currentImage, P1, levers, 1);
-
-
-		//drawSingleInstance(commandBuffer, currentImage, P1, labyrinth, 1);
-		//drawSingleInstance(commandBuffer, currentImage, P1, bodyObject, 1);
-		//drawSingleInstance(commandBuffer, currentImage, P1, handleObject, 1);
-
-		//drawMultipleInstance(commandBuffer, currentImage, P1, wheelObject, 1);
 	}
 
 
@@ -419,46 +374,6 @@ class MyProject : public BaseProject {
 	// Here is where you update the uniforms.
 	// Very likely this will be where you will be writing the logic of your application.
 	void updateUniformBuffer(uint32_t currentImage) {
-		/*static auto startTime = std::chrono::high_resolution_clock::now();
-		auto currentTime = std::chrono::high_resolution_clock::now();
-		float time = std::chrono::duration<float, std::chrono::seconds::period>
-			(currentTime - startTime).count();
-		static float lastTime = 0.0f;
-		float deltaT = time - lastTime;
-
-		static int state = 0;		// 0 - everything is still.
-									// 3 - three wheels are turning
-									// 2 - two wheels are turning
-									// 1 - one wheels is turning
-
-		static float debounce = time;
-		static float ang1 = 0.0f;
-		static float ang2 = 0.0f;
-		static float ang3 = 0.0f;*/
-
-		/*if (glfwGetKey(window, GLFW_KEY_SPACE)) {
-			if (time - debounce > 0.33) {
-				debounce = time;
-				if (state == 0) {
-					state = 3;
-				}
-				else {
-					state--;
-				}
-			}
-		}
-
-		if (state == 3) {
-			ang3 += deltaT;
-		}
-		if (state >= 2) {
-			ang2 += deltaT;
-		}
-		if (state >= 1) {
-			ang1 += deltaT;
-		}*/
-
-
 		glm::mat4 CamMat = glm::mat4(1);
 		glm::vec3 CamPos = glm::vec3(0);
 
@@ -466,11 +381,6 @@ class MyProject : public BaseProject {
 		//EyePos
 		CamPos = glm::vec3(CharacterPos * glm::vec4(0, 0, 0, 1));
 
-
-		//glm::mat4 CharacterPos = updateCameraPosition(window);
-		//EyePos
-		//CamPos = glm::vec3(CharacterPos * glm::vec4(0, 0, 0, 1));
-		//CamMat = glm::translate(glm::mat4(1), -CamPos);
 
 		GlobalUniformBufferObject gubo{};
 		UniformBufferObject ubo{};
@@ -767,13 +677,7 @@ class MyProject : public BaseProject {
 	}
 
 	glm::mat4 updateCameraPosition(GLFWwindow* window) {
-		/*static float yaw = 0.0f;
-		static float pitch = 0.0f;
-		static float roll = 0.0f;*/
-
-		//static glm::vec3 pos = glm::vec3(-4.73021, 0.5f, 12.7025);
 		static glm::vec3 pos = glm::vec3(0.0f, 0.5f, 0.0f);
-		//static glm::vec3 pos = glm::vec3(0.063467f, 0.052469f, -0.0205f);
 		if (first) {
 			first = false;
 			lookYaw += glm::radians(-45.0f);
@@ -846,224 +750,11 @@ class MyProject : public BaseProject {
 			pos = oldPos;
 		}
 
-		/*if (glfwGetKey(window, GLFW_KEY_LEFT)) {
-			yaw += deltaT * ROT_SPEED;
-		}
-		if (glfwGetKey(window, GLFW_KEY_RIGHT)) {
-			yaw -= deltaT * ROT_SPEED;
-		}
-		if (glfwGetKey(window, GLFW_KEY_UP)) {
-			pitch += deltaT * ROT_SPEED;
-		}
-		if (glfwGetKey(window, GLFW_KEY_DOWN)) {
-			pitch -= deltaT * ROT_SPEED;
-		}
-		if (glfwGetKey(window, GLFW_KEY_A)) {
-			pos -= MOVE_SPEED * glm::vec3(glm::rotate(glm::mat4(1.0f), yaw,
-				glm::vec3(0.0f, 1.0f, 0.0f)) * glm::vec4(1, 0, 0, 1)) * deltaT;
-		}
-		if (glfwGetKey(window, GLFW_KEY_D)) {
-			pos += MOVE_SPEED * glm::vec3(glm::rotate(glm::mat4(1.0f), yaw,
-				glm::vec3(0.0f, 1.0f, 0.0f)) * glm::vec4(1, 0, 0, 1)) * deltaT;
-		}
-		if (glfwGetKey(window, GLFW_KEY_W)) {
-			pos -= MOVE_SPEED * glm::vec3(glm::rotate(glm::mat4(1.0f), yaw,
-				glm::vec3(0.0f, 1.0f, 0.0f)) * glm::vec4(0, 0, 1, 1)) * deltaT;
-		}
-		if (glfwGetKey(window, GLFW_KEY_S)) {
-			pos += MOVE_SPEED * glm::vec3(glm::rotate(glm::mat4(1.0f), yaw,
-				glm::vec3(0.0f, 1.0f, 0.0f)) * glm::vec4(0, 0, 1, 1)) * deltaT;
-		}*/
-
-		//To the left
-		/*if (glfwGetKey(window, GLFW_KEY_A)) {
-			pos += ux * glm::vec3(-1.0f, 0, 0) * deltaT * glm::vec3(glm::rotate(glm::mat4(1.0f), yaw, glm::vec3(0.0f, 1.0f, 0.0f)) * glm::vec4(1, 0, 0, 1));
-			if (glfwGetKey(window, GLFW_KEY_W)) {
-				yaw = 135.0f;
-			}
-			else if (glfwGetKey(window, GLFW_KEY_S)) {
-				yaw = -135.0f;
-			}
-			else {
-				yaw = 180.0f;
-			}
-			if (glfwGetKey(window, GLFW_KEY_UP)) {
-				roll = 45.0f;
-			}
-			else if (glfwGetKey(window, GLFW_KEY_DOWN)) {
-				roll = -45.0f;
-			}
-			else {
-				roll = 0.0f;
-			}
-		}
-		//To the right
-		if (glfwGetKey(window, GLFW_KEY_D)) {
-			pos += ux * glm::vec3(1.0f, 0, 0) * deltaT * glm::vec3(glm::rotate(glm::mat4(1.0f), yaw, glm::vec3(0.0f, 1.0f, 0.0f)) * glm::vec4(1, 0, 0, 1));
-			if (glfwGetKey(window, GLFW_KEY_W)) {
-				yaw = 45.0f;
-			}
-			else if (glfwGetKey(window, GLFW_KEY_S)) {
-				yaw = -45.0f;
-			}
-			else {
-				yaw = 0.0f;
-			}
-			if (glfwGetKey(window, GLFW_KEY_UP)) {
-				roll = 45.0f;
-			}
-			else if (glfwGetKey(window, GLFW_KEY_DOWN)) {
-				roll = -45.0f;
-			}
-			else {
-				roll = 0.0f;
-			}
-		}
-		//Straight ahead
-		if (glfwGetKey(window, GLFW_KEY_W)) {
-			pos += uz * glm::vec3(0, 0, -1.0f) * deltaT * glm::vec3(glm::rotate(glm::mat4(1.0f), yaw, glm::vec3(0.0f, 1.0f, 0.0f)) * glm::vec4(1, 0, 0, 1));
-			if (glfwGetKey(window, GLFW_KEY_A)) {
-				yaw = 135.0f;
-			}
-			else if (glfwGetKey(window, GLFW_KEY_D)) {
-				yaw = 45.0f;
-			}
-			else {
-				yaw = 90.0f;
-			}
-			if (glfwGetKey(window, GLFW_KEY_UP)) {
-				roll = 45.0f;
-			}
-			else if (glfwGetKey(window, GLFW_KEY_DOWN)) {
-				roll = -45.0f;
-			}
-			else {
-				roll = 0.0f;
-			}
-		}
-		//Backwards
-		if (glfwGetKey(window, GLFW_KEY_S)) {
-			pos += uz * glm::vec3(0, 0, 1.0f) * deltaT * glm::vec3(glm::rotate(glm::mat4(1.0f), yaw, glm::vec3(0.0f, 1.0f, 0.0f)) * glm::vec4(1, 0, 0, 1));
-			if (glfwGetKey(window, GLFW_KEY_A)) {
-				yaw = -135.0f;
-			}
-			else if (glfwGetKey(window, GLFW_KEY_D)) {
-				yaw = -45.0f;
-			}
-			else {
-				yaw = -90.0f;
-			}
-			if (glfwGetKey(window, GLFW_KEY_UP)) {
-				roll = 45.0f;
-			}
-			else if (glfwGetKey(window, GLFW_KEY_DOWN)) {
-				roll = -45.0f;
-			}
-			else {
-				roll = 0.0f;
-			}
-		}
-
-
-
-		//Go up
-		if (glfwGetKey(window, GLFW_KEY_UP)) {
-			pos += uy * glm::vec3(0, 1.0f, 0) * deltaT;
-			if (glfwGetKey(window, GLFW_KEY_W) || glfwGetKey(window, GLFW_KEY_A) || glfwGetKey(window, GLFW_KEY_S) || glfwGetKey(window, GLFW_KEY_D)) {
-				roll = 45.0f;
-			}
-			else {
-				roll = 90.0f;
-			}
-		}
-		//Go down (not below terrain)
-		if (glfwGetKey(window, GLFW_KEY_DOWN)) {
-			if (pos[1] > 0.0f) {
-				pos += uy * glm::vec3(0, -1.0f, 0) * deltaT;
-			}
-			if (glfwGetKey(window, GLFW_KEY_W) || glfwGetKey(window, GLFW_KEY_A) || glfwGetKey(window, GLFW_KEY_S) || glfwGetKey(window, GLFW_KEY_D)) {
-				roll = -45.0f;
-			}
-			else {
-				roll = -90.0f;
-			}
-		}*/
-
-		//Roll left
-		/*if (glfwGetKey(window, GLFW_KEY_Q)) {
-			pitch -= 0.5f;
-		}
-		//Roll right
-		if (glfwGetKey(window, GLFW_KEY_E)) {
-			pitch += 0.5f;
-		}
-
-		//Get bigger
-		if (glfwGetKey(window, GLFW_KEY_M)) {
-			size += glm::vec3(0.005f, 0.005f, 0.005f);
-		}
-		//Get smaller (not more than 0)
-		if (glfwGetKey(window, GLFW_KEY_N)) {
-			if (size[0] >= 0.005f) {
-				size -= glm::vec3(0.005f, 0.005f, 0.005f);
-			}
-		}
-		//Reset the initial configuration
-		if (glfwGetKey(window, GLFW_KEY_R)) {
-			yaw = 0.0f;
-			pitch = 0.0f;
-			roll = 0.0f;
-			size = glm::vec3(1, 1, 1);
-			pos = glm::vec3(-3, 0, 2);
-		}*/
-
-		//Done with quaternions
-		/*/quat = glm::quat(glm::vec3(0, glm::radians(yaw), 0)) *
-			glm::quat(glm::vec3(glm::radians(pitch), 0, 0)) *
-			glm::quat(glm::vec3(0, 0, glm::radians(roll)));
-
-		quatMatrix = glm::mat4(quat);
-
 		glm::mat4 out =
-			glm::translate(glm::mat4(1.0), pos) *
-			quatMatrix *
-			glm::scale(glm::mat4(1.0), size);
-		return out;*/
-
-		/*glm::mat4 out =
-			glm::translate(glm::mat4(1.0), pos) *
-			glm::rotate(glm::mat4(1.0), glm::radians(yaw), glm::vec3(0, 1, 0)) *
-			glm::rotate(glm::mat4(1.0), glm::radians(pitch), glm::vec3(1, 0, 0)) *
-			glm::rotate(glm::mat4(1.0), glm::radians(roll), glm::vec3(0, 0, 1)) *
-			glm::scale(glm::mat4(1.0), size);
-		return out;*/
-
-		glm::mat4 out =
-			/*glm::rotate(glm::mat4(1.0), glm::radians(-lookRoll), glm::vec3(0, 0, 1)) *
-			glm::rotate(glm::mat4(1.0), glm::radians(-lookPitch), glm::vec3(1, 0, 0)) *
-			glm::rotate(glm::mat4(1.0), glm::radians(-lookYaw), glm::vec3(0, 1, 0)) * */
 			glm::transpose(glm::mat4(CamDir)) *
 			glm::translate(glm::mat4(1.0), -pos);
 		return out;
-
-		/*glm::mat4 out =
-			glm::translate(glm::transpose(glm::mat4(CamDir)), -pos);
-		return out;*/
 	}
-
-
-	/*bool checkCollision(glm::vec3 pos, std::vector<Vertex> object)
-	{
-		for (int i = 0; i < object.size(); i++) {
-			if (round(pos.x) >= round(object[i].pos.x) && round(object[i].pos.x) >= round(pos.x)) {
-				std::cout << "\t" << pos.x << "\t" << pos.z;
-				if (pos.z >= object[i].pos.z && object[i].pos.z >= pos.z) {
-					return true;
-				}
-			}
-		}
-		return false;
-	}*/
 };
 
 // This is the main: probably you do not need to touch this!
