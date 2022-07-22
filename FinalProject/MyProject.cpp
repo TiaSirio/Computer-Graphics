@@ -136,17 +136,54 @@ static float lookYaw = 0.0f;
 static float lookPitch = 0.0f;
 static float lookRoll = 0.0f;
 
+std::vector<int> doorOpenOrNot = { 1,1,1,1,1 };
+std::vector<int> leverUsedOrNot = { 0,0,0 };
+
+bool win = false;
+
+int checkCorrectDoor(float x, float y) {
+	int pixDoorX = round(x);
+	int pixDoorY = round(y);
+	if (pixDoorX == 4 && pixDoorY == 3) {
+		return doorOpenOrNot[0];
+	}
+	else if (pixDoorX == 7 && pixDoorY == 8) {
+		return doorOpenOrNot[1];
+	}
+	else if (pixDoorX == 9 && pixDoorY == 3) {
+		return doorOpenOrNot[2];
+	}
+	else if (pixDoorX == 4 && pixDoorY == -2) {
+		return doorOpenOrNot[3];
+	} else {
+		return doorOpenOrNot[4];
+	}
+}
+
 stbi_uc* map;
 int mapWidth, mapHeight;
 bool canStepPoint(float x, float y) {
+	int correctDoor;
 	int pixX = round(fmax(0.0f, fmin(mapWidth - 1, (x + 16.9) * mapWidth / 33.8)));
 	int pixY = round(fmax(0.0f, fmin(mapHeight - 1, (y + 16.9) * mapHeight / 33.8)));
 	int pix = (int)map[mapWidth * pixY + pixX];
 	//std::cout << pixX << " " << pixY << " " << x << " " << y << " \t P = " << pix << "\n";
-	/*if (pix > 100) {
-		return 
-	}*/
-	return pix > 6;
+	if (pix > 200) {
+		//Function to check the closest door and check if open or not
+		correctDoor = checkCorrectDoor(x, y);
+		return correctDoor == 1;
+	}
+	//If the last door is open
+	if (doorOpenOrNot[1] == 1) {
+		//Check final area and set win to true if arrived
+		int finishX = round(x);
+		int finishY = round(y);
+		if ((finishX == 7 && finishY == 8) || (finishX == 8 && finishY == 8)) {
+			win = true;
+			return pix >= 0;
+		}
+	}
+	return pix > 90;
 }
 
 const float checkRadius = 0.1;
@@ -164,9 +201,6 @@ bool canStep(float x, float y) {
 const std::string MODEL_PATH = "models/";
 const std::string TEXTURE_PATH = "textures/";
 bool first = true;
-
-std::vector<int> doorOpenOrNot = { 0,0,0,0,0 };
-std::vector<int> leverUsedOrNot = { 0,0,0 };
 
 // MAIN ! 
 class MyProject : public BaseProject {
@@ -247,10 +281,10 @@ class MyProject : public BaseProject {
 		objectInit(&ceilingObject, MODEL_PATH + "FloorAndCeiling/Ceiling.obj", TEXTURE_PATH + "Ceiling.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
 
 		//Walls
-		objectInit(&wallEastObject, MODEL_PATH + "Wall/TEST/WallEast.obj", TEXTURE_PATH + "Walls.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
-		objectInit(&wallNorthObject, MODEL_PATH + "Wall/TEST/WallNorth.obj", TEXTURE_PATH + "Walls.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
-		objectInit(&wallSouthObject, MODEL_PATH + "Wall/TEST/WallSouth.obj", TEXTURE_PATH + "Walls.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
-		objectInit(&wallWestObject, MODEL_PATH + "Wall/TEST/WallWest.obj", TEXTURE_PATH + "Walls.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
+		objectInit(&wallEastObject, MODEL_PATH + "Wall/WallEast.obj", TEXTURE_PATH + "Walls.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
+		objectInit(&wallNorthObject, MODEL_PATH + "Wall/WallNorth.obj", TEXTURE_PATH + "Walls.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
+		objectInit(&wallSouthObject, MODEL_PATH + "Wall/WallSouth.obj", TEXTURE_PATH + "Walls.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
+		objectInit(&wallWestObject, MODEL_PATH + "Wall//WallWest.obj", TEXTURE_PATH + "Walls.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
 		
 		//Gold key
 		objectInit(&goldKeyObject, MODEL_PATH + "Key/GoldKey.obj", TEXTURE_PATH + "GoldKeyColor.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
@@ -265,16 +299,16 @@ class MyProject : public BaseProject {
 		multipleInstanceObjectInit(&doors, MODEL_PATH + "Door/Door.obj", TEXTURE_PATH + "Door.png", descriptorSetLayoutObject.descriptorSetLayout, 5, descriptorSetLayoutObject);
 
 		//Levers
-		multipleInstanceObjectInit(&levers, MODEL_PATH + "Lever/Lever2.obj", TEXTURE_PATH + "Levers2.png", descriptorSetLayoutObject.descriptorSetLayout, 3, descriptorSetLayoutObject);
+		multipleInstanceObjectInit(&levers, MODEL_PATH + "Lever/Lever.obj", TEXTURE_PATH + "Levers.png", descriptorSetLayoutObject.descriptorSetLayout, 3, descriptorSetLayoutObject);
 
 
 		descriptorSetInit(&DS_global, descriptorSetLayoutGlobal.descriptorSetLayout, descriptorSetLayoutGlobal);
 
-		map = stbi_load((TEXTURE_PATH + "displ5.png").c_str(),
+		map = stbi_load((TEXTURE_PATH + "displ.png").c_str(),
 			&mapWidth, &mapHeight,
 			NULL, 1);
 		if (!map) {
-			std::cout << (TEXTURE_PATH + "displ5.png").c_str() << "\n";
+			std::cout << (TEXTURE_PATH + "displ.png").c_str() << "\n";
 			throw std::runtime_error("failed to load map image!");
 		}
 		std::cout << "map -> size: " << mapWidth
@@ -441,30 +475,30 @@ class MyProject : public BaseProject {
 
 		//door1
 		ubo.model = glm::mat4(1.0f);
-		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, doorOpenOrNot[0] * 1, 0)) * ubo.model;
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, doorOpenOrNot[0] * 1.01f, 0)) * ubo.model;
 		updateOneInstanceOfObject(doors, ubo, currentImage, 0);
 		ubo.model = glm::mat4(1.0f) * glm::translate(glm::mat4(1.0f), glm::vec3(3, 0, 5));
-		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, doorOpenOrNot[1] * 1, 0)) * ubo.model;
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, doorOpenOrNot[1] * 1.01f, 0)) * ubo.model;
 		//ubo.model = glm::mat4(1.0f);
 		updateOneInstanceOfObject(doors, ubo, currentImage, 1);
 		ubo.model = glm::mat4(1.0f);
 		//ubo.model = glm::inverse(glm::translate(glm::mat4(1.0f), glm::vec3(5, 0, 0))) * ubo.model;
 		//ubo.model = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)) * ubo.model;
 		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(5, 0, 0)) * ubo.model;
-		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, doorOpenOrNot[2] * 1, 0)) * ubo.model;
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, doorOpenOrNot[2] * 1.01f, 0)) * ubo.model;
 		updateOneInstanceOfObject(doors, ubo, currentImage, 2);
 		ubo.model = glm::mat4(1.0f);
 		//ubo.model = glm::inverse(glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, -5))) * ubo.model;
 		//ubo.model = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)) * ubo.model;
 		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, -5)) * ubo.model;
-		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, doorOpenOrNot[3] * 1, 0)) * ubo.model;
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, doorOpenOrNot[3] * 1.01f, 0)) * ubo.model;
 		updateOneInstanceOfObject(doors, ubo, currentImage, 3);
 		ubo.model = glm::mat4(1.0f);
 		//ubo.model = glm::inverse(glm::translate(glm::mat4(1.0f), glm::vec3(8, 0, 1))) * ubo.model;
 		//ubo.model = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)) * ubo.model;
 		//ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(8, 0, 0)) * ubo.model;
 		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(8, 0, 1)) * ubo.model;
-		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, doorOpenOrNot[4] * 1, 0)) * ubo.model;
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, doorOpenOrNot[4] * 1.01f, 0)) * ubo.model;
 		updateOneInstanceOfObject(doors, ubo, currentImage, 4);
 
 		//door2
@@ -746,9 +780,9 @@ class MyProject : public BaseProject {
 			pos -= MOVE_SPEED * glm::vec3(0, 1, 0) * deltaT;
 		}
 
-		if (!canStep(pos.x, pos.z)) {
+		/*if (!canStep(pos.x, pos.z)) {
 			pos = oldPos;
-		}
+		}*/
 
 		glm::mat4 out =
 			glm::transpose(glm::mat4(CamDir)) *
