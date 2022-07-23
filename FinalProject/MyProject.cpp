@@ -137,10 +137,15 @@ static float lookPitch = 0.0f;
 static float lookRoll = 0.0f;
 
 std::vector<int> doorOpenOrNot = { 0,0,0,0,0 };
+//Gold and Copper key
+std::vector<int> doorCouldBeOpened = { 0,0 };
+std::vector<int> leverCouldBeUsed = { 0,0,0 };
 std::vector<int> leverUsedOrNot = { 0,0,0 };
 std::vector<int> keyTakenOrNot = { 0,0 };
 
-bool win = false;
+static bool win = false;
+static bool jump = false;
+static bool jumpDown = false;
 
 int checkCorrectDoor(float x, float y, int pixDoorX, int pixDoorY) {
 	if (pixDoorX == 4 && pixDoorY == 3) {
@@ -172,57 +177,58 @@ bool canStepPoint(float x, float y) {
 	//Posso usare anche ceil() e floor()
 	int roundX = round(x);
 	int roundY = round(y);
+	float roundFirstDecimalX = round(x * 10.0) / 10.0;
+	float roundFirstDecimalY = round(y * 10.0) / 10.0;
 	int pixX = round(fmax(0.0f, fmin(mapWidth - 1, (x + 16.9) * mapWidth / 33.8)));
 	int pixY = round(fmax(0.0f, fmin(mapHeight - 1, (y + 16.9) * mapHeight / 33.8)));
 	int pix = (int)map[mapWidth * pixY + pixX];
 	//std::cout << pixX << " " << pixY << " " << x << " " << y << " \t P = " << pix << "\n";
-	float goldKeyX = round(x * 10.0) / 10.0;
-	float goldKeyY = round(y * 10.0) / 10.0;
-	if (goldKeyX == 10 && goldKeyY == -8 && keyTakenOrNot[0] == 0) {
+	//std::cout << x << " " << y << "\n";
+	if (roundFirstDecimalX == 10 && roundFirstDecimalY == -8 && keyTakenOrNot[0] == 0) {
 		//GoldKey
 		keyTakenOrNot[0] = 1;
 	}
-	//float keyHoleGoldX = round(x * 10.0) / 10.0;
-	//float keyHoleGoldY = round(y * 10.0) / 10.0;
-	if (roundX == 12 && roundY == 4 && keyTakenOrNot[0] == 1) {
+	if (roundX == 12 && (roundFirstDecimalY >= 3.7 && roundFirstDecimalY <= 3.9) && keyTakenOrNot[0] == 1 && doorOpenOrNot[4] == 0) {
 		//GoldKey
-		doorOpenOrNot[4] = 1;
+		doorCouldBeOpened[0] = 1;
 	}
-	float copperKeyX = round(x * 10.0) / 10.0;
-	float copperKeyY = round(y * 10.0) / 10.0;
-	if (copperKeyX == 15 && copperKeyY == 3 && keyTakenOrNot[1] == 0) {
+	else {
+		doorCouldBeOpened[0] = 0;
+	}
+	if (roundFirstDecimalX == 15 && roundFirstDecimalY == 3 && keyTakenOrNot[1] == 0) {
 		//CopperKey
 		keyTakenOrNot[1] = 1;
 	}
-	//float keyHoleCopperX = round(x * 10.0) / 10.0;
-	//float keyHoleCopperY = round(y * 10.0) / 10.0;
-	if (roundX == 7 && roundY == 8 && keyTakenOrNot[1] == 1 && doorOpenOrNot[1] == 0) {
-		//GoldKey
-		doorOpenOrNot[1] = 1;
+	if (roundX == 7 && (roundFirstDecimalY >= 8.1 && roundFirstDecimalY <= 8.4) && keyTakenOrNot[1] == 1 && doorOpenOrNot[1] == 0) {
+		//CopperKey
+		doorCouldBeOpened[1] = 1;
 	}
-	//float firstLeverX = round(x * 10.0) / 10.0;
-	//float firstLeverY = round(y * 10.0) / 10.0;
+	else {
+		doorCouldBeOpened[1] = 0;
+	}
 	//x = 3.3, y = 1.5
-	if (roundX == 3 && roundY == -1 && leverUsedOrNot[2] == 0 && doorOpenOrNot[3] == 0) {
+	if ((roundFirstDecimalX >= 3 && roundFirstDecimalX <= 3.3) && (roundFirstDecimalY >= -1.5 && roundFirstDecimalY <= -1.1) && leverUsedOrNot[2] == 0 && doorOpenOrNot[3] == 0) {
 		//First lever
-		doorOpenOrNot[3] = 1;
-		leverUsedOrNot[2] = 1;
+		leverCouldBeUsed[2] = 1;
 	}
-	//float secondLeverX = round(x * 10.0) / 10.0;
-	//float secondLeverY = round(y * 10.0) / 10.0;
+	else {
+		leverCouldBeUsed[2] = 0;
+	}
 	//x = 8.3, y = 3.5
-	if (roundX == 8 && roundY == 4 && leverUsedOrNot[1] == 0 && doorOpenOrNot[2] == 0) {
+	if ((roundFirstDecimalX >= 8 && roundFirstDecimalX <= 8.2) && (roundFirstDecimalY >= 3.5 && roundFirstDecimalY <= 3.9) && leverUsedOrNot[1] == 0 && doorOpenOrNot[2] == 0) {
 		//Second lever
-		doorOpenOrNot[2] = 1;
-		leverUsedOrNot[1] = 1;
+		leverCouldBeUsed[1] = 1;
 	}
-	//float thirdLeverX = round(x * 10.0) / 10.0;
-	//float thirdLeverY = round(y * 10.0) / 10.0;
+	else {
+		leverCouldBeUsed[1] = 0;
+	}
 	//x = 2.5, y = 2.2
-	if (roundX == 2 && roundY == 2 && leverUsedOrNot[0] == 0 && doorOpenOrNot[0] == 0) {
+	if ((roundFirstDecimalX >= 1.9 && roundFirstDecimalX <= 2.5) && (roundFirstDecimalY >= 1.9 && roundFirstDecimalY <= 2.2) && leverUsedOrNot[0] == 0 && doorOpenOrNot[0] == 0) {
 		//Third lever
-		doorOpenOrNot[0] = 1;
-		leverUsedOrNot[0] = 1;
+		leverCouldBeUsed[0] = 1;
+	}
+	else {
+		leverCouldBeUsed[0] = 0;
 	}
 	if (pix > 200) {
 		//Function to check the closest door and check if open or not
@@ -767,7 +773,7 @@ class MyProject : public BaseProject {
 	}
 
 	glm::mat4 updateCameraPosition(GLFWwindow* window) {
-		static glm::vec3 pos = glm::vec3(0.0f, 0.5f, 0.0f);
+		static glm::vec3 pos = glm::vec3(0.0f, 0.4f, 0.0f);
 		if (first) {
 			first = false;
 			lookYaw += glm::radians(-45.0f);
@@ -829,21 +835,83 @@ class MyProject : public BaseProject {
 				glm::vec3(0.0f, 1.0f, 0.0f)) * glm::vec4(0, 0, 1, 1)) * deltaT;
 		}
 
-		if (glfwGetKey(window, GLFW_KEY_SPACE)) {
-			pos += MOVE_SPEED * glm::vec3(0, 1, 0) * deltaT;
+		if (glfwGetKey(window, GLFW_KEY_SPACE) && !jump) {
+			//pos += MOVE_SPEED * glm::vec3(0, 0.1f, 0) * deltaT;
+			jump = true;
 		}
-		if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT)) {
+		/*if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) && pos.y >= 0.4) {
 			pos -= MOVE_SPEED * glm::vec3(0, 1, 0) * deltaT;
+		}*/
+
+		if (pos.y < 0.4f)
+		{
+			pos.y = 0.4f;
+			jump = false;
+			jumpDown = false;
 		}
+
+		if (pos.y >= 0.9) {
+			jumpDown = true;
+		}
+
+		if (jump) {
+			if (pos.y <= 0.9 && !jumpDown) {
+				pos += MOVE_SPEED * glm::vec3(0, 0.7f, 0) * deltaT;
+			}
+			else {
+				pos -= MOVE_SPEED * glm::vec3(0, 0.7f, 0) * deltaT;
+			}
+		}
+
+		//Slow down respective axes
+		/*playerVelX *= exp(-friction * dt); // playerVelX *= (1 - friction * dt) for small dt
+		playerVelY -= gravity * dt;*/
 
 		if (!canStep(pos.x, pos.z)) {
 			pos = oldPos;
 		}
 
+		openTheDoor();
+		
 		glm::mat4 out =
 			glm::transpose(glm::mat4(CamDir)) *
 			glm::translate(glm::mat4(1.0), -pos);
 		return out;
+	}
+
+	void openTheDoor() {
+		if (leverCouldBeUsed[2] == 1 && leverUsedOrNot[2] == 0) {
+			if (glfwGetKey(window, GLFW_KEY_E)) {
+				doorOpenOrNot[3] = 1;
+				leverUsedOrNot[2] = 1;
+			}
+		}
+
+		if (leverCouldBeUsed[1] == 1 && leverUsedOrNot[1] == 0) {
+			if (glfwGetKey(window, GLFW_KEY_E)) {
+				doorOpenOrNot[2] = 1;
+				leverUsedOrNot[1] = 1;
+			}
+		}
+
+		if (leverCouldBeUsed[0] == 1 && leverUsedOrNot[0] == 0) {
+			if (glfwGetKey(window, GLFW_KEY_E)) {
+				doorOpenOrNot[0] = 1;
+				leverUsedOrNot[0] = 1;
+			}
+		}
+
+		if (doorCouldBeOpened[0] == 1 && doorOpenOrNot[4] == 0) {
+			if (glfwGetKey(window, GLFW_KEY_E)) {
+				doorOpenOrNot[4] = 1;
+			}
+		}
+
+		if (doorCouldBeOpened[1] == 1 && doorOpenOrNot[1] == 0) {
+			if (glfwGetKey(window, GLFW_KEY_E)) {
+				doorOpenOrNot[1] = 1;
+			}
+		}
 	}
 };
 
