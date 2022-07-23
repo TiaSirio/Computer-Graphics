@@ -199,7 +199,7 @@ bool canStepPoint(float x, float y) {
 		//CopperKey
 		keyTakenOrNot[1] = 1;
 	}
-	if (roundX == 7 && (roundFirstDecimalY >= 8.1 && roundFirstDecimalY <= 8.4) && keyTakenOrNot[1] == 1 && doorOpenOrNot[1] == 0) {
+	if ((roundFirstDecimalX >= 6.6 && roundFirstDecimalX <= 6.9) && roundY == 8 && keyTakenOrNot[1] == 1 && doorOpenOrNot[1] == 0) {
 		//CopperKey
 		doorCouldBeOpened[1] = 1;
 	}
@@ -836,18 +836,15 @@ class MyProject : public BaseProject {
 		}
 
 		if (glfwGetKey(window, GLFW_KEY_SPACE) && !jump) {
-			//pos += MOVE_SPEED * glm::vec3(0, 0.1f, 0) * deltaT;
 			jump = true;
 		}
-		/*if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) && pos.y >= 0.4) {
-			pos -= MOVE_SPEED * glm::vec3(0, 1, 0) * deltaT;
-		}*/
 
 		if (pos.y < 0.4f)
 		{
 			pos.y = 0.4f;
 			jump = false;
 			jumpDown = false;
+			onWall = false;
 		}
 
 		if (pos.y >= 0.9) {
@@ -862,10 +859,6 @@ class MyProject : public BaseProject {
 				pos -= MOVE_SPEED * glm::vec3(0, 0.7f, 0) * deltaT;
 			}
 		}
-
-		//Slow down respective axes
-		/*playerVelX *= exp(-friction * dt); // playerVelX *= (1 - friction * dt) for small dt
-		playerVelY -= gravity * dt;*/
 
 		if (!canStep(pos.x, pos.z)) {
 			pos = oldPos;
