@@ -45,6 +45,7 @@ namespace utils {
 	}
 };
 
+
 struct GlobalUniformBufferObject {
 	alignas(16) glm::mat4 view;
 	alignas(16) glm::mat4 proj;
@@ -132,40 +133,54 @@ struct MultipleObject {
 	}
 };
 
+//Player
+static glm::vec3 pos = glm::vec3(0.0f, 0.5f, 0.0f);
 static float lookYaw = 0.0f;
 static float lookPitch = 0.0f;
 static float lookRoll = 0.0f;
-
-std::vector<int> doorOpenOrNot = { 0,0,0,0,0 };
-//Gold and Copper key
-std::vector<int> doorCouldBeOpened = { 0,0 };
-std::vector<int> leverCouldBeUsed = { 0,0,0 };
-std::vector<int> leverUsedOrNot = { 0,0,0 };
-std::vector<int> keyTakenOrNot = { 0,0 };
 
 static bool win = false;
 static bool jump = false;
 static bool jumpDown = false;
 
+
+//Environment
+static std::vector<int> doorOpenOrNot = { 0,0,0,0,0 };
+static std::vector<int> userCouldPassThroughDoors = { 0,0,0,0,0 };
+//Gold and Copper key
+static std::vector<int> doorCouldBeOpened = { 0,0 };
+static std::vector<int> leverCouldBeUsed = { 0,0,0 };
+static std::vector<int> leverUsedOrNot = { 0,0,0 };
+static std::vector<int> keyTakenOrNot = { 0,0 };
+static float powerUpTakenOrNot = 0.0f;
+
+static int rotatingPowerUp = 0;
+static std::vector<float> slowlyOpenDoors = { 0.0f,0.0f,0.0f,0.0f,0.0f };
+
 int checkCorrectDoor(float x, float y, int pixDoorX, int pixDoorY) {
 	if (pixDoorX == 4 && pixDoorY == 3) {
 		//Lever door - third lever
-		return doorOpenOrNot[0];
+		//return doorOpenOrNot[0];
+		return userCouldPassThroughDoors[0];
 	}
 	else if (pixDoorX == 7 && pixDoorY == 8) {
 		//Copper key (last door)
-		return doorOpenOrNot[1];
+		//return doorOpenOrNot[1];
+		return userCouldPassThroughDoors[1];
 	}
 	else if (pixDoorX == 9 && pixDoorY == 3) {
 		//Lever door - second lever
-		return doorOpenOrNot[2];
+		//return doorOpenOrNot[2];
+		return userCouldPassThroughDoors[2];
 	}
 	else if (pixDoorX == 4 && pixDoorY == -2) {
 		//Lever door - first lever (first door)
-		return doorOpenOrNot[3];
+		//return doorOpenOrNot[3];
+		return userCouldPassThroughDoors[3];
 	} else {
 		//Gold key door
-		return doorOpenOrNot[4];
+		//return doorOpenOrNot[4];
+		return userCouldPassThroughDoors[4];
 	}
 	//x = 12; y = 4
 }
@@ -215,7 +230,7 @@ bool canStepPoint(float x, float y) {
 		leverCouldBeUsed[2] = 0;
 	}
 	//x = 8.3, y = 3.5
-	if ((roundFirstDecimalX >= 8 && roundFirstDecimalX <= 8.2) && (roundFirstDecimalY >= 3.5 && roundFirstDecimalY <= 3.9) && leverUsedOrNot[1] == 0 && doorOpenOrNot[2] == 0) {
+	if ((roundFirstDecimalX >= 8 && roundFirstDecimalX <= 8.5) && (roundFirstDecimalY >= 3.5 && roundFirstDecimalY <= 3.9) && leverUsedOrNot[1] == 0 && doorOpenOrNot[2] == 0) {
 		//Second lever
 		leverCouldBeUsed[1] = 1;
 	}
@@ -229,6 +244,10 @@ bool canStepPoint(float x, float y) {
 	}
 	else {
 		leverCouldBeUsed[0] = 0;
+	}
+	//x = -4.0, y = 12.0
+	if ((roundFirstDecimalX >= -4.2 && roundFirstDecimalX <= -3.8) && (roundFirstDecimalY >= 11.8 && roundFirstDecimalY <= 12.2) && powerUpTakenOrNot == 0.0f) {
+		powerUpTakenOrNot = 0.8f;
 	}
 	if (pix > 200) {
 		//Function to check the closest door and check if open or not
@@ -281,11 +300,15 @@ class MyProject : public BaseProject {
 
 	// Pipelines [Shader couples]
 	Pipeline P1;
+	//Pipeline P2;
 
 	// Models, textures and Descriptors (values assigned to the uniforms)
 
 	Object floorObject;
 	Object ceilingObject;
+	
+	Object powerUp;
+	Object powerUpBase;
 
 	Object wallEastObject;
 	Object wallNorthObject;
@@ -305,6 +328,7 @@ class MyProject : public BaseProject {
 
 
 	DescriptorSet DS_global;
+
 
 	// Here you set the main application parameters
 	void setWindowParameters() {
@@ -327,6 +351,14 @@ class MyProject : public BaseProject {
 
 
 
+	/*
+	createPipeline("TextVert.spv", "TextFrag.spv",
+ 					    TextPipelineLayout, TextPipeline,
+ 					    TextDescriptorSetLayout, VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL,
+ 					    VK_CULL_MODE_NONE, true, textVertices);
+	*/
+	//Row 2000 Assignment03 implementazione di text pipeline
+
 	// Here you load and setup all your Vulkan objects
 	void localInit() {
 
@@ -339,6 +371,10 @@ class MyProject : public BaseProject {
 		//Floor and ceiling
 		objectInit(&floorObject, MODEL_PATH + "FloorAndCeiling/Floor.obj", TEXTURE_PATH + "Floor.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
 		objectInit(&ceilingObject, MODEL_PATH + "FloorAndCeiling/Ceiling.obj", TEXTURE_PATH + "Ceiling.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
+
+		//Power up
+		objectInit(&powerUp, MODEL_PATH + "PowerUp/PowerUp.obj", TEXTURE_PATH + "Floor.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
+		objectInit(&powerUpBase, MODEL_PATH + "PowerUp/PowerUpBase.obj", TEXTURE_PATH + "Ceiling.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
 
 		//Walls
 		objectInit(&wallEastObject, MODEL_PATH + "Wall/WallEast.obj", TEXTURE_PATH + "Walls.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
@@ -377,6 +413,7 @@ class MyProject : public BaseProject {
 
 	void localPipelineInit() {
 		P1.init(this, "shaders/vert.spv", "shaders/frag.spv", { &descriptorSetLayoutGlobal.descriptorSetLayout, &descriptorSetLayoutObject.descriptorSetLayout });
+		//P2.init(this, "shaders/textVert.spv", "shaders/textFrag.spv", { &descriptorSetLayoutGlobal.descriptorSetLayout, &descriptorSetLayoutObject.descriptorSetLayout });
 	}
 
 
@@ -386,6 +423,7 @@ class MyProject : public BaseProject {
 	void localPipelineCleanup() {
 		//Here clean all the pipelines.
 		P1.cleanup();
+		//P2.cleanup();
 	}
 
 	void descriptorLayoutsCleanup() {
@@ -400,6 +438,9 @@ class MyProject : public BaseProject {
 	void objectsCleanup() {
 		floorObject.cleanup();
 		ceilingObject.cleanup();
+
+		powerUp.cleanup();
+		powerUpBase.cleanup();
 
 		wallEastObject.cleanup();
 		wallNorthObject.cleanup();
@@ -442,6 +483,9 @@ class MyProject : public BaseProject {
 
 		drawSingleInstance(commandBuffer, currentImage, P1, floorObject, 1);
 		drawSingleInstance(commandBuffer, currentImage, P1, ceilingObject, 1);
+
+		drawSingleInstance(commandBuffer, currentImage, P1, powerUp, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, powerUpBase, 1);
 
 		drawSingleInstance(commandBuffer, currentImage, P1, wallEastObject, 1);
 		drawSingleInstance(commandBuffer, currentImage, P1, wallNorthObject, 1);
@@ -502,7 +546,6 @@ class MyProject : public BaseProject {
 		ubo.model = glm::mat4(1.0f);
 		updateObject(ceilingObject, ubo, currentImage);
 
-
 		//Walls
 		ubo.model = glm::mat4(1.0f);
 		updateObject(wallEastObject, ubo, currentImage);
@@ -514,14 +557,15 @@ class MyProject : public BaseProject {
 		updateObject(wallWestObject, ubo, currentImage);
 
 
+
+
+
 		//Gold key
 		ubo.model = glm::mat4(1.0f);
 		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, keyTakenOrNot[0] * 1.01f, 0)) * ubo.model;
 		updateObject(goldKeyObject, ubo, currentImage);
 		ubo.model = glm::mat4(1.0f);
 		updateObject(goldKeyHoleObject, ubo, currentImage);
-
-		//bool test = checkCollision(CamPos, goldKeyObject.model.vertices);
 
 		//Copper key
 		ubo.model = glm::mat4(1.0f);
@@ -531,81 +575,154 @@ class MyProject : public BaseProject {
 		updateObject(copperKeyHoleObject, ubo, currentImage);
 
 
+
+
+
 		//Door borders
 		ubo.model = glm::mat4(1.0f);
 		updateObject(doorBorders, ubo, currentImage);
 
-		//door1
+		//Doors
 		ubo.model = glm::mat4(1.0f);
-		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, doorOpenOrNot[0] * 1.01f, 0)) * ubo.model;
+		if (doorOpenOrNot[0] == 1 && slowlyOpenDoors[0] < 1.01f) {
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, doorOpenOrNot[0] * slowlyOpenDoors[0], 0)) * ubo.model;
+			slowlyOpenDoors[0] += 0.001f;
+		}
+		else if (slowlyOpenDoors[0] >= 1.01f) {
+			userCouldPassThroughDoors[0] = 1;
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, doorOpenOrNot[0] * slowlyOpenDoors[0], 0)) * ubo.model;
+		}
+		if (userCouldPassThroughDoors[0] == 0 && slowlyOpenDoors[0] >= 0.95f) {
+			userCouldPassThroughDoors[0] = 1;
+		}
 		updateOneInstanceOfObject(doors, ubo, currentImage, 0);
-		ubo.model = glm::mat4(1.0f) * glm::translate(glm::mat4(1.0f), glm::vec3(3, 0, 5));
-		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, doorOpenOrNot[1] * 1.01f, 0)) * ubo.model;
-		//ubo.model = glm::mat4(1.0f);
+		ubo.model = glm::mat4(1.0f);
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(3, 0, 5)) * ubo.model;
+		if (doorOpenOrNot[1] == 1 && slowlyOpenDoors[1] < 1.01f) {
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, doorOpenOrNot[1] * slowlyOpenDoors[1], 0)) * ubo.model;
+			slowlyOpenDoors[1] += 0.001f;
+		}
+		else if (slowlyOpenDoors[1] >= 1.01f) {
+			userCouldPassThroughDoors[1] = 1;
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, doorOpenOrNot[1] * slowlyOpenDoors[1], 0)) * ubo.model;
+		}
+		if (userCouldPassThroughDoors[1] == 0 && slowlyOpenDoors[1] >= 0.95f) {
+			userCouldPassThroughDoors[1] = 1;
+		}
 		updateOneInstanceOfObject(doors, ubo, currentImage, 1);
 		ubo.model = glm::mat4(1.0f);
-		//ubo.model = glm::inverse(glm::translate(glm::mat4(1.0f), glm::vec3(5, 0, 0))) * ubo.model;
-		//ubo.model = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)) * ubo.model;
 		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(5, 0, 0)) * ubo.model;
-		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, doorOpenOrNot[2] * 1.01f, 0)) * ubo.model;
+		//Rotate on the correct axis
+		ubo.model = glm::inverse(glm::translate(glm::mat4(1.0f), glm::vec3(9.0f, 0.0f, 3.0f))) * ubo.model;
+		ubo.model = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)) * ubo.model;
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(9.0f, 0.0f, 3.0f)) * ubo.model;
+		if (doorOpenOrNot[2] == 1 && slowlyOpenDoors[2] < 1.01f) {
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, doorOpenOrNot[2] * slowlyOpenDoors[2], 0)) * ubo.model;
+			slowlyOpenDoors[2] += 0.001f;
+		}
+		else if (slowlyOpenDoors[2] >= 1.01f) {
+			userCouldPassThroughDoors[2] = 1;
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, doorOpenOrNot[2] * slowlyOpenDoors[2], 0)) * ubo.model;
+		}
+		if (userCouldPassThroughDoors[2] == 0 && slowlyOpenDoors[2] >= 0.95f) {
+			userCouldPassThroughDoors[2] = 1;
+		}
 		updateOneInstanceOfObject(doors, ubo, currentImage, 2);
 		ubo.model = glm::mat4(1.0f);
-		//ubo.model = glm::inverse(glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, -5))) * ubo.model;
-		//ubo.model = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)) * ubo.model;
 		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, -5)) * ubo.model;
-		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, doorOpenOrNot[3] * 1.01f, 0)) * ubo.model;
+		//Rotate on the correct axis
+		ubo.model = glm::inverse(glm::translate(glm::mat4(1.0f), glm::vec3(4.0f, 0.0f, -2.0f))) * ubo.model;
+		ubo.model = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)) * ubo.model;
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(4.0f, 0.0f, -2.0f)) * ubo.model;
+		if (doorOpenOrNot[3] == 1 && slowlyOpenDoors[3] < 1.01f) {
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, doorOpenOrNot[3] * slowlyOpenDoors[3], 0)) * ubo.model;
+			slowlyOpenDoors[3] += 0.001f;
+		}
+		else if (slowlyOpenDoors[3] >= 1.01f) {
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, doorOpenOrNot[3] * slowlyOpenDoors[3], 0)) * ubo.model;
+		}
+		if (userCouldPassThroughDoors[3] == 0 && slowlyOpenDoors[3] >= 0.95f) {
+			userCouldPassThroughDoors[3] = 1;
+		}
 		updateOneInstanceOfObject(doors, ubo, currentImage, 3);
 		ubo.model = glm::mat4(1.0f);
-		//ubo.model = glm::inverse(glm::translate(glm::mat4(1.0f), glm::vec3(8, 0, 1))) * ubo.model;
-		//ubo.model = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)) * ubo.model;
-		//ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(8, 0, 0)) * ubo.model;
 		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(8, 0, 1)) * ubo.model;
-		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, doorOpenOrNot[4] * 1.01f, 0)) * ubo.model;
+		//Rotate on the correct axis
+		ubo.model = glm::inverse(glm::translate(glm::mat4(1.0f), glm::vec3(12.0f, 0.0f, 4.0f))) * ubo.model;
+		ubo.model = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)) * ubo.model;
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(12.0f, 0.0f, 4.0f)) * ubo.model;
+		if (doorOpenOrNot[4] == 1 && slowlyOpenDoors[4] < 1.01f) {
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, doorOpenOrNot[4] * slowlyOpenDoors[4], 0)) * ubo.model;
+			slowlyOpenDoors[4] += 0.001f;
+		}
+		else if (slowlyOpenDoors[4] >= 1.01f) {
+			userCouldPassThroughDoors[4] = 1;
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, doorOpenOrNot[4] * slowlyOpenDoors[4], 0)) * ubo.model;
+		}
+		if (userCouldPassThroughDoors[4] == 0 && slowlyOpenDoors[4] >= 0.95f) {
+			userCouldPassThroughDoors[4] = 1;
+		}
 		updateOneInstanceOfObject(doors, ubo, currentImage, 4);
 
-		//door2
-		/*ubo.model = glm::mat4(1.0f);
-		updateOneInstanceOfObject(doors, ubo, currentImage, 0);
-		ubo.model = glm::mat4(1.0f) * glm::translate(glm::mat4(1.0f), glm::vec3(-3, 0, -5));
-		updateOneInstanceOfObject(doors, ubo, currentImage, 1);
-		ubo.model = glm::mat4(1.0f);
-		ubo.model = glm::inverse(glm::translate(glm::mat4(1.0f), glm::vec3(2, 0, -5))) * ubo.model;
-		ubo.model = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)) * ubo.model;
-		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(2, 0, -5)) * ubo.model;
-		updateOneInstanceOfObject(doors, ubo, currentImage, 2);
-		ubo.model = glm::mat4(1.0f);
-		ubo.model = glm::inverse(glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, -5))) * ubo.model;
-		ubo.model = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)) * ubo.model;
-		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, -5)) * ubo.model;
-		updateOneInstanceOfObject(doors, ubo, currentImage, 3);
-		ubo.model = glm::mat4(1.0f);
-		ubo.model = glm::inverse(glm::translate(glm::mat4(1.0f), glm::vec3(8, 0, -1))) * ubo.model;
-		ubo.model = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)) * ubo.model;
-		//ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(8, 0, 0)) * ubo.model;
-		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(8, 0, -1)) * ubo.model;
-		updateOneInstanceOfObject(doors, ubo, currentImage, 4);*/
+
+
+
 
 		//Levers
 		ubo.model = glm::mat4(1.0f);
-		ubo.model = glm::rotate(glm::mat4(1.0f), leverUsedOrNot[0] * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)) * ubo.model;
+		if (leverUsedOrNot[0] == 1) {
+			ubo.model = glm::inverse(glm::translate(glm::mat4(1.0f), glm::vec3(2.5f, 0.5f, 2.2f))) * ubo.model;
+			ubo.model = glm::rotate(glm::mat4(1.0f), leverUsedOrNot[0] * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)) * ubo.model;
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(2.5f, 0.5f, 2.2f)) * ubo.model;
+		}
 		updateOneInstanceOfObject(levers, ubo, currentImage, 0);
 		ubo.model = glm::mat4(1.0f);
-		//ubo.model = glm::inverse(glm::translate(glm::mat4(1.0f), glm::vec3(5.8f, 0, 1.3f))) * ubo.model;
-		//ubo.model = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)) * ubo.model;
-		//ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(5.8f, 0, 1.3f)) * ubo.model;
 		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(5.8f, 0, 1.3f)) * ubo.model;
-		ubo.model = glm::rotate(glm::mat4(1.0f), leverUsedOrNot[1] * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)) * ubo.model;
+		//Rotate on the correct axis
+		ubo.model = glm::inverse(glm::translate(glm::mat4(1.0f), glm::vec3(8.3f, 0.5f, 3.5f))) * ubo.model;
+		ubo.model = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)) * ubo.model;
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(8.3f, 0.5f, 3.5f)) * ubo.model;
+		if (leverUsedOrNot[1] == 1) {
+			ubo.model = glm::inverse(glm::translate(glm::mat4(1.0f), glm::vec3(8.3f, 0.5f, 3.5f))) * ubo.model;
+			ubo.model = glm::rotate(glm::mat4(1.0f), leverUsedOrNot[2] * glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)) * ubo.model;
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(8.3f, 0.5f, 3.5f)) * ubo.model;
+		}
+		/*if (leverUsedOrNot[1] == 0 &&) {
+			ubo.model = glm::inverse(glm::translate(glm::mat4(1.0f), glm::vec3(8.3f, 0.5f, 3.5f))) * ubo.model;
+			ubo.model = glm::rotate(glm::mat4(1.0f), leverUsedOrNot[2] * glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)) * ubo.model;
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(8.3f, 0.5f, 3.5f)) * ubo.model;
+		}*/
 		updateOneInstanceOfObject(levers, ubo, currentImage, 1);
 		ubo.model = glm::mat4(1.0f);
-		//ubo.model = glm::inverse(glm::translate(glm::mat4(1.0f), glm::vec3(0.8f, 0, -3.7f))) * ubo.model;
-		//ubo.model = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)) * ubo.model;
-		//ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0.8f, 0, -3.7f)) * ubo.model;
+		//Rotate on the correct axis
 		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0.8f, 0, -3.7f)) * ubo.model;
-		ubo.model = glm::rotate(glm::mat4(1.0f), leverUsedOrNot[2] * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)) * ubo.model;
+		ubo.model = glm::inverse(glm::translate(glm::mat4(1.0f), glm::vec3(3.3f, 0.5f, -1.5f))) * ubo.model;
+		ubo.model = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)) * ubo.model;
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(3.3f, 0.5f, -1.5f)) * ubo.model;
+		if (leverUsedOrNot[2] == 1) {
+			ubo.model = glm::inverse(glm::translate(glm::mat4(1.0f), glm::vec3(3.3f, 0.5f, -1.5f))) * ubo.model;
+			ubo.model = glm::rotate(glm::mat4(1.0f), leverUsedOrNot[2] * glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)) * ubo.model;
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(3.3f, 0.5f, -1.5f)) * ubo.model;
+		}
 		updateOneInstanceOfObject(levers, ubo, currentImage, 2);
 
-		//bool test = checkCollision(CamPos, levers..model.vertices);
-		//std::cout << test;
+
+
+
+
+		//Power up
+		ubo.model = glm::mat4(1.0f);
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, powerUpTakenOrNot * 10.0f, 0)) * ubo.model;
+		//Rotate on the correct axis
+		if (powerUpTakenOrNot == 0) {
+			ubo.model = glm::inverse(glm::translate(glm::mat4(1.0f), glm::vec3(-4.0f, 0.4f, 12.0f))) * ubo.model;
+			ubo.model = glm::rotate(glm::mat4(1.0f), rotatingPowerUp * glm::radians(0.05f), glm::vec3(0.0f, 1.0f, 0.0f)) * ubo.model;
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(-4.0f, 0.4f, 12.0f)) * ubo.model;
+			rotatingPowerUp++;
+		}
+		updateObject(powerUp, ubo, currentImage);
+		ubo.model = glm::mat4(1.0f);
+		updateObject(powerUpBase, ubo, currentImage);
 	}
 
 	
@@ -773,20 +890,21 @@ class MyProject : public BaseProject {
 	}
 
 	glm::mat4 updateCameraPosition(GLFWwindow* window) {
-		static glm::vec3 pos = glm::vec3(0.0f, 0.4f, 0.0f);
 		if (first) {
 			first = false;
 			lookYaw += glm::radians(-45.0f);
 		}
-		static glm::vec3 size = glm::vec3(1, 1, 1);
-		glm::vec3 ux = glm::vec3(1, 0, 0);
-		glm::vec3 uy = glm::vec3(0, 1, 0);
-		glm::vec3 uz = glm::vec3(0, 0, 1);
-		static glm::quat quat = glm::quat(glm::vec3(0, 0, 0));
-		static glm::mat4 quatMatrix = glm::mat4(quat);
+		//static glm::vec3 size = glm::vec3(1, 1, 1);
+		//glm::vec3 ux = glm::vec3(1, 0, 0);
+		//glm::vec3 uy = glm::vec3(0, 1, 0);
+		//glm::vec3 uz = glm::vec3(0, 0, 1);
+		//static glm::quat quat = glm::quat(glm::vec3(0, 0, 0));
+		//static glm::mat4 quatMatrix = glm::mat4(quat);
 
 		const float ROT_SPEED = glm::radians(90.0f);//glm::radians(60.0f);
-		const float MOVE_SPEED = 2.0f;//0.75f;
+		//const float MOVE_SPEED = powerUpTakenOrNot + 1.2f;
+		const float MOVE_SPEED = powerUpTakenOrNot + 2.0f;
+		const float JUMP_SPEED = 2.0f;
 		const float MOUSE_RES = 500.0f;
 
 		static auto startTime = std::chrono::high_resolution_clock::now();
@@ -835,7 +953,15 @@ class MyProject : public BaseProject {
 				glm::vec3(0.0f, 1.0f, 0.0f)) * glm::vec4(0, 0, 1, 1)) * deltaT;
 		}
 
-		if (glfwGetKey(window, GLFW_KEY_SPACE) && !jump) {
+		if (glfwGetKey(window, GLFW_KEY_SPACE)) {
+			pos += MOVE_SPEED * glm::vec3(0, 1, 0) * deltaT;
+		}
+		if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT)) {
+			pos -= MOVE_SPEED * glm::vec3(0, 1, 0) * deltaT;
+		}
+
+		//Jump
+		/*if (glfwGetKey(window, GLFW_KEY_SPACE) && !jump) {
 			jump = true;
 		}
 
@@ -844,21 +970,20 @@ class MyProject : public BaseProject {
 			pos.y = 0.4f;
 			jump = false;
 			jumpDown = false;
-			onWall = false;
 		}
 
-		if (pos.y >= 0.9) {
+		if (pos.y >= 0.85) {
 			jumpDown = true;
 		}
 
 		if (jump) {
-			if (pos.y <= 0.9 && !jumpDown) {
-				pos += MOVE_SPEED * glm::vec3(0, 0.7f, 0) * deltaT;
+			if (pos.y <= 0.85 && !jumpDown) {
+				pos += JUMP_SPEED * glm::vec3(0, 0.7f, 0) * deltaT;
 			}
 			else {
-				pos -= MOVE_SPEED * glm::vec3(0, 0.7f, 0) * deltaT;
+				pos -= JUMP_SPEED * glm::vec3(0, 0.7f, 0) * deltaT;
 			}
-		}
+		}*/
 
 		if (!canStep(pos.x, pos.z)) {
 			pos = oldPos;
