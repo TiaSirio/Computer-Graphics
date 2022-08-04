@@ -438,16 +438,27 @@ protected:
 	
 	bool framebufferResized = false;
 
+	GLFWimage images[1];
+
 	// Lesson 12
     void initWindow() {
         glfwInit();
 
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
         //glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+		//glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, GLFW_TRUE);
 
         window = glfwCreateWindow(windowWidth, windowHeight, windowTitle.c_str(), nullptr, nullptr);
 		glfwSetWindowUserPointer(window, this);
 		glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
+
+		//Set windows icon
+		images[0].pixels = stbi_load("textures/icon/icon.png", &images[0].width, &images[0].height, 0, 4);
+		glfwSetWindowIcon(window, 1, images);
+		stbi_image_free(images[0].pixels);
+
+		//Disappear cursor
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 	}
 
 	static void framebufferResizeCallback(GLFWwindow* window, int width, int height) {

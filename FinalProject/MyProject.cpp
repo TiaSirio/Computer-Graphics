@@ -136,6 +136,7 @@ struct MultipleObject {
 
 //Player
 static glm::vec3 pos = glm::vec3(0.0f, 0.5f, 0.0f);
+static glm::vec3 oldPos = glm::vec3(0.0f, 0.5f, 0.0f);
 static float lookYaw = glm::radians(-45.0f);
 static float lookPitch = 0.0f;
 static float lookRoll = 0.0f;
@@ -165,6 +166,27 @@ static std::vector<float> slowlyOpenDoors = { 0.0f,0.0f,0.0f,0.0f,0.0f };
 static glm::vec3 torchPos = glm::vec3(0.0f, 0.8f, -4.42f);
 static bool torchCouldBeTaken = false;
 static bool torchTaken = false;
+
+
+//Game input
+static bool showTutorial = true;
+const char* keyW;
+const char* keyA;
+const char* keyS;
+const char* keyD;
+
+const char* keyUp;
+const char* keyDown;
+const char* keyLeft;
+const char* keyRight;
+
+const char* keyE;
+const char* keyR;
+
+const char* keyF11;
+
+static bool stateF11 = false;
+static bool firstF11 = true;
 
 int checkCorrectDoor(float x, float y, int pixDoorX, int pixDoorY) {
 	if (pixDoorX == 4 && pixDoorY == 3) {
@@ -272,9 +294,14 @@ bool canStepPoint(float x, float y) {
 	//If the last door is open
 	if (doorOpenOrNot[1] == 1) {
 		//Check final area and set win to true if arrived
-		if (/*(roundX == 7 && roundY == 8) || */(roundX == 8 && roundY == 8)) {
-			win = true;
+		if ((roundX == 7 && roundY == 8) || (roundX == 8 && roundY == 8)) {
+			if ((roundFirstDecimalX >= 8 && roundFirstDecimalX <= 9) && roundY == 8) {
+				win = true;
+			}
 			return pix >= 0;
+		}
+		else {
+			win = false;
 		}
 	}
 	return pix > 90;
@@ -364,7 +391,7 @@ class MyProject : public BaseProject {
 		// window size, title and initial background
 		windowWidth = 800;//1920;
 		windowHeight = 600;//1080;
-		windowTitle = "My Project";
+		windowTitle = "Labyrinth game";
 		initialBackgroundColor = {1.0f, 1.0f, 0.0f, 1.0f};
 
 		//Done for DS_global
@@ -376,7 +403,34 @@ class MyProject : public BaseProject {
 		setsInPool = utils::descriptorPoolSize.numberOfSetsInPool;
 	}
 
+	void showTutorialInfo() {
+		/*keyW = glfwGetKeyName(GLFW_KEY_W, 0);
+		keyA = glfwGetKeyName(GLFW_KEY_A, 0);
+		keyS = glfwGetKeyName(GLFW_KEY_S, 0);
+		keyD = glfwGetKeyName(GLFW_KEY_D, 0);
 
+		keyUp = glfwGetKeyName(GLFW_KEY_UP, 0);
+		keyDown = glfwGetKeyName(GLFW_KEY_DOWN, 0);
+		keyLeft = glfwGetKeyName(GLFW_KEY_LEFT, 0);
+		keyRight = glfwGetKeyName(GLFW_KEY_RIGHT, 0);
+
+		keyE = glfwGetKeyName(GLFW_KEY_E, 0);
+		keyR = glfwGetKeyName(GLFW_KEY_R, 0);
+		
+		keyF11 = glfwGetKeyName(GLFW_KEY_F11, 0);
+
+		std::cout << "\nTutorial:\n";
+		std::cout << "\nMovement keys:" << "\n\t Move left: " << keyA << "\n\t Move right: " << keyD << "\n\t Move forward: " << keyW << "\n\t Move backward: " << keyS;
+		std::cout << "\nVisual keys:" << "\n\t Look left: " << keyLeft << "\n\t Look right: " << keyRight << "\n\t Look forward: " << keyUp << "\n\t Look backward: " << keyDown;
+		std::cout << "\nWindow keys:" << "\n\t FullScreen on and off: " << keyF11;
+		std::cout << "\nOther keys:" << "\n\t Interact with object: " << keyE << "\n\t Restart game when ended: " << keyR;*/
+
+		std::cout << "\nTutorial:";
+		std::cout << "\nMovement keys:" << "\n\t Move left: A" << "\n\t Move right: D" << "\n\t Move forward: W" << "\n\t Move backward: S";
+		std::cout << "\nVisual keys:" << "\n\t Look left: Left" << "\n\t Look right: Right" << "\n\t Look forward: Top" << "\n\t Look backward: Bottom";
+		std::cout << "\nWindow keys:" << "\n\t FullScreen on and off: F11";
+		std::cout << "\nOther keys:" << "\n\t Interact with object: E" << "\n\t Restart game when ended: R\n";
+	}
 
 
 
@@ -448,6 +502,8 @@ class MyProject : public BaseProject {
 		}
 		std::cout << "map -> size: " << mapWidth
 			<< "x" << mapHeight << "\n";
+
+		showTutorialInfo();
 	}
 
 	void localPipelineInit() {
@@ -563,7 +619,13 @@ class MyProject : public BaseProject {
 	// Very likely this will be where you will be writing the logic of your application.
 	void updateUniformBuffer(uint32_t currentImage) {
 		CharacterPos = updateCameraPosition(window);
+		
+		updateWindow();
+		
+		interctWithObjects();
 
+		checkWinning();
+		
 		GlobalUniformBufferObject gubo{};
 		UniformBufferObject ubo{};
 
@@ -571,7 +633,6 @@ class MyProject : public BaseProject {
 		gubo.view = CharacterPos;
 		gubo.proj = glm::perspective(glm::radians(90.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 50.0f);
 		gubo.proj[1][1] *= -1;
-		
 		gubo.eyePos = torchPos;
 
 		
@@ -790,12 +851,241 @@ class MyProject : public BaseProject {
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 2.0f, 0)) * ubo.model;
 		}
 		updateObject(torch, ubo, currentImage);
+
+
+
+		/*if (showTutorial) {
+			showTutorial = false;
+			showTutorialInfo();
+		}*/
 	}
 
 	
 	
 	
 	
+	glm::mat4 updateCameraPosition(GLFWwindow* window) {
+		const float ROT_SPEED = glm::radians(90.0f);
+		//const float MOVE_SPEED = powerUpTakenOrNot + 1.2f;
+		const float MOVE_SPEED = powerUpTakenOrNot + 2.0f;
+		const float JUMP_SPEED = 2.0f;
+		const float MOUSE_RES = 500.0f;
+
+		static auto startTime = std::chrono::high_resolution_clock::now();
+		static float lastTime = 0.0f;
+		auto currentTime = std::chrono::high_resolution_clock::now();
+		float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+		float deltaT = time - lastTime;
+		lastTime = time;
+
+		oldPos = pos;
+
+
+		//View
+		if (glfwGetKey(window, GLFW_KEY_LEFT)) {
+			lookYaw += deltaT * ROT_SPEED;
+		}
+		if (glfwGetKey(window, GLFW_KEY_RIGHT)) {
+			lookYaw -= deltaT * ROT_SPEED;
+		}
+		if (glfwGetKey(window, GLFW_KEY_UP) && lookPitch < 1) {
+			lookPitch += deltaT * ROT_SPEED;
+		}
+		if (glfwGetKey(window, GLFW_KEY_DOWN) && lookPitch > -1) {
+			lookPitch -= deltaT * ROT_SPEED;
+		}
+
+
+		CamDir = glm::mat3(glm::rotate(glm::mat4(1.0f), lookYaw, glm::vec3(0.0f, 1.0f, 0.0f))) *
+			glm::mat3(glm::rotate(glm::mat4(1.0f), lookPitch, glm::vec3(1.0f, 0.0f, 0.0f)));
+
+
+		//Movement
+		if (glfwGetKey(window, GLFW_KEY_A)) {
+			pos -= MOVE_SPEED * glm::vec3(glm::rotate(glm::mat4(1.0f), lookYaw,
+				glm::vec3(0.0f, 1.0f, 0.0f)) * glm::vec4(1, 0, 0, 1)) * deltaT;
+		}
+		if (glfwGetKey(window, GLFW_KEY_D)) {
+			pos += MOVE_SPEED * glm::vec3(glm::rotate(glm::mat4(1.0f), lookYaw,
+				glm::vec3(0.0f, 1.0f, 0.0f)) * glm::vec4(1, 0, 0, 1)) * deltaT;
+		}
+		if (glfwGetKey(window, GLFW_KEY_W)) {
+			pos -= MOVE_SPEED * glm::vec3(glm::rotate(glm::mat4(1.0f), lookYaw,
+				glm::vec3(0.0f, 1.0f, 0.0f)) * glm::vec4(0, 0, 1, 1)) * deltaT;
+		}
+		if (glfwGetKey(window, GLFW_KEY_S)) {
+			pos += MOVE_SPEED * glm::vec3(glm::rotate(glm::mat4(1.0f), lookYaw,
+				glm::vec3(0.0f, 1.0f, 0.0f)) * glm::vec4(0, 0, 1, 1)) * deltaT;
+		}
+
+		if (glfwGetKey(window, GLFW_KEY_SPACE)) {
+			pos += MOVE_SPEED * glm::vec3(0, 1, 0) * deltaT;
+		}
+		if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT)) {
+			pos -= MOVE_SPEED * glm::vec3(0, 1, 0) * deltaT;
+		}
+
+		//Jump
+		/*if (glfwGetKey(window, GLFW_KEY_SPACE) && !jump) {
+			jump = true;
+		}
+
+		if (pos.y < 0.4f)
+		{
+			pos.y = 0.4f;
+			jump = false;
+			jumpDown = false;
+		}
+
+		if (pos.y >= 0.85) {
+			jumpDown = true;
+		}
+
+		if (jump) {
+			if (pos.y <= 0.85 && !jumpDown) {
+				pos += JUMP_SPEED * glm::vec3(0, 0.7f, 0) * deltaT;
+			}
+			else {
+				pos -= JUMP_SPEED * glm::vec3(0, 0.7f, 0) * deltaT;
+			}
+		}*/
+
+
+
+		if (!canStep(pos.x, pos.z)) {
+			pos = oldPos;
+		}
+
+
+
+		CamPos = pos;
+
+
+
+		glm::mat4 out =
+			glm::transpose(glm::mat4(CamDir)) *
+			glm::translate(glm::mat4(1.0), -pos);
+		return out;
+	}
+
+	void resetAll() {
+		pos = glm::vec3(0.0f, 0.5f, 0.0f);
+		lookYaw = glm::radians(-45.0f);
+		lookPitch = 0.0f;
+		lookRoll = 0.0f;
+
+		win = false;
+		jump = false;
+		jumpDown = false;
+
+		CamPos = glm::vec3(0);
+		CamDir = glm::mat3(0);
+		CharacterPos = glm::mat4(0);
+
+
+		//Environment
+		doorOpenOrNot = { 0,0,0,0,0 };
+		userCouldPassThroughDoors = { 0,0,0,0,0 };
+		//Gold and Copper key
+		doorCouldBeOpened = { 0,0 };
+		leverCouldBeUsed = { 0,0,0 };
+		leverUsedOrNot = { 0,0,0 };
+		keyTakenOrNot = { 0,0 };
+		powerUpTakenOrNot = 0.0f;
+
+		rotatingPowerUp = 0;
+		slowlyOpenDoors = { 0.0f,0.0f,0.0f,0.0f,0.0f };
+
+		torchPos = glm::vec3(0.0f, 0.8f, -4.42f);
+		torchCouldBeTaken = false;
+		torchTaken = false;
+	}
+
+	void checkWinning() {
+		if (win) {
+			//pos = glm::vec3(-6.0f, 0.5f, 2.0f);
+			//std::cout << win;
+			if (glfwGetKey(window, GLFW_KEY_R)) {
+				resetAll();
+			}
+		}
+	}
+	
+	void updateWindow() {
+		int stateF11Int = glfwGetKey(window, GLFW_KEY_F11);
+		if (stateF11Int == GLFW_PRESS)
+		{
+			stateF11 = true;
+		}
+		else
+		{
+			stateF11 = false;
+			firstF11 = true;
+		}
+		if (glfwGetKey(window, GLFW_KEY_F11) && firstF11) {
+			if (firstF11) {
+				firstF11 = false;
+			}
+			int maximized = glfwGetWindowAttrib(window, GLFW_MAXIMIZED);
+			if (maximized == 0) {
+				glfwMaximizeWindow(window);
+			}
+			else {
+				glfwRestoreWindow(window);
+			}
+		}
+	}
+
+	void interctWithObjects() {
+		openTheDoor();
+		
+		if (torchCouldBeTaken) {
+			if (glfwGetKey(window, GLFW_KEY_E)) {
+				torchTaken = true;
+			}
+		}
+
+		//std::cout << torchTaken;
+		if (torchTaken) {
+			torchPos = pos;
+		}
+	}
+
+	void openTheDoor() {
+		if (leverCouldBeUsed[2] == 1 && leverUsedOrNot[2] == 0) {
+			if (glfwGetKey(window, GLFW_KEY_E)) {
+				doorOpenOrNot[3] = 1;
+				leverUsedOrNot[2] = 1;
+			}
+		}
+
+		if (leverCouldBeUsed[1] == 1 && leverUsedOrNot[1] == 0) {
+			if (glfwGetKey(window, GLFW_KEY_E)) {
+				doorOpenOrNot[2] = 1;
+				leverUsedOrNot[1] = 1;
+			}
+		}
+
+		if (leverCouldBeUsed[0] == 1 && leverUsedOrNot[0] == 0) {
+			if (glfwGetKey(window, GLFW_KEY_E)) {
+				doorOpenOrNot[0] = 1;
+				leverUsedOrNot[0] = 1;
+			}
+		}
+
+		if (doorCouldBeOpened[0] == 1 && doorOpenOrNot[4] == 0) {
+			if (glfwGetKey(window, GLFW_KEY_E)) {
+				doorOpenOrNot[4] = 1;
+			}
+		}
+
+		if (doorCouldBeOpened[1] == 1 && doorOpenOrNot[1] == 0) {
+			if (glfwGetKey(window, GLFW_KEY_E)) {
+				doorOpenOrNot[1] = 1;
+			}
+		}
+	}
+
 	void descriptorSetLayoutInit(DescriptorSetLayoutObject* descriptorSetLayoutObject) {
 		std::vector<DescriptorSetLayoutBinding> elementOfDSL;
 		elementOfDSL.resize(descriptorSetLayoutObject->set.size());
@@ -954,168 +1244,6 @@ class MyProject : public BaseProject {
 			sizeof(ubo), 0, &data);
 		memcpy(data, &ubo, sizeof(ubo));
 		vkUnmapMemory(device, object.descriptorSets[descriptorSetInstance].uniformBuffersMemory[0][currentImage]);
-	}
-
-	glm::mat4 updateCameraPosition(GLFWwindow* window) {
-		const float ROT_SPEED = glm::radians(90.0f);
-		//const float MOVE_SPEED = powerUpTakenOrNot + 1.2f;
-		const float MOVE_SPEED = powerUpTakenOrNot + 2.0f;
-		const float JUMP_SPEED = 2.0f;
-		const float MOUSE_RES = 500.0f;
-
-		static auto startTime = std::chrono::high_resolution_clock::now();
-		static float lastTime = 0.0f;
-		auto currentTime = std::chrono::high_resolution_clock::now();
-		float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
-		float deltaT = time - lastTime;
-		lastTime = time;
-
-		glm::vec3 oldPos = pos;
-
-
-		//View
-		if (glfwGetKey(window, GLFW_KEY_LEFT)) {
-			lookYaw += deltaT * ROT_SPEED;
-		}
-		if (glfwGetKey(window, GLFW_KEY_RIGHT)) {
-			lookYaw -= deltaT * ROT_SPEED;
-		}
-		if (glfwGetKey(window, GLFW_KEY_UP) && lookPitch < 1) {
-			lookPitch += deltaT * ROT_SPEED;
-		}
-		if (glfwGetKey(window, GLFW_KEY_DOWN) && lookPitch > -1) {
-			lookPitch -= deltaT * ROT_SPEED;
-		}
-
-
-		CamDir = glm::mat3(glm::rotate(glm::mat4(1.0f), lookYaw, glm::vec3(0.0f, 1.0f, 0.0f))) *
-			glm::mat3(glm::rotate(glm::mat4(1.0f), lookPitch, glm::vec3(1.0f, 0.0f, 0.0f)));
-
-
-		//Movement
-		if (glfwGetKey(window, GLFW_KEY_A)) {
-			pos -= MOVE_SPEED * glm::vec3(glm::rotate(glm::mat4(1.0f), lookYaw,
-				glm::vec3(0.0f, 1.0f, 0.0f)) * glm::vec4(1, 0, 0, 1)) * deltaT;
-		}
-		if (glfwGetKey(window, GLFW_KEY_D)) {
-			pos += MOVE_SPEED * glm::vec3(glm::rotate(glm::mat4(1.0f), lookYaw,
-				glm::vec3(0.0f, 1.0f, 0.0f)) * glm::vec4(1, 0, 0, 1)) * deltaT;
-		}
-		if (glfwGetKey(window, GLFW_KEY_W)) {
-			pos -= MOVE_SPEED * glm::vec3(glm::rotate(glm::mat4(1.0f), lookYaw,
-				glm::vec3(0.0f, 1.0f, 0.0f)) * glm::vec4(0, 0, 1, 1)) * deltaT;
-		}
-		if (glfwGetKey(window, GLFW_KEY_S)) {
-			pos += MOVE_SPEED * glm::vec3(glm::rotate(glm::mat4(1.0f), lookYaw,
-				glm::vec3(0.0f, 1.0f, 0.0f)) * glm::vec4(0, 0, 1, 1)) * deltaT;
-		}
-
-		if (glfwGetKey(window, GLFW_KEY_SPACE)) {
-			pos += MOVE_SPEED * glm::vec3(0, 1, 0) * deltaT;
-		}
-		if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT)) {
-			pos -= MOVE_SPEED * glm::vec3(0, 1, 0) * deltaT;
-		}
-
-		//Jump
-		/*if (glfwGetKey(window, GLFW_KEY_SPACE) && !jump) {
-			jump = true;
-		}
-
-		if (pos.y < 0.4f)
-		{
-			pos.y = 0.4f;
-			jump = false;
-			jumpDown = false;
-		}
-
-		if (pos.y >= 0.85) {
-			jumpDown = true;
-		}
-
-		if (jump) {
-			if (pos.y <= 0.85 && !jumpDown) {
-				pos += JUMP_SPEED * glm::vec3(0, 0.7f, 0) * deltaT;
-			}
-			else {
-				pos -= JUMP_SPEED * glm::vec3(0, 0.7f, 0) * deltaT;
-			}
-		}*/
-
-
-
-		if (!canStep(pos.x, pos.z)) {
-			pos = oldPos;
-		}
-
-
-
-		openTheDoor();
-		
-
-
-		if (win) {
-			//pos = glm::vec3(-6.0f, 0.5f, 2.0f);
-		}
-
-
-
-		CamPos = pos;
-
-
-		if (torchCouldBeTaken) {
-			if (glfwGetKey(window, GLFW_KEY_E)) {
-				torchTaken = true;
-			}
-		}
-
-
-		//std::cout << torchTaken;
-		if (torchTaken) {
-			torchPos = pos;
-		}
-
-
-
-		glm::mat4 out =
-			glm::transpose(glm::mat4(CamDir)) *
-			glm::translate(glm::mat4(1.0), -pos);
-		return out;
-	}
-
-	void openTheDoor() {
-		if (leverCouldBeUsed[2] == 1 && leverUsedOrNot[2] == 0) {
-			if (glfwGetKey(window, GLFW_KEY_E)) {
-				doorOpenOrNot[3] = 1;
-				leverUsedOrNot[2] = 1;
-			}
-		}
-
-		if (leverCouldBeUsed[1] == 1 && leverUsedOrNot[1] == 0) {
-			if (glfwGetKey(window, GLFW_KEY_E)) {
-				doorOpenOrNot[2] = 1;
-				leverUsedOrNot[1] = 1;
-			}
-		}
-
-		if (leverCouldBeUsed[0] == 1 && leverUsedOrNot[0] == 0) {
-			if (glfwGetKey(window, GLFW_KEY_E)) {
-				doorOpenOrNot[0] = 1;
-				leverUsedOrNot[0] = 1;
-			}
-		}
-
-		if (doorCouldBeOpened[0] == 1 && doorOpenOrNot[4] == 0) {
-			if (glfwGetKey(window, GLFW_KEY_E)) {
-				doorOpenOrNot[4] = 1;
-			}
-		}
-
-		if (doorCouldBeOpened[1] == 1 && doorOpenOrNot[1] == 0) {
-			if (glfwGetKey(window, GLFW_KEY_E)) {
-				doorOpenOrNot[1] = 1;
-			}
-		}
 	}
 };
 
