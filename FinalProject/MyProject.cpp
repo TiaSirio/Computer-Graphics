@@ -2,6 +2,7 @@
 
 #include "MyProject.hpp"
 
+
 namespace utils {
 	struct DescriptorPoolSize {
 		int numberOfUniformBlocksInPool;
@@ -135,13 +136,17 @@ struct MultipleObject {
 
 //Player
 static glm::vec3 pos = glm::vec3(0.0f, 0.5f, 0.0f);
-static float lookYaw = 0.0f;
+static float lookYaw = glm::radians(-45.0f);
 static float lookPitch = 0.0f;
 static float lookRoll = 0.0f;
 
 static bool win = false;
 static bool jump = false;
 static bool jumpDown = false;
+
+static glm::vec3 CamPos = glm::vec3(0);
+static glm::mat3 CamDir = glm::mat3(0);
+static glm::mat4 CharacterPos = glm::mat4(0);
 
 
 //Environment
@@ -156,6 +161,10 @@ static float powerUpTakenOrNot = 0.0f;
 
 static int rotatingPowerUp = 0;
 static std::vector<float> slowlyOpenDoors = { 0.0f,0.0f,0.0f,0.0f,0.0f };
+
+static glm::vec3 torchPos = glm::vec3(0.0f, 0.8f, -4.42f);
+static bool torchCouldBeTaken = false;
+static bool torchTaken = false;
 
 int checkCorrectDoor(float x, float y, int pixDoorX, int pixDoorY) {
 	if (pixDoorX == 4 && pixDoorY == 3) {
@@ -197,8 +206,8 @@ bool canStepPoint(float x, float y) {
 	int pixX = round(fmax(0.0f, fmin(mapWidth - 1, (x + 16.9) * mapWidth / 33.8)));
 	int pixY = round(fmax(0.0f, fmin(mapHeight - 1, (y + 16.9) * mapHeight / 33.8)));
 	int pix = (int)map[mapWidth * pixY + pixX];
+	//std::cout << pixX << " " << pixY << '\n';
 	//std::cout << pixX << " " << pixY << " " << x << " " << y << " \t P = " << pix << "\n";
-	//std::cout << x << " " << y << "\n";
 	if (roundFirstDecimalX == 10 && roundFirstDecimalY == -8 && keyTakenOrNot[0] == 0) {
 		//GoldKey
 		keyTakenOrNot[0] = 1;
@@ -214,15 +223,15 @@ bool canStepPoint(float x, float y) {
 		//CopperKey
 		keyTakenOrNot[1] = 1;
 	}
-	if ((roundFirstDecimalX >= 6.6 && roundFirstDecimalX <= 6.9) && roundY == 8 && keyTakenOrNot[1] == 1 && doorOpenOrNot[1] == 0) {
+	if ((roundFirstDecimalX >= 6.4 && roundFirstDecimalX <= 7) && roundY == 8 && keyTakenOrNot[1] == 1 && doorOpenOrNot[1] == 0) {
 		//CopperKey
 		doorCouldBeOpened[1] = 1;
 	}
 	else {
 		doorCouldBeOpened[1] = 0;
 	}
-	//x = 3.3, y = 1.5
-	if ((roundFirstDecimalX >= 3 && roundFirstDecimalX <= 3.3) && (roundFirstDecimalY >= -1.5 && roundFirstDecimalY <= -1.1) && leverUsedOrNot[2] == 0 && doorOpenOrNot[3] == 0) {
+	//x = 3.3, y = -1.5
+	if ((roundFirstDecimalX >= 3 && roundFirstDecimalX <= 3.6) && (roundFirstDecimalY >= -1.5 && roundFirstDecimalY <= -1.1) && leverUsedOrNot[2] == 0 && doorOpenOrNot[3] == 0) {
 		//First lever
 		leverCouldBeUsed[2] = 1;
 	}
@@ -230,7 +239,7 @@ bool canStepPoint(float x, float y) {
 		leverCouldBeUsed[2] = 0;
 	}
 	//x = 8.3, y = 3.5
-	if ((roundFirstDecimalX >= 8 && roundFirstDecimalX <= 8.5) && (roundFirstDecimalY >= 3.5 && roundFirstDecimalY <= 3.9) && leverUsedOrNot[1] == 0 && doorOpenOrNot[2] == 0) {
+	if ((roundFirstDecimalX >= 8.0 && roundFirstDecimalX <= 8.6) && (roundFirstDecimalY >= 3.5 && roundFirstDecimalY <= 3.9) && leverUsedOrNot[1] == 0 && doorOpenOrNot[2] == 0) {
 		//Second lever
 		leverCouldBeUsed[1] = 1;
 	}
@@ -238,7 +247,7 @@ bool canStepPoint(float x, float y) {
 		leverCouldBeUsed[1] = 0;
 	}
 	//x = 2.5, y = 2.2
-	if ((roundFirstDecimalX >= 1.9 && roundFirstDecimalX <= 2.5) && (roundFirstDecimalY >= 1.9 && roundFirstDecimalY <= 2.2) && leverUsedOrNot[0] == 0 && doorOpenOrNot[0] == 0) {
+	if ((roundFirstDecimalX >= 1.9 && roundFirstDecimalX <= 2.5) && (roundFirstDecimalY >= 1.9 && roundFirstDecimalY <= 2.5) && leverUsedOrNot[0] == 0 && doorOpenOrNot[0] == 0) {
 		//Third lever
 		leverCouldBeUsed[0] = 1;
 	}
@@ -249,6 +258,12 @@ bool canStepPoint(float x, float y) {
 	if ((roundFirstDecimalX >= -4.2 && roundFirstDecimalX <= -3.8) && (roundFirstDecimalY >= 11.8 && roundFirstDecimalY <= 12.2) && powerUpTakenOrNot == 0.0f) {
 		powerUpTakenOrNot = 0.8f;
 	}
+	if (roundX == 0 && (roundFirstDecimalY >= -4.5 && roundFirstDecimalY <= -4.1)) {
+		torchCouldBeTaken = true;
+	}
+	else {
+		torchCouldBeTaken = false;
+	}
 	if (pix > 200) {
 		//Function to check the closest door and check if open or not
 		correctDoor = checkCorrectDoor(x, y, roundX, roundY);
@@ -257,7 +272,7 @@ bool canStepPoint(float x, float y) {
 	//If the last door is open
 	if (doorOpenOrNot[1] == 1) {
 		//Check final area and set win to true if arrived
-		if ((roundX == 7 && roundY == 8) || (roundX == 8 && roundY == 8)) {
+		if (/*(roundX == 7 && roundY == 8) || */(roundX == 8 && roundY == 8)) {
 			win = true;
 			return pix >= 0;
 		}
@@ -279,7 +294,6 @@ bool canStep(float x, float y) {
 
 const std::string MODEL_PATH = "models/";
 const std::string TEXTURE_PATH = "textures/";
-bool first = true;
 
 // MAIN ! 
 class MyProject : public BaseProject {
@@ -300,15 +314,11 @@ class MyProject : public BaseProject {
 
 	// Pipelines [Shader couples]
 	Pipeline P1;
-	//Pipeline P2;
 
 	// Models, textures and Descriptors (values assigned to the uniforms)
 
 	Object floorObject;
 	Object ceilingObject;
-	
-	Object powerUp;
-	Object powerUpBase;
 
 	Object wallEastObject;
 	Object wallNorthObject;
@@ -326,8 +336,27 @@ class MyProject : public BaseProject {
 
 	MultipleObject levers = MultipleObject(3);
 
+	Object powerUp;
+	Object powerUpBase;
+
+	Object winningRoom;
+	Object winningRoomCeiling;
+	Object winningRoomFloor;
+
+	Object torch;
 
 	DescriptorSet DS_global;
+
+	//Texts
+	/*Pipeline P2;
+
+	std::vector<uint32_t> set3 = { 0,1 };
+	std::vector<VkDescriptorType> vkDescriptorType3 = { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER };
+	std::vector<VkShaderStageFlagBits> vkShaderStageFlagBits3 = { VK_SHADER_STAGE_VERTEX_BIT, VK_SHADER_STAGE_FRAGMENT_BIT };
+
+	DescriptorSetLayoutObject descriptorSetLayoutText = DescriptorSetLayoutObject(set3, vkDescriptorType3, vkShaderStageFlagBits3);
+	
+	DescriptorSet DS_text;*/
 
 
 	// Here you set the main application parameters
@@ -366,39 +395,49 @@ class MyProject : public BaseProject {
 
 		descriptorSetLayoutInit(&descriptorSetLayoutGlobal);
 
+		//descriptorSetLayoutInit(&descriptorSetLayoutText);
+
 		localPipelineInit();
 
 		//Floor and ceiling
-		objectInit(&floorObject, MODEL_PATH + "FloorAndCeiling/Floor.obj", TEXTURE_PATH + "Floor.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
-		objectInit(&ceilingObject, MODEL_PATH + "FloorAndCeiling/Ceiling.obj", TEXTURE_PATH + "Ceiling.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
-
-		//Power up
-		objectInit(&powerUp, MODEL_PATH + "PowerUp/PowerUp.obj", TEXTURE_PATH + "Floor.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
-		objectInit(&powerUpBase, MODEL_PATH + "PowerUp/PowerUpBase.obj", TEXTURE_PATH + "Ceiling.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
+		objectInit(&floorObject, MODEL_PATH + "FloorAndCeiling/Floor.obj", TEXTURE_PATH + "Floor.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
+		objectInit(&ceilingObject, MODEL_PATH + "FloorAndCeiling/Ceiling.obj", TEXTURE_PATH + "Ceiling.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
 
 		//Walls
-		objectInit(&wallEastObject, MODEL_PATH + "Wall/WallEast.obj", TEXTURE_PATH + "Walls.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
-		objectInit(&wallNorthObject, MODEL_PATH + "Wall/WallNorth.obj", TEXTURE_PATH + "Walls.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
-		objectInit(&wallSouthObject, MODEL_PATH + "Wall/WallSouth.obj", TEXTURE_PATH + "Walls.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
-		objectInit(&wallWestObject, MODEL_PATH + "Wall//WallWest.obj", TEXTURE_PATH + "Walls.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
+		objectInit(&wallEastObject, MODEL_PATH + "Wall/WallEast.obj", TEXTURE_PATH + "Walls.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
+		objectInit(&wallNorthObject, MODEL_PATH + "Wall/WallNorth.obj", TEXTURE_PATH + "Walls.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
+		objectInit(&wallSouthObject, MODEL_PATH + "Wall/WallSouth.obj", TEXTURE_PATH + "Walls.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
+		objectInit(&wallWestObject, MODEL_PATH + "Wall//WallWest.obj", TEXTURE_PATH + "Walls.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
 		
 		//Gold key
-		objectInit(&goldKeyObject, MODEL_PATH + "Key/GoldKey.obj", TEXTURE_PATH + "GoldKeyColor.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
-		objectInit(&goldKeyHoleObject, MODEL_PATH + "KeyHole/GoldKeyHole.obj", TEXTURE_PATH + "GoldKeyColor.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
+		objectInit(&goldKeyObject, MODEL_PATH + "Key/GoldKey.obj", TEXTURE_PATH + "GoldKeyColor.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
+		objectInit(&goldKeyHoleObject, MODEL_PATH + "KeyHole/GoldKeyHole.obj", TEXTURE_PATH + "GoldKeyColor.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
 
 		//Copper key
-		objectInit(&copperKeyObject, MODEL_PATH + "Key/CopperKey.obj", TEXTURE_PATH + "CopperKeyColor.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
-		objectInit(&copperKeyHoleObject, MODEL_PATH + "KeyHole/CopperKeyHole.obj", TEXTURE_PATH + "CopperKeyColor.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
+		objectInit(&copperKeyObject, MODEL_PATH + "Key/CopperKey.obj", TEXTURE_PATH + "CopperKeyColor.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
+		objectInit(&copperKeyHoleObject, MODEL_PATH + "KeyHole/CopperKeyHole.obj", TEXTURE_PATH + "CopperKeyColor.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
 
 		//Doors
-		objectInit(&doorBorders, MODEL_PATH + "Door/DoorsBorder.obj", TEXTURE_PATH + "DoorBorder.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
-		multipleInstanceObjectInit(&doors, MODEL_PATH + "Door/Door.obj", TEXTURE_PATH + "Door.png", descriptorSetLayoutObject.descriptorSetLayout, 5, descriptorSetLayoutObject);
+		objectInit(&doorBorders, MODEL_PATH + "Door/DoorsBorder.obj", TEXTURE_PATH + "DoorBorder.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
+		multipleInstanceObjectInit(&doors, MODEL_PATH + "Door/Door.obj", TEXTURE_PATH + "Door.png", descriptorSetLayoutObject.descriptorSetLayout, 5, descriptorSetLayoutObject, false);
 
 		//Levers
-		multipleInstanceObjectInit(&levers, MODEL_PATH + "Lever/Lever.obj", TEXTURE_PATH + "Levers.png", descriptorSetLayoutObject.descriptorSetLayout, 3, descriptorSetLayoutObject);
+		multipleInstanceObjectInit(&levers, MODEL_PATH + "Lever/Lever.obj", TEXTURE_PATH + "Levers.png", descriptorSetLayoutObject.descriptorSetLayout, 3, descriptorSetLayoutObject, false);
 
+		//Power up
+		objectInit(&powerUp, MODEL_PATH + "PowerUp/PowerUp.obj", TEXTURE_PATH + "GoldKeyColor.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
+		objectInit(&powerUpBase, MODEL_PATH + "PowerUp/PowerUpBase.obj", TEXTURE_PATH + "Ceiling.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
+
+		//Winning room
+		objectInit(&winningRoom, MODEL_PATH + "WinningRoom/WinningRoom.obj", TEXTURE_PATH + "Walls.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
+		objectInit(&winningRoomCeiling, MODEL_PATH + "WinningRoom/WinningRoomCeiling.obj", TEXTURE_PATH + "Ceiling.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
+		objectInit(&winningRoomFloor, MODEL_PATH + "WinningRoom/WinningRoomFloor.obj", TEXTURE_PATH + "Floor.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
+
+		objectInit(&torch, MODEL_PATH + "Torch/Torch.obj", TEXTURE_PATH + "Torch.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
 
 		descriptorSetInit(&DS_global, descriptorSetLayoutGlobal.descriptorSetLayout, descriptorSetLayoutGlobal);
+
+		//descriptorSetInit(&DS_text, descriptorSetLayoutText.descriptorSetLayout, descriptorSetLayoutText);
 
 		map = stbi_load((TEXTURE_PATH + "displ.png").c_str(),
 			&mapWidth, &mapHeight,
@@ -412,8 +451,8 @@ class MyProject : public BaseProject {
 	}
 
 	void localPipelineInit() {
-		P1.init(this, "shaders/vert.spv", "shaders/frag.spv", { &descriptorSetLayoutGlobal.descriptorSetLayout, &descriptorSetLayoutObject.descriptorSetLayout });
-		//P2.init(this, "shaders/textVert.spv", "shaders/textFrag.spv", { &descriptorSetLayoutGlobal.descriptorSetLayout, &descriptorSetLayoutObject.descriptorSetLayout });
+		P1.init(this, "shaders/vert.spv", "shaders/frag.spv", { &descriptorSetLayoutGlobal.descriptorSetLayout, &descriptorSetLayoutObject.descriptorSetLayout }, false);
+		//P2.init(this, "shaders/textVert.spv", "shaders/textFrag.spv", { &descriptorSetLayoutText.descriptorSetLayout }, true);
 	}
 
 
@@ -429,6 +468,7 @@ class MyProject : public BaseProject {
 	void descriptorLayoutsCleanup() {
 		descriptorSetLayoutGlobal.cleanup();
 		descriptorSetLayoutObject.cleanup();
+		//descriptorSetLayoutText.cleanup();
 	}
 
 	void descriptorsCleanup() {
@@ -457,6 +497,10 @@ class MyProject : public BaseProject {
 		doors.cleanup();
 
 		levers.cleanup();
+
+		winningRoom.cleanup();
+		winningRoomCeiling.cleanup();
+		winningRoomFloor.cleanup();
 	}
 
 	// Here you destroy all the objects you created!		
@@ -484,9 +528,6 @@ class MyProject : public BaseProject {
 		drawSingleInstance(commandBuffer, currentImage, P1, floorObject, 1);
 		drawSingleInstance(commandBuffer, currentImage, P1, ceilingObject, 1);
 
-		drawSingleInstance(commandBuffer, currentImage, P1, powerUp, 1);
-		drawSingleInstance(commandBuffer, currentImage, P1, powerUpBase, 1);
-
 		drawSingleInstance(commandBuffer, currentImage, P1, wallEastObject, 1);
 		drawSingleInstance(commandBuffer, currentImage, P1, wallNorthObject, 1);
 		drawSingleInstance(commandBuffer, currentImage, P1, wallSouthObject, 1);
@@ -503,6 +544,15 @@ class MyProject : public BaseProject {
 		drawMultipleInstance(commandBuffer, currentImage, P1, doors, 1);
 
 		drawMultipleInstance(commandBuffer, currentImage, P1, levers, 1);
+
+		drawSingleInstance(commandBuffer, currentImage, P1, powerUp, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, powerUpBase, 1);
+
+		drawSingleInstance(commandBuffer, currentImage, P1, winningRoom, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, winningRoomCeiling, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, winningRoomFloor, 1);
+
+		drawSingleInstance(commandBuffer, currentImage, P1, torch, 1);
 	}
 
 
@@ -512,30 +562,24 @@ class MyProject : public BaseProject {
 	// Here is where you update the uniforms.
 	// Very likely this will be where you will be writing the logic of your application.
 	void updateUniformBuffer(uint32_t currentImage) {
-		glm::mat4 CamMat = glm::mat4(1);
-		glm::vec3 CamPos = glm::vec3(0);
-
-		glm::mat4 CharacterPos = updateCameraPosition(window);
-		//EyePos
-		CamPos = glm::vec3(CharacterPos * glm::vec4(0, 0, 0, 1));
-
+		CharacterPos = updateCameraPosition(window);
 
 		GlobalUniformBufferObject gubo{};
 		UniformBufferObject ubo{};
 
-
 		void* data;
 		gubo.view = CharacterPos;
-		//gubo.view = CamMat;//glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-		//gubo.proj = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 10.0f);
 		gubo.proj = glm::perspective(glm::radians(90.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 50.0f);
 		gubo.proj[1][1] *= -1;
-		gubo.eyePos = CamPos;
+		
+		gubo.eyePos = torchPos;
 
+		
 		vkMapMemory(device, DS_global.uniformBuffersMemory[0][currentImage], 0,
 			sizeof(gubo), 0, &data);
 		memcpy(data, &gubo, sizeof(gubo));
 		vkUnmapMemory(device, DS_global.uniformBuffersMemory[0][currentImage]);
+
 
 
 
@@ -723,6 +767,29 @@ class MyProject : public BaseProject {
 		updateObject(powerUp, ubo, currentImage);
 		ubo.model = glm::mat4(1.0f);
 		updateObject(powerUpBase, ubo, currentImage);
+
+
+
+
+
+		//Winning room
+		ubo.model = glm::mat4(1.0f);
+		updateObject(winningRoom, ubo, currentImage);
+		ubo.model = glm::mat4(1.0f);
+		updateObject(winningRoomCeiling, ubo, currentImage);
+		ubo.model = glm::mat4(1.0f);
+		updateObject(winningRoomFloor, ubo, currentImage);
+
+
+
+
+
+		//Torch
+		ubo.model = glm::mat4(1.0f);
+		if (torchTaken) {
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 2.0f, 0)) * ubo.model;
+		}
+		updateObject(torch, ubo, currentImage);
 	}
 
 	
@@ -761,8 +828,8 @@ class MyProject : public BaseProject {
 		}
 	}
 
-	void objectInit(Object *object, std::string modelPath, std::string texturePath, DescriptorSetLayout descriptorSetLayout, DescriptorSetLayoutObject descriptorSetLayoutObject) {
-		object->model.init(this, modelPath);
+	void objectInit(Object *object, std::string modelPath, std::string texturePath, DescriptorSetLayout descriptorSetLayout, DescriptorSetLayoutObject descriptorSetLayoutObject, bool isAText) {
+		object->model.init(this, modelPath, isAText);
 		object->texture.init(this, texturePath);
 		std::vector<DescriptorSetElement> descriptorSetElements;
 		/*for (int i = 0; i < 1000; i++) {
@@ -787,8 +854,8 @@ class MyProject : public BaseProject {
 		}
 	}
 
-	void multipleInstanceObjectInit(MultipleObject* object, std::string modelPath, std::string texturePath, DescriptorSetLayout descriptorSetLayout, int numberOfInstances, DescriptorSetLayoutObject descriptorSetLayoutObject) {
-		object->model.init(this, modelPath);
+	void multipleInstanceObjectInit(MultipleObject* object, std::string modelPath, std::string texturePath, DescriptorSetLayout descriptorSetLayout, int numberOfInstances, DescriptorSetLayoutObject descriptorSetLayoutObject, bool isAText) {
+		object->model.init(this, modelPath, isAText);
 		object->texture.init(this, texturePath);
 		object->descriptorSets.resize(numberOfInstances);
 		std::vector<DescriptorSetElement> descriptorSetElements;
@@ -890,18 +957,7 @@ class MyProject : public BaseProject {
 	}
 
 	glm::mat4 updateCameraPosition(GLFWwindow* window) {
-		if (first) {
-			first = false;
-			lookYaw += glm::radians(-45.0f);
-		}
-		//static glm::vec3 size = glm::vec3(1, 1, 1);
-		//glm::vec3 ux = glm::vec3(1, 0, 0);
-		//glm::vec3 uy = glm::vec3(0, 1, 0);
-		//glm::vec3 uz = glm::vec3(0, 0, 1);
-		//static glm::quat quat = glm::quat(glm::vec3(0, 0, 0));
-		//static glm::mat4 quatMatrix = glm::mat4(quat);
-
-		const float ROT_SPEED = glm::radians(90.0f);//glm::radians(60.0f);
+		const float ROT_SPEED = glm::radians(90.0f);
 		//const float MOVE_SPEED = powerUpTakenOrNot + 1.2f;
 		const float MOVE_SPEED = powerUpTakenOrNot + 2.0f;
 		const float JUMP_SPEED = 2.0f;
@@ -917,6 +973,7 @@ class MyProject : public BaseProject {
 		glm::vec3 oldPos = pos;
 
 
+		//View
 		if (glfwGetKey(window, GLFW_KEY_LEFT)) {
 			lookYaw += deltaT * ROT_SPEED;
 		}
@@ -931,11 +988,11 @@ class MyProject : public BaseProject {
 		}
 
 
-		glm::mat3 CamDir = glm::mat3(glm::rotate(glm::mat4(1.0f), lookYaw, glm::vec3(0.0f, 1.0f, 0.0f))) *
+		CamDir = glm::mat3(glm::rotate(glm::mat4(1.0f), lookYaw, glm::vec3(0.0f, 1.0f, 0.0f))) *
 			glm::mat3(glm::rotate(glm::mat4(1.0f), lookPitch, glm::vec3(1.0f, 0.0f, 0.0f)));
 
 
-
+		//Movement
 		if (glfwGetKey(window, GLFW_KEY_A)) {
 			pos -= MOVE_SPEED * glm::vec3(glm::rotate(glm::mat4(1.0f), lookYaw,
 				glm::vec3(0.0f, 1.0f, 0.0f)) * glm::vec4(1, 0, 0, 1)) * deltaT;
@@ -985,12 +1042,41 @@ class MyProject : public BaseProject {
 			}
 		}*/
 
+
+
 		if (!canStep(pos.x, pos.z)) {
 			pos = oldPos;
 		}
 
+
+
 		openTheDoor();
 		
+
+
+		if (win) {
+			//pos = glm::vec3(-6.0f, 0.5f, 2.0f);
+		}
+
+
+
+		CamPos = pos;
+
+
+		if (torchCouldBeTaken) {
+			if (glfwGetKey(window, GLFW_KEY_E)) {
+				torchTaken = true;
+			}
+		}
+
+
+		//std::cout << torchTaken;
+		if (torchTaken) {
+			torchPos = pos;
+		}
+
+
+
 		glm::mat4 out =
 			glm::transpose(glm::mat4(CamDir)) *
 			glm::translate(glm::mat4(1.0), -pos);
