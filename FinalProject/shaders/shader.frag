@@ -27,33 +27,17 @@ vec3 point_light_color(vec3 pos, vec3 lightPos, vec3 lightColor, float g, float 
 	//return lightColor * pow((g/(length(pos))), beta);
 }
 
+vec3 spot_light_dir(vec3 pos, vec3 lightPos) {
+	// Spot light direction
+	return normalize(lightPos - pos);
+}
+
+vec3 spot_light_color(vec3 pos, vec3 lightPos, vec3 lightColor, vec3 lightDir, float g, float beta, float cosOut, float cosIn) {
+	// Spot light color
+	return (lightColor * pow(g/(length(lightPos - pos)), beta)) * clamp((dot(normalize(lightPos - pos), lightDir) - cosOut)/(cosIn - cosOut), 0, 1);
+}
+
 void main() {
-	/*const vec3 diffColor = texture(texSampler, fragTexCoord).rgb;
-	const vec3 specColor = vec3(1.0f, 1.0f, 1.0f);
-	const float specPower = 150.0f;
-	//const vec3 L = vec3(-0.4830f, 0.8365f, -0.2588f);
-	const vec3 L = vec3(-0.4830f, -0.365f, -0.2588f);
-	
-	vec3 N = normalize(fragNorm);
-	vec3 R = -reflect(L, N);
-	//vec3 V = normalize(fragViewDir);
-	vec3 V = normalize(gubo.eyePos.xyz - fragViewDir);
-	
-	// Lambert diffuse
-	vec3 diffuse  = diffColor * max(dot(N,L), 0.0f);
-	// Phong specular
-	vec3 specular = specColor * pow(max(dot(R,V), 0.0f), specPower);
-	// Hemispheric ambient
-	vec3 ambient  = (vec3(0.1f,0.1f, 0.1f) * (1.0f + N.y) + vec3(0.0f,0.0f, 0.1f) * (1.0f - N.y)) * diffColor;
-	
-	//vec3 toonSpecular = Toon_Specular(L, N, V, vec3(1,1,1), 0.97f);
-	//vec3 toonDiffuse = Toon_Diffuse(L, N, V, vec3(1,1,1), 0.2f * vec3(1,1,1), 0.5);
-	
-	//outColor = vec4(clamp(ambient + toonDiffuse + toonSpecular, vec3(0.0f), vec3(1.0f)), 1.0f);
-	outColor = vec4(clamp(ambient + diffuse + specular, vec3(0.0f), vec3(1.0f)), 1.0f);
-	//outColor = vec4(clamp(ambient + diffuse, vec3(0.0f), vec3(1.0f)), 1.0f);
-	*/
-	
 	vec3 norm = normalize(fragNorm);
 	const vec3 diffColor = texture(texSampler, fragTexCoord).rgb;
 	vec3 eyeDir = normalize(gubo.eyePos.xyz - fragViewDir);
@@ -64,7 +48,12 @@ void main() {
 	vec3 lightC1 = vec3(1.0f, 1.0f, 0.2f);
 	vec3 lightDirection1 = point_light_dir(fragViewDir, lightPos1);
 	vec3 lightColor1 = point_light_color(fragViewDir, lightPos1, lightC1, 0.3f, 1.5f);
-	//vec3 lightPos2 = vec3(500.0f, 200.0f, -498.0f);
+	vec3 lightPos2 = vec3(490.0f, 200.0f, -490.0f);
+	vec3 lightC2 = vec3(1.0f, 1.0f, 0.2f);
+	vec3 lightDir2 = vec3(cos(radians(135.0f)), 0.0f, sin(radians(90.0f)));
+	vec3 lightDirection2 = spot_light_dir(fragViewDir, lightPos2);
+	vec3 lightColor2 = spot_light_color(fragViewDir, lightPos2, lightC2, lightDir2, 2.0f, 0.0f, 0.9f, 0.92f);
+	//vec3 lightPos2 = vec3(500.0f, 200.0f, -499.0f);
 	//vec3 lightC2 = vec3(1.0f, 1.0f, 1.0f);
 	//vec3 lightDirection2 = point_light_dir(fragViewDir, lightPos2);
 	//vec3 lightColor2 = point_light_color(fragViewDir, lightPos2, lightC2, 1.0f, 1.0f);
@@ -74,18 +63,17 @@ void main() {
 	//vec3 ambient  = (vec3(0.1f,0.1f, 0.1f) * (1.0f + norm.y) + vec3(0.0f,0.0f, 0.1f) * (1.0f - norm.y)) * diffColor;
 	//vec3 ambient  = (vec3(0.1f,0.1f, 0.1f) * (1.0f + norm.y) + vec3(0.0f, 0.1f, 0.0f) * (1.0f - norm.y)) * diffColor;
 	//vec3 ambient = vec3(0.3f,0.3f, 0.3f) * diffColor;
-	//vec3 ambient = vec3(0.01f,0.01f, 0.01f) * diffColor;
 	vec3 ambient = vec3(0.01f,0.01f, 0.01f) * diffColor;
 	
 	vec3 diffuse1 = diffColor * (max(dot(norm, lightDirection1), 0.0f));
 	vec3 specular1 = vec3(pow(max(dot(eyeDir, -reflect(lightDirection1, norm)),0.0f), 150.0f));
 	
-	//vec3 diffuse2 = diffColor * (max(dot(norm, lightDirection2), 0.0f));
-	//vec3 specular2 = vec3(pow(max(dot(eyeDir, -reflect(lightDirection2, norm)),0.0f), 150.0f));
+	vec3 diffuse2 = diffColor * (max(dot(norm, lightDirection2), 0.0f));
+	vec3 specular2 = vec3(pow(max(dot(eyeDir, -reflect(lightDirection2, norm)),0.0f), 150.0f));
 	
 	outColor = vec4(
 	((specular1 + diffuse1) * lightColor1) +
-	//((specular2 + diffuse2) * lightColor2) +
+	((specular2 + diffuse2) * lightColor2) +
 	ambient, 1.0f);
 	//outColor = vec4(ambient, 1.0f);
 }

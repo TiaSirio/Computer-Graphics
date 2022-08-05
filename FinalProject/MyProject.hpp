@@ -459,6 +459,11 @@ protected:
 
 		//Disappear cursor
 		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+
+		//Load mappings of controllers
+		//const char* mappings = load_file_contents("controller/gamecontrollerdb.txt");
+
+		//glfwUpdateGamepadMappings(mappings);
 	}
 
 	static void framebufferResizeCallback(GLFWwindow* window, int width, int height) {

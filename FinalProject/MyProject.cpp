@@ -386,9 +386,9 @@ class MyProject : public BaseProject {
 	Object powerUp;
 	Object powerUpBase;
 
-	Object winningRoom;
-	Object winningRoomCeiling;
-	Object winningRoomFloor;
+	//Object winningRoom;
+	//Object winningRoomCeiling;
+	//Object winningRoomFloor;
 
 	Object torch;
 
@@ -505,9 +505,9 @@ class MyProject : public BaseProject {
 		objectInit(&powerUpBase, MODEL_PATH + "PowerUp/PowerUpBase.obj", TEXTURE_PATH + "Ceiling.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
 
 		//Winning room
-		objectInit(&winningRoom, MODEL_PATH + "WinningRoom/WinningRoom.obj", TEXTURE_PATH + "Walls.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
-		objectInit(&winningRoomCeiling, MODEL_PATH + "WinningRoom/WinningRoomCeiling.obj", TEXTURE_PATH + "Ceiling.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
-		objectInit(&winningRoomFloor, MODEL_PATH + "WinningRoom/WinningRoomFloor.obj", TEXTURE_PATH + "Floor.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
+		//objectInit(&winningRoom, MODEL_PATH + "WinningRoom/WinningRoom.obj", TEXTURE_PATH + "Walls.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
+		//objectInit(&winningRoomCeiling, MODEL_PATH + "WinningRoom/WinningRoomCeiling.obj", TEXTURE_PATH + "Ceiling.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
+		//objectInit(&winningRoomFloor, MODEL_PATH + "WinningRoom/WinningRoomFloor.obj", TEXTURE_PATH + "Floor.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
 
 		//Torch
 		objectInit(&torch, MODEL_PATH + "Torch/Torch.obj", TEXTURE_PATH + "Torch.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
@@ -588,9 +588,9 @@ class MyProject : public BaseProject {
 
 		levers.cleanup();
 
-		winningRoom.cleanup();
-		winningRoomCeiling.cleanup();
-		winningRoomFloor.cleanup();
+		//winningRoom.cleanup();
+		//winningRoomCeiling.cleanup();
+		//winningRoomFloor.cleanup();
 
 		torch.cleanup();
 
@@ -650,9 +650,9 @@ class MyProject : public BaseProject {
 		drawSingleInstance(commandBuffer, currentImage, P1, powerUp, 1);
 		drawSingleInstance(commandBuffer, currentImage, P1, powerUpBase, 1);
 
-		drawSingleInstance(commandBuffer, currentImage, P1, winningRoom, 1);
-		drawSingleInstance(commandBuffer, currentImage, P1, winningRoomCeiling, 1);
-		drawSingleInstance(commandBuffer, currentImage, P1, winningRoomFloor, 1);
+		//drawSingleInstance(commandBuffer, currentImage, P1, winningRoom, 1);
+		//drawSingleInstance(commandBuffer, currentImage, P1, winningRoomCeiling, 1);
+		//drawSingleInstance(commandBuffer, currentImage, P1, winningRoomFloor, 1);
 
 		drawSingleInstance(commandBuffer, currentImage, P1, torch, 1);
 
@@ -677,12 +677,14 @@ class MyProject : public BaseProject {
 		if (firstTimeDoingTheTutorial || doneTutorialAgain) {
 			manageTutorial();
 		}
-		
+
 		seeTutorialAgain();
 
 		restartTheGame();
 
 		CharacterPos = updateCameraPosition(window);
+
+		useController();
 		
 		updateWindow();
 		
@@ -905,12 +907,12 @@ class MyProject : public BaseProject {
 
 
 		//Winning room
-		ubo.model = glm::mat4(1.0f);
+		/*ubo.model = glm::mat4(1.0f);
 		updateObject(winningRoom, ubo, currentImage);
 		ubo.model = glm::mat4(1.0f);
 		updateObject(winningRoomCeiling, ubo, currentImage);
 		ubo.model = glm::mat4(1.0f);
-		updateObject(winningRoomFloor, ubo, currentImage);
+		updateObject(winningRoomFloor, ubo, currentImage);*/
 
 
 
@@ -960,6 +962,10 @@ class MyProject : public BaseProject {
 	
 	
 	
+	
+	void useController() {
+		
+	}
 	
 	void manageTutorial() {
 		int stateTutorialInt = glfwGetKey(window, GLFW_KEY_N);
@@ -1086,74 +1092,130 @@ class MyProject : public BaseProject {
 		oldPos = pos;
 
 
-		//View
-		if (glfwGetKey(window, GLFW_KEY_LEFT)) {
-			lookYaw += deltaT * ROT_SPEED;
+		int present = glfwJoystickPresent(GLFW_JOYSTICK_1);
+		//std::cout << present;
+
+		if (present == 1) {
+			int axesCount;
+			const float* axes = glfwGetJoystickAxes(GLFW_JOYSTICK_1, &axesCount);
+			//std::cout << "\n" << axesCount;
+			/*std::cout << std::endl;
+			std::cout << std::endl;
+			std::cout << std::endl;
+			std::cout << std::endl;
+			std::cout << std::endl;
+			std::cout << std::endl;
+			std::cout << std::endl;
+			std::cout << std::endl;
+			std::cout << std::endl;
+			std::cout << std::endl;
+			std::cout << std::endl;
+			std::cout << std::endl;
+			std::cout << std::endl;
+			std::cout << "\nLeft stick X Axis: " << axes[0];
+			std::cout << "\nLeft stick Y Axis: " << axes[1];
+			std::cout << "\nRight stick X Axis: " << axes[2];
+			std::cout << "\nRight stick Y Axis: " << axes[3];
+			std::cout << "\nL2: " << axes[4];
+			std::cout << "\nR2: " << axes[5];*/
+
+
+			//float roundFirstDecimalX = 
+			//float roundFirstDecimalY = round(y * 10.0) / 10.0;
+			lookYaw -= (round(axes[2] * 10.0) / 10.0) / 100.0;
+			//lookPitch -= (round(axes[3] * 10.0) / 10.0) / 100.0;
+
+			if ((round(axes[0] * 10.0) / 10.0) < -0.3f) {
+				pos -= MOVE_SPEED * glm::vec3(glm::rotate(glm::mat4(1.0f), lookYaw,
+					glm::vec3(0.0f, 1.0f, 0.0f)) * glm::vec4(1, 0, 0, 1)) * deltaT;
+			}
+			if ((round(axes[0] * 10.0) / 10.0) > 0.3f) {
+				pos += MOVE_SPEED * glm::vec3(glm::rotate(glm::mat4(1.0f), lookYaw,
+					glm::vec3(0.0f, 1.0f, 0.0f)) * glm::vec4(1, 0, 0, 1)) * deltaT;
+			}
+			if ((round(axes[1] * 10.0) / 10.0) < -0.3f) {
+				pos -= MOVE_SPEED * glm::vec3(glm::rotate(glm::mat4(1.0f), lookYaw,
+					glm::vec3(0.0f, 1.0f, 0.0f)) * glm::vec4(0, 0, 1, 1)) * deltaT;
+			}
+			if ((round(axes[1] * 10.0) / 10.0) > 0.3f) {
+				pos += MOVE_SPEED * glm::vec3(glm::rotate(glm::mat4(1.0f), lookYaw,
+					glm::vec3(0.0f, 1.0f, 0.0f)) * glm::vec4(0, 0, 1, 1)) * deltaT;
+			}
+
+
+			int buttonCount;
+			const unsigned char* buttons = glfwGetJoystickButtons(GLFW_JOYSTICK_1, &buttonCount);
 		}
-		if (glfwGetKey(window, GLFW_KEY_RIGHT)) {
-			lookYaw -= deltaT * ROT_SPEED;
+		else {
+			//View
+			if (glfwGetKey(window, GLFW_KEY_LEFT)) {
+				lookYaw += deltaT * ROT_SPEED;
+			}
+			if (glfwGetKey(window, GLFW_KEY_RIGHT)) {
+				lookYaw -= deltaT * ROT_SPEED;
+			}
+			if (glfwGetKey(window, GLFW_KEY_UP) && lookPitch < 1) {
+				lookPitch += deltaT * ROT_SPEED;
+			}
+			if (glfwGetKey(window, GLFW_KEY_DOWN) && lookPitch > -1) {
+				lookPitch -= deltaT * ROT_SPEED;
+			}
+
+			//Movement
+			if (glfwGetKey(window, GLFW_KEY_A)) {
+				pos -= MOVE_SPEED * glm::vec3(glm::rotate(glm::mat4(1.0f), lookYaw,
+					glm::vec3(0.0f, 1.0f, 0.0f)) * glm::vec4(1, 0, 0, 1)) * deltaT;
+			}
+			if (glfwGetKey(window, GLFW_KEY_D)) {
+				pos += MOVE_SPEED * glm::vec3(glm::rotate(glm::mat4(1.0f), lookYaw,
+					glm::vec3(0.0f, 1.0f, 0.0f)) * glm::vec4(1, 0, 0, 1)) * deltaT;
+			}
+			if (glfwGetKey(window, GLFW_KEY_W)) {
+				pos -= MOVE_SPEED * glm::vec3(glm::rotate(glm::mat4(1.0f), lookYaw,
+					glm::vec3(0.0f, 1.0f, 0.0f)) * glm::vec4(0, 0, 1, 1)) * deltaT;
+			}
+			if (glfwGetKey(window, GLFW_KEY_S)) {
+				pos += MOVE_SPEED * glm::vec3(glm::rotate(glm::mat4(1.0f), lookYaw,
+					glm::vec3(0.0f, 1.0f, 0.0f)) * glm::vec4(0, 0, 1, 1)) * deltaT;
+			}
+
+			/*if (glfwGetKey(window, GLFW_KEY_SPACE)) {
+				pos += MOVE_SPEED * glm::vec3(0, 1, 0) * deltaT;
+			}
+			if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT)) {
+				pos -= MOVE_SPEED * glm::vec3(0, 1, 0) * deltaT;
+			}*/
+
+			//Jump
+			if (glfwGetKey(window, GLFW_KEY_SPACE) && !jump) {
+				jump = true;
+			}
+
+			if (pos.y < 0.4f)
+			{
+				pos.y = 0.4f;
+				jump = false;
+				jumpDown = false;
+			}
+
+			if (pos.y >= 0.85) {
+				jumpDown = true;
+			}
+
+			if (jump) {
+				if (pos.y <= 0.85 && !jumpDown) {
+					pos += JUMP_SPEED * glm::vec3(0, 0.7f, 0) * deltaT;
+				}
+				else {
+					pos -= JUMP_SPEED * glm::vec3(0, 0.7f, 0) * deltaT;
+				}
+			}
 		}
-		if (glfwGetKey(window, GLFW_KEY_UP) && lookPitch < 1) {
-			lookPitch += deltaT * ROT_SPEED;
-		}
-		if (glfwGetKey(window, GLFW_KEY_DOWN) && lookPitch > -1) {
-			lookPitch -= deltaT * ROT_SPEED;
-		}
+
 
 
 		CamDir = glm::mat3(glm::rotate(glm::mat4(1.0f), lookYaw, glm::vec3(0.0f, 1.0f, 0.0f))) *
 			glm::mat3(glm::rotate(glm::mat4(1.0f), lookPitch, glm::vec3(1.0f, 0.0f, 0.0f)));
-
-
-		//Movement
-		if (glfwGetKey(window, GLFW_KEY_A)) {
-			pos -= MOVE_SPEED * glm::vec3(glm::rotate(glm::mat4(1.0f), lookYaw,
-				glm::vec3(0.0f, 1.0f, 0.0f)) * glm::vec4(1, 0, 0, 1)) * deltaT;
-		}
-		if (glfwGetKey(window, GLFW_KEY_D)) {
-			pos += MOVE_SPEED * glm::vec3(glm::rotate(glm::mat4(1.0f), lookYaw,
-				glm::vec3(0.0f, 1.0f, 0.0f)) * glm::vec4(1, 0, 0, 1)) * deltaT;
-		}
-		if (glfwGetKey(window, GLFW_KEY_W)) {
-			pos -= MOVE_SPEED * glm::vec3(glm::rotate(glm::mat4(1.0f), lookYaw,
-				glm::vec3(0.0f, 1.0f, 0.0f)) * glm::vec4(0, 0, 1, 1)) * deltaT;
-		}
-		if (glfwGetKey(window, GLFW_KEY_S)) {
-			pos += MOVE_SPEED * glm::vec3(glm::rotate(glm::mat4(1.0f), lookYaw,
-				glm::vec3(0.0f, 1.0f, 0.0f)) * glm::vec4(0, 0, 1, 1)) * deltaT;
-		}
-
-		/*if (glfwGetKey(window, GLFW_KEY_SPACE)) {
-			pos += MOVE_SPEED * glm::vec3(0, 1, 0) * deltaT;
-		}
-		if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT)) {
-			pos -= MOVE_SPEED * glm::vec3(0, 1, 0) * deltaT;
-		}*/
-
-		//Jump
-		if (glfwGetKey(window, GLFW_KEY_SPACE) && !jump) {
-			jump = true;
-		}
-
-		if (pos.y < 0.4f)
-		{
-			pos.y = 0.4f;
-			jump = false;
-			jumpDown = false;
-		}
-
-		if (pos.y >= 0.85) {
-			jumpDown = true;
-		}
-
-		if (jump) {
-			if (pos.y <= 0.85 && !jumpDown) {
-				pos += JUMP_SPEED * glm::vec3(0, 0.7f, 0) * deltaT;
-			}
-			else {
-				pos -= JUMP_SPEED * glm::vec3(0, 0.7f, 0) * deltaT;
-			}
-		}
 
 
 
@@ -1207,10 +1269,10 @@ class MyProject : public BaseProject {
 	}
 
 	void checkWinning() {
-		//if (win) {
-			//pos = glm::vec3(-6.0f, 0.5f, 2.0f);
-			//std::cout << win;
-		//}
+		/*if (win) {
+			pos = glm::vec3(-6.0f, 0.5f, 2.0f);
+			std::cout << win;
+		}*/
 	}
 	
 	void updateWindow() {
