@@ -155,6 +155,7 @@ static glm::vec3 CamPos = glm::vec3(0);
 static glm::mat3 CamDir = glm::mat3(0);
 static glm::mat4 CharacterPos = glm::mat4(0);
 
+int controllerPlugged = 0;
 
 //Environment
 static std::vector<int> doorOpenOrNot = { 0,0,0,0,0 };
@@ -196,6 +197,13 @@ const char* keyF11;*/
 static bool stateF11 = false;
 static bool firstF11 = true;
 
+
+//Controller
+int axesCount;
+const float* axes;
+
+int buttonCount;
+const unsigned char* buttons;
 
 //Tutorial
 static std::vector<int> tutorialElements = { 0,1,1,1,1,1,1 };
@@ -402,6 +410,15 @@ class MyProject : public BaseProject {
 	Object next;
 	Object end;
 
+	//Controller
+	Object interactionController;
+	Object movementController;
+	Object visualController;
+	Object restartController;
+	Object tutorialAgainController;
+	Object nextController;
+	Object endController;
+
 	DescriptorSet DS_global;
 
 	//Texts
@@ -523,6 +540,15 @@ class MyProject : public BaseProject {
 		objectInit(&next, MODEL_PATH + "Tutorial/Next.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
 		objectInit(&end, MODEL_PATH + "Tutorial/End.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
 
+		//Tutorial controller
+		objectInit(&interactionController, MODEL_PATH + "Tutorial/InteractionController.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
+		objectInit(&movementController, MODEL_PATH + "Tutorial/MovementController.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
+		objectInit(&visualController, MODEL_PATH + "Tutorial/VisualController.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
+		objectInit(&restartController, MODEL_PATH + "Tutorial/RestartController.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
+		objectInit(&tutorialAgainController, MODEL_PATH + "Tutorial/TutorialAgainController.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
+		objectInit(&nextController, MODEL_PATH + "Tutorial/NextController.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
+		objectInit(&endController, MODEL_PATH + "Tutorial/EndController.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
+
 		descriptorSetInit(&DS_global, descriptorSetLayoutGlobal.descriptorSetLayout, descriptorSetLayoutGlobal);
 
 		//descriptorSetInit(&DS_text, descriptorSetLayoutText.descriptorSetLayout, descriptorSetLayoutText);
@@ -603,6 +629,14 @@ class MyProject : public BaseProject {
 		tutorialAgain.cleanup();
 		next.cleanup();
 		end.cleanup();
+
+		interactionController.cleanup();
+		movementController.cleanup();
+		visualController.cleanup();
+		restartController.cleanup();
+		tutorialAgainController.cleanup();
+		nextController.cleanup();
+		endController.cleanup();
 	}
 
 	// Here you destroy all the objects you created!		
@@ -665,6 +699,14 @@ class MyProject : public BaseProject {
 		drawSingleInstance(commandBuffer, currentImage, P1, tutorialAgain, 1);
 		drawSingleInstance(commandBuffer, currentImage, P1, next, 1);
 		drawSingleInstance(commandBuffer, currentImage, P1, end, 1);
+
+		drawSingleInstance(commandBuffer, currentImage, P1, interactionController, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, movementController, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, visualController, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, restartController, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, tutorialAgainController, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, nextController, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, endController, 1);
 	}
 
 
@@ -683,8 +725,6 @@ class MyProject : public BaseProject {
 		restartTheGame();
 
 		CharacterPos = updateCameraPosition(window);
-
-		useController();
 		
 		updateWindow();
 		
@@ -930,148 +970,283 @@ class MyProject : public BaseProject {
 
 
 		//Tutorial
-		ubo.model = glm::mat4(1.0f);
-		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[0] * 100.0f, 0)) * ubo.model;
-		updateObject(tutorial, ubo, currentImage);
-		ubo.model = glm::mat4(1.0f);
-		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[1] * 100.0f, 0)) * ubo.model;
-		updateObject(windowTutorial, ubo, currentImage);
-		ubo.model = glm::mat4(1.0f);
-		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[2] * 100.0f, 0)) * ubo.model;
-		updateObject(visual, ubo, currentImage);
-		ubo.model = glm::mat4(1.0f);
-		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[3] * 100.0f, 0)) * ubo.model;
-		updateObject(movement, ubo, currentImage);
-		ubo.model = glm::mat4(1.0f);
-		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[4] * 100.0f, 0)) * ubo.model;
-		updateObject(interaction, ubo, currentImage);
-		ubo.model = glm::mat4(1.0f);
-		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[5] * 100.0f, 0)) * ubo.model;
-		updateObject(restart, ubo, currentImage);
-		ubo.model = glm::mat4(1.0f);
-		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[6] * 100.0f, 0)) * ubo.model;
-		updateObject(tutorialAgain, ubo, currentImage);
-		ubo.model = glm::mat4(1.0f);
-		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialNextElements[0] * 100.0f, 0)) * ubo.model;
-		updateObject(next, ubo, currentImage);
-		ubo.model = glm::mat4(1.0f);
-		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialNextElements[1] * 100.0f, 0)) * ubo.model;
-		updateObject(end, ubo, currentImage);
+		if (controllerPlugged == 1) {
+			ubo.model = glm::mat4(1.0f);
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[0] * 100.0f, 0)) * ubo.model;
+			updateObject(tutorial, ubo, currentImage);
+			ubo.model = glm::mat4(1.0f);
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[1] * 100.0f, 0)) * ubo.model;
+			updateObject(windowTutorial, ubo, currentImage);
+			ubo.model = glm::mat4(1.0f);
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[2] * 100.0f, 0)) * ubo.model;
+			updateObject(visualController, ubo, currentImage);
+			ubo.model = glm::mat4(1.0f);
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[3] * 100.0f, 0)) * ubo.model;
+			updateObject(movementController, ubo, currentImage);
+			ubo.model = glm::mat4(1.0f);
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[4] * 100.0f, 0)) * ubo.model;
+			updateObject(interactionController, ubo, currentImage);
+			ubo.model = glm::mat4(1.0f);
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[5] * 100.0f, 0)) * ubo.model;
+			updateObject(restartController, ubo, currentImage);
+			ubo.model = glm::mat4(1.0f);
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[6] * 100.0f, 0)) * ubo.model;
+			updateObject(tutorialAgainController, ubo, currentImage);
+			ubo.model = glm::mat4(1.0f);
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialNextElements[0] * 100.0f, 0)) * ubo.model;
+			updateObject(nextController, ubo, currentImage);
+			ubo.model = glm::mat4(1.0f);
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialNextElements[1] * 100.0f, 0)) * ubo.model;
+			updateObject(endController, ubo, currentImage);
+		}
+		else {
+			ubo.model = glm::mat4(1.0f);
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[0] * 100.0f, 0)) * ubo.model;
+			updateObject(tutorial, ubo, currentImage);
+			ubo.model = glm::mat4(1.0f);
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[1] * 100.0f, 0)) * ubo.model;
+			updateObject(windowTutorial, ubo, currentImage);
+			ubo.model = glm::mat4(1.0f);
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[2] * 100.0f, 0)) * ubo.model;
+			updateObject(visual, ubo, currentImage);
+			ubo.model = glm::mat4(1.0f);
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[3] * 100.0f, 0)) * ubo.model;
+			updateObject(movement, ubo, currentImage);
+			ubo.model = glm::mat4(1.0f);
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[4] * 100.0f, 0)) * ubo.model;
+			updateObject(interaction, ubo, currentImage);
+			ubo.model = glm::mat4(1.0f);
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[5] * 100.0f, 0)) * ubo.model;
+			updateObject(restart, ubo, currentImage);
+			ubo.model = glm::mat4(1.0f);
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[6] * 100.0f, 0)) * ubo.model;
+			updateObject(tutorialAgain, ubo, currentImage);
+			ubo.model = glm::mat4(1.0f);
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialNextElements[0] * 100.0f, 0)) * ubo.model;
+			updateObject(next, ubo, currentImage);
+			ubo.model = glm::mat4(1.0f);
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialNextElements[1] * 100.0f, 0)) * ubo.model;
+			updateObject(end, ubo, currentImage);
+		}
 	}
 
-	
-	
-	
-	
-	void useController() {
-		
-	}
+
+
+
 	
 	void manageTutorial() {
-		int stateTutorialInt = glfwGetKey(window, GLFW_KEY_N);
-		if (stateTutorialInt == GLFW_PRESS)
-		{
-			stateTutorial = true;
-		}
-		else
-		{
-			stateTutorial = false;
-			firstTutorial = true;
-		}
-		if (glfwGetKey(window, GLFW_KEY_N) && firstTutorial) {
-			if (firstTutorial) {
-				firstTutorial = false;
+		if (controllerPlugged == 1) {
+			if (buttons[2] == GLFW_PRESS)
+			{
+				stateTutorial = true;
 			}
-			if (tutorialElements[0] == 0) {
-				tutorialElements[0] = 1;
-				tutorialElements[1] = 0;
+			else
+			{
+				stateTutorial = false;
+				firstTutorial = true;
 			}
-			else if (tutorialElements[1] == 0) {
-				tutorialElements[1] = 1;
-				tutorialElements[2] = 0;
-			}
-			else if (tutorialElements[2] == 0) {
-				tutorialElements[2] = 1;
-				tutorialElements[3] = 0;
-			}
-			else if (tutorialElements[3] == 0) {
-				tutorialElements[3] = 1;
-				tutorialElements[4] = 0;
-
-			}
-			else if (tutorialElements[4] == 0) {
-				tutorialElements[4] = 1;
-				tutorialElements[5] = 0;
-			}
-			else if (tutorialElements[5] == 0) {
-				tutorialElements[5] = 1;
-				tutorialElements[6] = 0;
-				tutorialNextElements[0] = 1;
-				tutorialNextElements[1] = 0;
-			}
-			else if (tutorialElements[6] == 0) {
-				tutorialElements[6] = 1;
-				tutorialNextElements[1] = 1;
-				if (doneTutorialAgain) {
-					doneTutorialAgain = false;
-					pos = savePos;
-					oldPos = savePos;
-					lookPitch = lookPitchSaved;
-					lookYaw = lookYawSaved;
+			if (buttons[2] == GLFW_PRESS && firstTutorial) {
+				if (firstTutorial) {
+					firstTutorial = false;
 				}
-				else {
-					pos = glm::vec3(0.0f, 0.5f, 0.0f);
-					oldPos = glm::vec3(0.0f, 0.5f, 0.0f);
-					lookYaw = glm::radians(-45.0f);
-					lookPitch = 0.0f;
+				if (tutorialElements[0] == 0) {
+					tutorialElements[0] = 1;
+					tutorialElements[1] = 0;
 				}
-				firstTimeDoingTheTutorial = false;
+				else if (tutorialElements[1] == 0) {
+					tutorialElements[1] = 1;
+					tutorialElements[2] = 0;
+				}
+				else if (tutorialElements[2] == 0) {
+					tutorialElements[2] = 1;
+					tutorialElements[3] = 0;
+				}
+				else if (tutorialElements[3] == 0) {
+					tutorialElements[3] = 1;
+					tutorialElements[4] = 0;
+				}
+				else if (tutorialElements[4] == 0) {
+					tutorialElements[4] = 1;
+					tutorialElements[5] = 0;
+				}
+				else if (tutorialElements[5] == 0) {
+					tutorialElements[5] = 1;
+					tutorialElements[6] = 0;
+					tutorialNextElements[0] = 1;
+					tutorialNextElements[1] = 0;
+				}
+				else if (tutorialElements[6] == 0) {
+					tutorialElements[6] = 1;
+					tutorialNextElements[1] = 1;
+					if (doneTutorialAgain) {
+						doneTutorialAgain = false;
+						pos = savePos;
+						oldPos = savePos;
+						lookPitch = lookPitchSaved;
+						lookYaw = lookYawSaved;
+					}
+					else {
+						pos = glm::vec3(0.0f, 0.5f, 0.0f);
+						oldPos = glm::vec3(0.0f, 0.5f, 0.0f);
+						lookYaw = glm::radians(-45.0f);
+						lookPitch = 0.0f;
+					}
+					firstTimeDoingTheTutorial = false;
+				}
+			}
+		}
+		else {
+			int stateTutorialInt = glfwGetKey(window, GLFW_KEY_N);
+			if (stateTutorialInt == GLFW_PRESS)
+			{
+				stateTutorial = true;
+			}
+			else
+			{
+				stateTutorial = false;
+				firstTutorial = true;
+			}
+			if (glfwGetKey(window, GLFW_KEY_N) && firstTutorial) {
+				if (firstTutorial) {
+					firstTutorial = false;
+				}
+				if (tutorialElements[0] == 0) {
+					tutorialElements[0] = 1;
+					tutorialElements[1] = 0;
+				}
+				else if (tutorialElements[1] == 0) {
+					tutorialElements[1] = 1;
+					tutorialElements[2] = 0;
+				}
+				else if (tutorialElements[2] == 0) {
+					tutorialElements[2] = 1;
+					tutorialElements[3] = 0;
+				}
+				else if (tutorialElements[3] == 0) {
+					tutorialElements[3] = 1;
+					tutorialElements[4] = 0;
+				}
+				else if (tutorialElements[4] == 0) {
+					tutorialElements[4] = 1;
+					tutorialElements[5] = 0;
+				}
+				else if (tutorialElements[5] == 0) {
+					tutorialElements[5] = 1;
+					tutorialElements[6] = 0;
+					tutorialNextElements[0] = 1;
+					tutorialNextElements[1] = 0;
+				}
+				else if (tutorialElements[6] == 0) {
+					tutorialElements[6] = 1;
+					tutorialNextElements[1] = 1;
+					if (doneTutorialAgain) {
+						doneTutorialAgain = false;
+						pos = savePos;
+						oldPos = savePos;
+						lookPitch = lookPitchSaved;
+						lookYaw = lookYawSaved;
+					}
+					else {
+						pos = glm::vec3(0.0f, 0.5f, 0.0f);
+						oldPos = glm::vec3(0.0f, 0.5f, 0.0f);
+						lookYaw = glm::radians(-45.0f);
+						lookPitch = 0.0f;
+					}
+					firstTimeDoingTheTutorial = false;
+				}
 			}
 		}
 	}
 
 	void seeTutorialAgain() {
-		int stateTutorialAgainInt = glfwGetKey(window, GLFW_KEY_T);
-		if (stateTutorialAgainInt == GLFW_PRESS)
-		{
-			stateTutorialAgain = true;
-		}
-		else
-		{
-			stateTutorialAgain = false;
-			firstTutorialAgain = true;
-		}
-		if (glfwGetKey(window, GLFW_KEY_T) && firstTutorialAgain) {
-			if (firstTutorialAgain) {
-				firstTutorialAgain = false;
+		if (controllerPlugged == 1) {
+			//Start
+			if (buttons[9] == GLFW_PRESS)
+			{
+				stateTutorialAgain = true;
 			}
-			doneTutorialAgain = true;
-			tutorialElements = { 0,1,1,1,1,1,1 };
-			tutorialNextElements = { 0,1 };
-			if (pos.z <= -450.0f) {//-495.0f) {
-				if (firstTimeDoingTheTutorial) {
-					savePos = glm::vec3(0.0f, -0.5f, 0.0f);
-					oldPos = glm::vec3(0.0f, 0.5f, 0.0f);
-					lookYaw = glm::radians(-45.0f);
-					lookPitch = 0.0f;
+			else
+			{
+				stateTutorialAgain = false;
+				firstTutorialAgain = true;
+			}
+			if (buttons[9] == GLFW_PRESS && firstTutorialAgain) {
+				if (firstTutorialAgain) {
+					firstTutorialAgain = false;
 				}
+				doneTutorialAgain = true;
+				tutorialElements = { 0,1,1,1,1,1,1 };
+				tutorialNextElements = { 0,1 };
+				if (pos.z <= -450.0f) {//-495.0f) {
+					if (firstTimeDoingTheTutorial) {
+						savePos = glm::vec3(0.0f, -0.5f, 0.0f);
+						oldPos = glm::vec3(0.0f, 0.5f, 0.0f);
+						lookYaw = glm::radians(-45.0f);
+						lookPitch = 0.0f;
+					}
+				}
+				else {
+					savePos = pos;
+					lookPitchSaved = lookPitch;
+					lookYawSaved = lookYaw;
+				}
+				pos = glm::vec3(500.0f, 199.5f, -495.0f);
+				oldPos = glm::vec3(500.0f, 199.5f, -495.0f);
+				lookYaw = 0.0f;
+				lookPitch = 0.0f;
 			}
-			else {
-				savePos = pos;
-				lookPitchSaved = lookPitch;
-				lookYawSaved = lookYaw;
+		}
+		else {
+			int stateTutorialAgainInt = glfwGetKey(window, GLFW_KEY_T);
+			if (stateTutorialAgainInt == GLFW_PRESS)
+			{
+				stateTutorialAgain = true;
 			}
-			pos = glm::vec3(500.0f, 199.5f, -495.0f);
-			oldPos = glm::vec3(500.0f, 199.5f, -495.0f);
-			lookYaw = 0.0f;
-			lookPitch = 0.0f;
-			//std::cout << "\n\n\n" << lookYawSaved;
+			else
+			{
+				stateTutorialAgain = false;
+				firstTutorialAgain = true;
+			}
+			if (glfwGetKey(window, GLFW_KEY_T) && firstTutorialAgain) {
+				if (firstTutorialAgain) {
+					firstTutorialAgain = false;
+				}
+				doneTutorialAgain = true;
+				tutorialElements = { 0,1,1,1,1,1,1 };
+				tutorialNextElements = { 0,1 };
+				if (pos.z <= -450.0f) {//-495.0f) {
+					if (firstTimeDoingTheTutorial) {
+						savePos = glm::vec3(0.0f, -0.5f, 0.0f);
+						oldPos = glm::vec3(0.0f, 0.5f, 0.0f);
+						lookYaw = glm::radians(-45.0f);
+						lookPitch = 0.0f;
+					}
+				}
+				else {
+					savePos = pos;
+					lookPitchSaved = lookPitch;
+					lookYawSaved = lookYaw;
+				}
+				pos = glm::vec3(500.0f, 199.5f, -495.0f);
+				oldPos = glm::vec3(500.0f, 199.5f, -495.0f);
+				lookYaw = 0.0f;
+				lookPitch = 0.0f;
+				//std::cout << "\n\n\n" << lookYawSaved;
+			}
 		}
 	}
 	
 	void restartTheGame() {
-		if (glfwGetKey(window, GLFW_KEY_P)) {
-			resetAll();
+		if (controllerPlugged == 1) {
+			//Share
+			if (buttons[8] == GLFW_PRESS) {
+				resetAll();
+			}
+		}
+		else {
+			if (glfwGetKey(window, GLFW_KEY_P)) {
+				resetAll();
+			}
 		}
 	}
 
@@ -1092,36 +1267,20 @@ class MyProject : public BaseProject {
 		oldPos = pos;
 
 
-		int present = glfwJoystickPresent(GLFW_JOYSTICK_1);
+		controllerPlugged = glfwJoystickPresent(GLFW_JOYSTICK_1);
 		//std::cout << present;
 
-		if (present == 1) {
-			int axesCount;
-			const float* axes = glfwGetJoystickAxes(GLFW_JOYSTICK_1, &axesCount);
-			//std::cout << "\n" << axesCount;
-			/*std::cout << std::endl;
-			std::cout << std::endl;
-			std::cout << std::endl;
-			std::cout << std::endl;
-			std::cout << std::endl;
-			std::cout << std::endl;
-			std::cout << std::endl;
-			std::cout << std::endl;
-			std::cout << std::endl;
-			std::cout << std::endl;
-			std::cout << std::endl;
-			std::cout << std::endl;
-			std::cout << std::endl;
-			std::cout << "\nLeft stick X Axis: " << axes[0];
-			std::cout << "\nLeft stick Y Axis: " << axes[1];
-			std::cout << "\nRight stick X Axis: " << axes[2];
-			std::cout << "\nRight stick Y Axis: " << axes[3];
-			std::cout << "\nL2: " << axes[4];
-			std::cout << "\nR2: " << axes[5];*/
+		if (controllerPlugged == 1) {
+			axes = glfwGetJoystickAxes(GLFW_JOYSTICK_1, &axesCount);
+
+			//std::cout << "\nLeft stick X Axis: " << axes[0];
+			//std::cout << "\nLeft stick Y Axis: " << axes[1];
+			//std::cout << "\nRight stick X Axis: " << axes[2];
+			//std::cout << "\nRight stick Y Axis: " << axes[3];
+			//std::cout << "\nL2: " << axes[4];
+			//std::cout << "\nR2: " << axes[5];
 
 
-			//float roundFirstDecimalX = 
-			//float roundFirstDecimalY = round(y * 10.0) / 10.0;
 			lookYaw -= (round(axes[2] * 10.0) / 10.0) / 100.0;
 			//lookPitch -= (round(axes[3] * 10.0) / 10.0) / 100.0;
 
@@ -1143,8 +1302,48 @@ class MyProject : public BaseProject {
 			}
 
 
-			int buttonCount;
-			const unsigned char* buttons = glfwGetJoystickButtons(GLFW_JOYSTICK_1, &buttonCount);
+			buttons = glfwGetJoystickButtons(GLFW_JOYSTICK_1, &buttonCount);
+			/*if (buttons[0] == GLFW_PRESS) {
+				//Square
+				//std::cout << buttons[0];
+			}
+			if (buttons[1] == GLFW_PRESS) {
+				//X
+				//std::cout << buttons[1];
+			}*/
+			/*if (buttons[2] == GLFW_PRESS) {
+				//Circle
+				//std::cout << buttons[2];
+			}
+			if (buttons[3] == GLFW_PRESS) {
+				//Triangle
+				//std::cout << buttons[3];
+			}*/
+
+
+			if (buttons[1] == GLFW_PRESS && !jump) {
+				jump = true;
+			}
+
+			if (pos.y < 0.5f)
+			{
+				pos.y = 0.5f;
+				jump = false;
+				jumpDown = false;
+			}
+
+			if (pos.y >= 0.85) {
+				jumpDown = true;
+			}
+
+			if (jump) {
+				if (pos.y <= 0.85 && !jumpDown) {
+					pos += JUMP_SPEED * glm::vec3(0, 0.7f, 0) * deltaT;
+				}
+				else {
+					pos -= JUMP_SPEED * glm::vec3(0, 0.7f, 0) * deltaT;
+				}
+			}
 		}
 		else {
 			//View
@@ -1191,9 +1390,9 @@ class MyProject : public BaseProject {
 				jump = true;
 			}
 
-			if (pos.y < 0.4f)
+			if (pos.y < 0.5f)
 			{
-				pos.y = 0.4f;
+				pos.y = 0.5f;
 				jump = false;
 				jumpDown = false;
 			}
@@ -1304,8 +1503,15 @@ class MyProject : public BaseProject {
 		openTheDoor();
 		
 		if (torchCouldBeTaken) {
-			if (glfwGetKey(window, GLFW_KEY_E)) {
-				torchTaken = true;
+			if (controllerPlugged == 1) {
+				if (buttons[0] == GLFW_PRESS) {
+					torchTaken = true;
+				}
+			}
+			else {
+				if (glfwGetKey(window, GLFW_KEY_E)) {
+					torchTaken = true;
+				}
 			}
 		}
 
@@ -1317,35 +1523,73 @@ class MyProject : public BaseProject {
 
 	void openTheDoor() {
 		if (leverCouldBeUsed[2] == 1 && leverUsedOrNot[2] == 0) {
-			if (glfwGetKey(window, GLFW_KEY_E)) {
-				doorOpenOrNot[3] = 1;
-				leverUsedOrNot[2] = 1;
+			if (controllerPlugged == 1) {
+				if (buttons[0] == GLFW_PRESS) {
+					doorOpenOrNot[3] = 1;
+					leverUsedOrNot[2] = 1;
+				}
+			}
+			else {
+				if (glfwGetKey(window, GLFW_KEY_E)) {
+					doorOpenOrNot[3] = 1;
+					leverUsedOrNot[2] = 1;
+				}
 			}
 		}
 
 		if (leverCouldBeUsed[1] == 1 && leverUsedOrNot[1] == 0) {
-			if (glfwGetKey(window, GLFW_KEY_E)) {
-				doorOpenOrNot[2] = 1;
-				leverUsedOrNot[1] = 1;
+			if (controllerPlugged == 1) {
+				if (buttons[0] == GLFW_PRESS) {
+					doorOpenOrNot[2] = 1;
+					leverUsedOrNot[1] = 1;
+				}
+			}
+			else {
+				if (glfwGetKey(window, GLFW_KEY_E)) {
+					doorOpenOrNot[2] = 1;
+					leverUsedOrNot[1] = 1;
+				}
 			}
 		}
 
 		if (leverCouldBeUsed[0] == 1 && leverUsedOrNot[0] == 0) {
-			if (glfwGetKey(window, GLFW_KEY_E)) {
-				doorOpenOrNot[0] = 1;
-				leverUsedOrNot[0] = 1;
+			if (controllerPlugged == 1) {
+				if (buttons[0] == GLFW_PRESS) {
+					doorOpenOrNot[0] = 1;
+					leverUsedOrNot[0] = 1;
+				}
+			}
+			else {
+				if (glfwGetKey(window, GLFW_KEY_E)) {
+					doorOpenOrNot[0] = 1;
+					leverUsedOrNot[0] = 1;
+				}
 			}
 		}
 
 		if (doorCouldBeOpened[0] == 1 && doorOpenOrNot[4] == 0) {
-			if (glfwGetKey(window, GLFW_KEY_E)) {
-				doorOpenOrNot[4] = 1;
+			if (controllerPlugged == 1) {
+				if (buttons[0] == GLFW_PRESS) {
+					doorOpenOrNot[4] = 1;
+				}
+			}
+			else {
+				if (glfwGetKey(window, GLFW_KEY_E)) {
+					doorOpenOrNot[4] = 1;
+				}
 			}
 		}
 
 		if (doorCouldBeOpened[1] == 1 && doorOpenOrNot[1] == 0) {
-			if (glfwGetKey(window, GLFW_KEY_E)) {
-				doorOpenOrNot[1] = 1;
+			if (controllerPlugged == 1) {
+				if (buttons[0] == GLFW_PRESS) {
+					doorOpenOrNot[1] = 1;
+				}
+			}
+			else {
+				if (glfwGetKey(window, GLFW_KEY_E)) {
+					doorOpenOrNot[1] = 1;
+				}
 			}
 		}
 	}
