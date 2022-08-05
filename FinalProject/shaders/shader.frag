@@ -3,6 +3,7 @@
 layout(set = 0, binding = 0) uniform GlobalUniformBufferObject {
 	mat4 view;
 	mat4 proj;
+	vec3 torchPos;
 	vec3 eyePos;
 } gubo;
 
@@ -59,23 +60,32 @@ void main() {
 	
 	//vec3 lightPos1 = vec3(0.0f, 0.5f, 0.0f);
 	//vec3 lightPos1 = vec3(-0.45f, 0.5f, 0.0f);
-	vec3 lightPos1 = vec3(gubo.eyePos.x, 0.5f, gubo.eyePos.z);
+	vec3 lightPos1 = vec3(gubo.torchPos.x, 0.5f, gubo.torchPos.z);
 	vec3 lightC1 = vec3(1.0f, 1.0f, 0.2f);
 	vec3 lightDirection1 = point_light_dir(fragViewDir, lightPos1);
 	vec3 lightColor1 = point_light_color(fragViewDir, lightPos1, lightC1, 0.3f, 1.5f);
+	//vec3 lightPos2 = vec3(500.0f, 200.0f, -498.0f);
+	//vec3 lightC2 = vec3(1.0f, 1.0f, 1.0f);
+	//vec3 lightDirection2 = point_light_dir(fragViewDir, lightPos2);
+	//vec3 lightColor2 = point_light_color(fragViewDir, lightPos2, lightC2, 1.0f, 1.0f);
 	
 	
 	// Hemispheric ambient
 	//vec3 ambient  = (vec3(0.1f,0.1f, 0.1f) * (1.0f + norm.y) + vec3(0.0f,0.0f, 0.1f) * (1.0f - norm.y)) * diffColor;
 	//vec3 ambient  = (vec3(0.1f,0.1f, 0.1f) * (1.0f + norm.y) + vec3(0.0f, 0.1f, 0.0f) * (1.0f - norm.y)) * diffColor;
 	//vec3 ambient = vec3(0.3f,0.3f, 0.3f) * diffColor;
+	//vec3 ambient = vec3(0.01f,0.01f, 0.01f) * diffColor;
 	vec3 ambient = vec3(0.01f,0.01f, 0.01f) * diffColor;
 	
 	vec3 diffuse1 = diffColor * (max(dot(norm, lightDirection1), 0.0f));
 	vec3 specular1 = vec3(pow(max(dot(eyeDir, -reflect(lightDirection1, norm)),0.0f), 150.0f));
 	
+	//vec3 diffuse2 = diffColor * (max(dot(norm, lightDirection2), 0.0f));
+	//vec3 specular2 = vec3(pow(max(dot(eyeDir, -reflect(lightDirection2, norm)),0.0f), 150.0f));
+	
 	outColor = vec4(
 	((specular1 + diffuse1) * lightColor1) +
+	//((specular2 + diffuse2) * lightColor2) +
 	ambient, 1.0f);
 	//outColor = vec4(ambient, 1.0f);
 }

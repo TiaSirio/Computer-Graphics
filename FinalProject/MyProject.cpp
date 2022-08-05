@@ -50,6 +50,7 @@ namespace utils {
 struct GlobalUniformBufferObject {
 	alignas(16) glm::mat4 view;
 	alignas(16) glm::mat4 proj;
+	alignas(16) glm::vec3 torchPos;
 	alignas(16) glm::vec3 eyePos;
 };
 
@@ -135,10 +136,15 @@ struct MultipleObject {
 };
 
 //Player
-static glm::vec3 pos = glm::vec3(0.0f, 0.5f, 0.0f);
-static glm::vec3 oldPos = glm::vec3(0.0f, 0.5f, 0.0f);
-static float lookYaw = glm::radians(-45.0f);
+//static glm::vec3 pos = glm::vec3(0.0f, 0.5f, 0.0f);
+static glm::vec3 pos = glm::vec3(500.0f, 199.5f, -495.0f);
+static glm::vec3 oldPos = glm::vec3(500.0f, 199.5f, -495.0f);
+static glm::vec3 savePos = glm::vec3(0);
+//static float lookYaw = glm::radians(-45.0f);
+static float lookYaw = 0.0f;
+static float lookYawSaved = 0.0f;
 static float lookPitch = 0.0f;
+static float lookPitchSaved = 0.0f;
 static float lookRoll = 0.0f;
 
 static bool win = false;
@@ -164,13 +170,14 @@ static int rotatingPowerUp = 0;
 static std::vector<float> slowlyOpenDoors = { 0.0f,0.0f,0.0f,0.0f,0.0f };
 
 static glm::vec3 torchPos = glm::vec3(0.0f, 0.8f, -4.42f);
+static glm::vec3 torchPosStatic = glm::vec3(0.0f, 0.8f, -4.42f);
 static bool torchCouldBeTaken = false;
 static bool torchTaken = false;
 
 
 //Game input
 static bool showTutorial = true;
-const char* keyW;
+/*const char* keyW;
 const char* keyA;
 const char* keyS;
 const char* keyD;
@@ -181,12 +188,28 @@ const char* keyLeft;
 const char* keyRight;
 
 const char* keyE;
-const char* keyR;
+const char* keyP;
+const char* keyT;
 
-const char* keyF11;
+const char* keyF11;*/
 
 static bool stateF11 = false;
 static bool firstF11 = true;
+
+
+//Tutorial
+static std::vector<int> tutorialElements = { 0,1,1,1,1,1,1 };
+static std::vector<int> tutorialNextElements = { 0,1 };
+static bool stateTutorial = false;
+static bool firstTutorial = true;
+
+static bool stateTutorialAgain = false;
+static bool firstTutorialAgain = true;
+
+static bool doneTutorialAgain = false;
+static bool restartTutorialWithinIt = false;
+
+static bool firstTimeDoingTheTutorial = true;
 
 int checkCorrectDoor(float x, float y, int pixDoorX, int pixDoorY) {
 	if (pixDoorX == 4 && pixDoorY == 3) {
@@ -300,9 +323,6 @@ bool canStepPoint(float x, float y) {
 			}
 			return pix >= 0;
 		}
-		else {
-			win = false;
-		}
 	}
 	return pix > 90;
 }
@@ -372,6 +392,16 @@ class MyProject : public BaseProject {
 
 	Object torch;
 
+	Object tutorial;
+	Object interaction;
+	Object movement;
+	Object visual;
+	Object windowTutorial;
+	Object restart;
+	Object tutorialAgain;
+	Object next;
+	Object end;
+
 	DescriptorSet DS_global;
 
 	//Texts
@@ -392,7 +422,8 @@ class MyProject : public BaseProject {
 		windowWidth = 800;//1920;
 		windowHeight = 600;//1080;
 		windowTitle = "Labyrinth game";
-		initialBackgroundColor = {1.0f, 1.0f, 0.0f, 1.0f};
+		//initialBackgroundColor = {1.0f, 1.0f, 0.0f, 1.0f};
+		initialBackgroundColor = { 0.0f, 0.0f, 0.0f, 1.0f };
 
 		//Done for DS_global
 		utils::addDescriptor();
@@ -415,7 +446,8 @@ class MyProject : public BaseProject {
 		keyRight = glfwGetKeyName(GLFW_KEY_RIGHT, 0);
 
 		keyE = glfwGetKeyName(GLFW_KEY_E, 0);
-		keyR = glfwGetKeyName(GLFW_KEY_R, 0);
+		keyP = glfwGetKeyName(GLFW_KEY_P, 0);
+		keyT = glfwGetKeyName(GLFW_KEY_T, 0);
 		
 		keyF11 = glfwGetKeyName(GLFW_KEY_F11, 0);
 
@@ -423,24 +455,14 @@ class MyProject : public BaseProject {
 		std::cout << "\nMovement keys:" << "\n\t Move left: " << keyA << "\n\t Move right: " << keyD << "\n\t Move forward: " << keyW << "\n\t Move backward: " << keyS;
 		std::cout << "\nVisual keys:" << "\n\t Look left: " << keyLeft << "\n\t Look right: " << keyRight << "\n\t Look forward: " << keyUp << "\n\t Look backward: " << keyDown;
 		std::cout << "\nWindow keys:" << "\n\t FullScreen on and off: " << keyF11;
-		std::cout << "\nOther keys:" << "\n\t Interact with object: " << keyE << "\n\t Restart game when ended: " << keyR;*/
+		std::cout << "\nOther keys:" << "\n\t Interact with object: " << keyE << "\n\t Restart game when ended: " << keyP << "\n\t See again the tutorial: " << keyT;*/
 
 		std::cout << "\nTutorial:";
 		std::cout << "\nMovement keys:" << "\n\t Move left: A" << "\n\t Move right: D" << "\n\t Move forward: W" << "\n\t Move backward: S";
 		std::cout << "\nVisual keys:" << "\n\t Look left: Left" << "\n\t Look right: Right" << "\n\t Look forward: Top" << "\n\t Look backward: Bottom";
 		std::cout << "\nWindow keys:" << "\n\t FullScreen on and off: F11";
-		std::cout << "\nOther keys:" << "\n\t Interact with object: E" << "\n\t Restart game when ended: R\n";
+		std::cout << "\nOther keys:" << "\n\t Interact with object: E" << "\n\t Restart game when ended: P" << "\n\t See again the tutorial: T\n";
 	}
-
-
-
-	/*
-	createPipeline("TextVert.spv", "TextFrag.spv",
- 					    TextPipelineLayout, TextPipeline,
- 					    TextDescriptorSetLayout, VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL,
- 					    VK_CULL_MODE_NONE, true, textVertices);
-	*/
-	//Row 2000 Assignment03 implementazione di text pipeline
 
 	// Here you load and setup all your Vulkan objects
 	void localInit() {
@@ -487,7 +509,19 @@ class MyProject : public BaseProject {
 		objectInit(&winningRoomCeiling, MODEL_PATH + "WinningRoom/WinningRoomCeiling.obj", TEXTURE_PATH + "Ceiling.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
 		objectInit(&winningRoomFloor, MODEL_PATH + "WinningRoom/WinningRoomFloor.obj", TEXTURE_PATH + "Floor.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
 
+		//Torch
 		objectInit(&torch, MODEL_PATH + "Torch/Torch.obj", TEXTURE_PATH + "Torch.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
+
+		//Tutorial
+		objectInit(&tutorial, MODEL_PATH + "Tutorial/Tutorial.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
+		objectInit(&interaction, MODEL_PATH + "Tutorial/Interaction.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
+		objectInit(&movement, MODEL_PATH + "Tutorial/Movement.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
+		objectInit(&visual, MODEL_PATH + "Tutorial/Visual.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
+		objectInit(&windowTutorial, MODEL_PATH + "Tutorial/Window.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
+		objectInit(&restart, MODEL_PATH + "Tutorial/Restart.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
+		objectInit(&tutorialAgain, MODEL_PATH + "Tutorial/TutorialAgain.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
+		objectInit(&next, MODEL_PATH + "Tutorial/Next.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
+		objectInit(&end, MODEL_PATH + "Tutorial/End.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
 
 		descriptorSetInit(&DS_global, descriptorSetLayoutGlobal.descriptorSetLayout, descriptorSetLayoutGlobal);
 
@@ -557,6 +591,18 @@ class MyProject : public BaseProject {
 		winningRoom.cleanup();
 		winningRoomCeiling.cleanup();
 		winningRoomFloor.cleanup();
+
+		torch.cleanup();
+
+		tutorial.cleanup();
+		interaction.cleanup();
+		movement.cleanup();
+		visual.cleanup();
+		windowTutorial.cleanup();
+		restart.cleanup();
+		tutorialAgain.cleanup();
+		next.cleanup();
+		end.cleanup();
 	}
 
 	// Here you destroy all the objects you created!		
@@ -609,6 +655,16 @@ class MyProject : public BaseProject {
 		drawSingleInstance(commandBuffer, currentImage, P1, winningRoomFloor, 1);
 
 		drawSingleInstance(commandBuffer, currentImage, P1, torch, 1);
+
+		drawSingleInstance(commandBuffer, currentImage, P1, tutorial, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, interaction, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, movement, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, visual, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, windowTutorial, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, restart, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, tutorialAgain, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, next, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, end, 1);
 	}
 
 
@@ -618,6 +674,14 @@ class MyProject : public BaseProject {
 	// Here is where you update the uniforms.
 	// Very likely this will be where you will be writing the logic of your application.
 	void updateUniformBuffer(uint32_t currentImage) {
+		if (firstTimeDoingTheTutorial || doneTutorialAgain) {
+			manageTutorial();
+		}
+		
+		seeTutorialAgain();
+
+		restartTheGame();
+
 		CharacterPos = updateCameraPosition(window);
 		
 		updateWindow();
@@ -633,7 +697,14 @@ class MyProject : public BaseProject {
 		gubo.view = CharacterPos;
 		gubo.proj = glm::perspective(glm::radians(90.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 50.0f);
 		gubo.proj[1][1] *= -1;
-		gubo.eyePos = torchPos;
+		if (doneTutorialAgain) {
+			gubo.torchPos = torchPosStatic;
+		}
+		else {
+			gubo.torchPos = torchPos;
+		}
+		gubo.eyePos = CamPos;
+		
 
 		
 		vkMapMemory(device, DS_global.uniformBuffersMemory[0][currentImage], 0,
@@ -854,16 +925,150 @@ class MyProject : public BaseProject {
 
 
 
-		/*if (showTutorial) {
-			showTutorial = false;
-			showTutorialInfo();
-		}*/
+
+
+		//Tutorial
+		ubo.model = glm::mat4(1.0f);
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[0] * 100.0f, 0)) * ubo.model;
+		updateObject(tutorial, ubo, currentImage);
+		ubo.model = glm::mat4(1.0f);
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[1] * 100.0f, 0)) * ubo.model;
+		updateObject(windowTutorial, ubo, currentImage);
+		ubo.model = glm::mat4(1.0f);
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[2] * 100.0f, 0)) * ubo.model;
+		updateObject(visual, ubo, currentImage);
+		ubo.model = glm::mat4(1.0f);
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[3] * 100.0f, 0)) * ubo.model;
+		updateObject(movement, ubo, currentImage);
+		ubo.model = glm::mat4(1.0f);
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[4] * 100.0f, 0)) * ubo.model;
+		updateObject(interaction, ubo, currentImage);
+		ubo.model = glm::mat4(1.0f);
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[5] * 100.0f, 0)) * ubo.model;
+		updateObject(restart, ubo, currentImage);
+		ubo.model = glm::mat4(1.0f);
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[6] * 100.0f, 0)) * ubo.model;
+		updateObject(tutorialAgain, ubo, currentImage);
+		ubo.model = glm::mat4(1.0f);
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialNextElements[0] * 100.0f, 0)) * ubo.model;
+		updateObject(next, ubo, currentImage);
+		ubo.model = glm::mat4(1.0f);
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialNextElements[1] * 100.0f, 0)) * ubo.model;
+		updateObject(end, ubo, currentImage);
 	}
 
 	
 	
 	
 	
+	void manageTutorial() {
+		int stateTutorialInt = glfwGetKey(window, GLFW_KEY_N);
+		if (stateTutorialInt == GLFW_PRESS)
+		{
+			stateTutorial = true;
+		}
+		else
+		{
+			stateTutorial = false;
+			firstTutorial = true;
+		}
+		if (glfwGetKey(window, GLFW_KEY_N) && firstTutorial) {
+			if (firstTutorial) {
+				firstTutorial = false;
+			}
+			if (tutorialElements[0] == 0) {
+				tutorialElements[0] = 1;
+				tutorialElements[1] = 0;
+			}
+			else if (tutorialElements[1] == 0) {
+				tutorialElements[1] = 1;
+				tutorialElements[2] = 0;
+			}
+			else if (tutorialElements[2] == 0) {
+				tutorialElements[2] = 1;
+				tutorialElements[3] = 0;
+			}
+			else if (tutorialElements[3] == 0) {
+				tutorialElements[3] = 1;
+				tutorialElements[4] = 0;
+
+			}
+			else if (tutorialElements[4] == 0) {
+				tutorialElements[4] = 1;
+				tutorialElements[5] = 0;
+			}
+			else if (tutorialElements[5] == 0) {
+				tutorialElements[5] = 1;
+				tutorialElements[6] = 0;
+				tutorialNextElements[0] = 1;
+				tutorialNextElements[1] = 0;
+			}
+			else if (tutorialElements[6] == 0) {
+				tutorialElements[6] = 1;
+				tutorialNextElements[1] = 1;
+				if (doneTutorialAgain) {
+					doneTutorialAgain = false;
+					pos = savePos;
+					oldPos = savePos;
+					lookPitch = lookPitchSaved;
+					lookYaw = lookYawSaved;
+				}
+				else {
+					pos = glm::vec3(0.0f, 0.5f, 0.0f);
+					oldPos = glm::vec3(0.0f, 0.5f, 0.0f);
+					lookYaw = glm::radians(-45.0f);
+					lookPitch = 0.0f;
+				}
+				firstTimeDoingTheTutorial = false;
+			}
+		}
+	}
+
+	void seeTutorialAgain() {
+		int stateTutorialAgainInt = glfwGetKey(window, GLFW_KEY_T);
+		if (stateTutorialAgainInt == GLFW_PRESS)
+		{
+			stateTutorialAgain = true;
+		}
+		else
+		{
+			stateTutorialAgain = false;
+			firstTutorialAgain = true;
+		}
+		if (glfwGetKey(window, GLFW_KEY_T) && firstTutorialAgain) {
+			if (firstTutorialAgain) {
+				firstTutorialAgain = false;
+			}
+			doneTutorialAgain = true;
+			tutorialElements = { 0,1,1,1,1,1,1 };
+			tutorialNextElements = { 0,1 };
+			if (pos.z <= -450.0f) {//-495.0f) {
+				if (firstTimeDoingTheTutorial) {
+					savePos = glm::vec3(0.0f, -0.5f, 0.0f);
+					oldPos = glm::vec3(0.0f, 0.5f, 0.0f);
+					lookYaw = glm::radians(-45.0f);
+					lookPitch = 0.0f;
+				}
+			}
+			else {
+				savePos = pos;
+				lookPitchSaved = lookPitch;
+				lookYawSaved = lookYaw;
+			}
+			pos = glm::vec3(500.0f, 199.5f, -495.0f);
+			oldPos = glm::vec3(500.0f, 199.5f, -495.0f);
+			lookYaw = 0.0f;
+			lookPitch = 0.0f;
+			//std::cout << "\n\n\n" << lookYawSaved;
+		}
+	}
+	
+	void restartTheGame() {
+		if (glfwGetKey(window, GLFW_KEY_P)) {
+			resetAll();
+		}
+	}
+
 	glm::mat4 updateCameraPosition(GLFWwindow* window) {
 		const float ROT_SPEED = glm::radians(90.0f);
 		//const float MOVE_SPEED = powerUpTakenOrNot + 1.2f;
@@ -918,15 +1123,15 @@ class MyProject : public BaseProject {
 				glm::vec3(0.0f, 1.0f, 0.0f)) * glm::vec4(0, 0, 1, 1)) * deltaT;
 		}
 
-		if (glfwGetKey(window, GLFW_KEY_SPACE)) {
+		/*if (glfwGetKey(window, GLFW_KEY_SPACE)) {
 			pos += MOVE_SPEED * glm::vec3(0, 1, 0) * deltaT;
 		}
 		if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT)) {
 			pos -= MOVE_SPEED * glm::vec3(0, 1, 0) * deltaT;
-		}
+		}*/
 
 		//Jump
-		/*if (glfwGetKey(window, GLFW_KEY_SPACE) && !jump) {
+		if (glfwGetKey(window, GLFW_KEY_SPACE) && !jump) {
 			jump = true;
 		}
 
@@ -948,7 +1153,7 @@ class MyProject : public BaseProject {
 			else {
 				pos -= JUMP_SPEED * glm::vec3(0, 0.7f, 0) * deltaT;
 			}
-		}*/
+		}
 
 
 
@@ -1002,13 +1207,10 @@ class MyProject : public BaseProject {
 	}
 
 	void checkWinning() {
-		if (win) {
+		//if (win) {
 			//pos = glm::vec3(-6.0f, 0.5f, 2.0f);
 			//std::cout << win;
-			if (glfwGetKey(window, GLFW_KEY_R)) {
-				resetAll();
-			}
-		}
+		//}
 	}
 	
 	void updateWindow() {
