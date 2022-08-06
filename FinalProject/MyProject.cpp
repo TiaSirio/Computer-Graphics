@@ -205,9 +205,15 @@ const float* axes;
 int buttonCount;
 const unsigned char* buttons;
 
+static bool controllerInput = false;
+static bool keyboardInput = false;
+static bool firstTimeChange = false;
+
 //Tutorial
 static std::vector<int> tutorialElements = { 0,1,1,1,1,1,1 };
 static std::vector<int> tutorialNextElements = { 0,1 };
+static std::vector<int> savedTutorialElements = { 1,1,1,1,1,1,1 };
+static std::vector<int> savedTutorialNextElements = { 1,1 };
 static bool stateTutorial = false;
 static bool firstTutorial = true;
 
@@ -971,6 +977,20 @@ class MyProject : public BaseProject {
 
 		//Tutorial
 		if (controllerPlugged == 1) {
+			/*controllerInput = true;
+			if (keyboardInput) {
+				keyboardInput = false;
+				firstTimeChange = true;
+				savedTutorialElements = tutorialElements;
+				savedTutorialNextElements = tutorialNextElements;
+				tutorialElements = { 1,1,1,1,1,1,1 };
+				tutorialNextElements = { 1,1 };
+			}
+			else if (firstTimeChange) {
+				firstTimeChange = false;
+				tutorialElements = savedTutorialElements;
+				tutorialNextElements = savedTutorialNextElements;
+			}*/
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[0] * 100.0f, 0)) * ubo.model;
 			updateObject(tutorial, ubo, currentImage);
@@ -1000,6 +1020,20 @@ class MyProject : public BaseProject {
 			updateObject(endController, ubo, currentImage);
 		}
 		else {
+			/*keyboardInput = true;
+			if (controllerInput) {
+				controllerInput = false;
+				firstTimeChange = true;
+				savedTutorialElements = tutorialElements;
+				savedTutorialNextElements = tutorialNextElements;
+				tutorialElements = { 1,1,1,1,1,1,1 };
+				tutorialNextElements = { 1,1 };
+			}
+			else if (firstTimeChange) {
+				firstTimeChange = false;
+				tutorialElements = savedTutorialElements;
+				tutorialNextElements = savedTutorialNextElements;
+			}*/
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[0] * 100.0f, 0)) * ubo.model;
 			updateObject(tutorial, ubo, currentImage);
@@ -1266,8 +1300,8 @@ class MyProject : public BaseProject {
 
 		oldPos = pos;
 
-
 		controllerPlugged = glfwJoystickPresent(GLFW_JOYSTICK_1);
+
 		//std::cout << present;
 
 		if (controllerPlugged == 1) {
@@ -1425,7 +1459,6 @@ class MyProject : public BaseProject {
 
 
 		CamPos = pos;
-
 
 
 		glm::mat4 out =
