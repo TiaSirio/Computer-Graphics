@@ -149,6 +149,7 @@ static float lookPitchSaved = 0.0f;
 static float lookRoll = 0.0f;
 	//Win
 static bool win = false;
+static bool firstWin = false;
 	//Jump
 static bool jump = false;
 static bool jumpDown = false;
@@ -226,7 +227,7 @@ static bool firstTimeChange = false;
 
 //Tutorial
 	//Variable that let the user see the correct tutorial text
-static std::vector<int> tutorialElements = { 0,1,1,1,1,1,1,1 };
+static std::vector<int> tutorialElements = { 0,1,1,1,1,1,1 };
 	//Variable that let the user see the correct next button of the tutorial
 static std::vector<int> tutorialNextElements = { 0,1 };
 	//Saving the element of the tutorial if the user want to see it again
@@ -363,6 +364,7 @@ bool canStepPoint(float x, float y) {
 		if ((roundX == 7 && roundY == 8) || (roundX == 8 && roundY == 8)) {
 			if ((roundFirstDecimalX >= 8 && roundFirstDecimalX <= 9) && roundY == 8) {
 				win = true;
+				firstWin = true;
 			}
 			//Only in the final are we return pix >= 0, because the height map is the same color as the outer area of the labyrinth
 			return pix >= 0;
@@ -410,6 +412,8 @@ class MyProject : public BaseProject {
 
 	// Models, textures and Descriptors (values assigned to the uniforms)
 
+	Object mainCharacter;
+
 	Object floorObject;
 	Object ceilingObject;
 
@@ -433,7 +437,6 @@ class MyProject : public BaseProject {
 	Object powerUpBase;
 
 	//Object winText;
-	//Object winPlayAgain;
 
 	Object torch;
 
@@ -532,6 +535,9 @@ class MyProject : public BaseProject {
 
 		localPipelineInit();
 
+		//Character
+		objectInit(&mainCharacter, MODEL_PATH + "Character/Character.obj", TEXTURE_PATH + "Floor.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
+
 		//Floor and ceiling
 		objectInit(&floorObject, MODEL_PATH + "FloorAndCeiling/Floor.obj", TEXTURE_PATH + "Floor.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
 		objectInit(&ceilingObject, MODEL_PATH + "FloorAndCeiling/Ceiling.obj", TEXTURE_PATH + "Ceiling.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
@@ -561,16 +567,14 @@ class MyProject : public BaseProject {
 		objectInit(&powerUp, MODEL_PATH + "PowerUp/PowerUp.obj", TEXTURE_PATH + "GoldKeyColor.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
 		objectInit(&powerUpBase, MODEL_PATH + "PowerUp/PowerUpBase.obj", TEXTURE_PATH + "Ceiling.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
 
-		//Power up
+		//Win
 		//objectInit(&winText, MODEL_PATH + "Win/WinText.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
-		//objectInit(&winPlayAgain, MODEL_PATH + "Win/WinPlayAgain.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
 
 		//Torch
 		objectInit(&torch, MODEL_PATH + "Torch/Torch.obj", TEXTURE_PATH + "Torch.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
 
 		//Tutorial
-		objectInit(&tutorial, MODEL_PATH + "Tutorial/Tutorial.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
-		//objectInit(&goalOfTheGame, MODEL_PATH + "Tutorial/GoalOfTheGame.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
+		objectInit(&tutorial, MODEL_PATH + "Tutorial/Tutorial2.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
 		objectInit(&interaction, MODEL_PATH + "Tutorial/Interaction.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
 		objectInit(&movement, MODEL_PATH + "Tutorial/Movement.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
 		objectInit(&visual, MODEL_PATH + "Tutorial/Visual.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
@@ -587,6 +591,7 @@ class MyProject : public BaseProject {
 		objectInit(&restartController, MODEL_PATH + "Tutorial/RestartController.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
 		objectInit(&tutorialAgainController, MODEL_PATH + "Tutorial/TutorialAgainController.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
 		objectInit(&nextController, MODEL_PATH + "Tutorial/NextController.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
+		
 		objectInit(&endController, MODEL_PATH + "Tutorial/EndController.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
 
 		descriptorSetInit(&DS_global, descriptorSetLayoutGlobal.descriptorSetLayout, descriptorSetLayoutGlobal);
@@ -634,6 +639,8 @@ class MyProject : public BaseProject {
 	}
 
 	void objectsCleanup() {
+		mainCharacter.cleanup();
+		
 		floorObject.cleanup();
 		ceilingObject.cleanup();
 
@@ -657,12 +664,10 @@ class MyProject : public BaseProject {
 		levers.cleanup();
 
 		//winText.cleanup();
-		//winPlayAgain.cleanup();
 
 		torch.cleanup();
 
 		tutorial.cleanup();
-		//goalOfTheGame.cleanup();
 		interaction.cleanup();
 		movement.cleanup();
 		visual.cleanup();
@@ -703,6 +708,8 @@ class MyProject : public BaseProject {
 	void populateCommandBuffer(VkCommandBuffer commandBuffer, int currentImage) {
 		drawSingleInstanceInGlobal(commandBuffer, currentImage, P1, DS_global, 0);
 
+		drawSingleInstance(commandBuffer, currentImage, P1, mainCharacter, 1);
+
 		drawSingleInstance(commandBuffer, currentImage, P1, floorObject, 1);
 		drawSingleInstance(commandBuffer, currentImage, P1, ceilingObject, 1);
 
@@ -727,12 +734,10 @@ class MyProject : public BaseProject {
 		drawSingleInstance(commandBuffer, currentImage, P1, powerUpBase, 1);
 
 		//drawSingleInstance(commandBuffer, currentImage, P1, winText, 1);
-		//drawSingleInstance(commandBuffer, currentImage, P1, winPlayAgain, 1);
 
 		drawSingleInstance(commandBuffer, currentImage, P1, torch, 1);
 
 		drawSingleInstance(commandBuffer, currentImage, P1, tutorial, 1);
-		//drawSingleInstance(commandBuffer, currentImage, P1, goalOfTheGame, 1);
 		drawSingleInstance(commandBuffer, currentImage, P1, interaction, 1);
 		drawSingleInstance(commandBuffer, currentImage, P1, movement, 1);
 		drawSingleInstance(commandBuffer, currentImage, P1, visual, 1);
@@ -802,6 +807,12 @@ class MyProject : public BaseProject {
 
 
 
+		//Character
+		ubo.model = glm::mat4(1.0f);
+		//To let it touch it the ground
+		ubo.model = glm::rotate(glm::translate(glm::mat4(1), pos + glm::vec3(0, -0.2f, 0)), lookYaw, glm::vec3(0, 1, 0)) * ubo.model;
+		updateObject(mainCharacter, ubo, currentImage);
+		
 		//Floor and ceiling
 		ubo.model = glm::mat4(1.0f);
 		updateObject(floorObject, ubo, currentImage);
@@ -1032,13 +1043,11 @@ class MyProject : public BaseProject {
 
 
 
-		//Winning text
-		/*if (win) {
-		ubo.model = glm::mat4(1.0f);
-		updateObject(winText, ubo, currentImage);
-		ubo.model = glm::mat4(1.0f);
-		updateObject(winPlayAgain, ubo, currentImage);
-		}*/
+		//Win
+		if (win) {
+			//ubo.model = glm::mat4(1.0f);
+			//updateObject(winText, ubo, currentImage);
+		}
 
 
 
@@ -1074,26 +1083,23 @@ class MyProject : public BaseProject {
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[0] * 100.0f, 0)) * ubo.model;
 			updateObject(tutorial, ubo, currentImage);
-			/*ubo.model = glm::mat4(1.0f);
-			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[1] * 100.0f, 0)) * ubo.model;
-			updateObject(goalOfTheGame, ubo, currentImage);*/
 			ubo.model = glm::mat4(1.0f);
-			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[2] * 100.0f, 0)) * ubo.model;
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[1] * 100.0f, 0)) * ubo.model;
 			updateObject(windowTutorial, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
-			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[3] * 100.0f, 0)) * ubo.model;
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[2] * 100.0f, 0)) * ubo.model;
 			updateObject(visualController, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
-			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[4] * 100.0f, 0)) * ubo.model;
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[3] * 100.0f, 0)) * ubo.model;
 			updateObject(movementController, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
-			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[5] * 100.0f, 0)) * ubo.model;
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[4] * 100.0f, 0)) * ubo.model;
 			updateObject(interactionController, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
-			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[6] * 100.0f, 0)) * ubo.model;
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[5] * 100.0f, 0)) * ubo.model;
 			updateObject(restartController, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
-			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[7] * 100.0f, 0)) * ubo.model;
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[6] * 100.0f, 0)) * ubo.model;
 			updateObject(tutorialAgainController, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialNextElements[0] * 100.0f, 0)) * ubo.model;
@@ -1120,26 +1126,23 @@ class MyProject : public BaseProject {
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[0] * 100.0f, 0)) * ubo.model;
 			updateObject(tutorial, ubo, currentImage);
-			/*ubo.model = glm::mat4(1.0f);
-			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[1] * 100.0f, 0)) * ubo.model;
-			updateObject(goalOfTheGame, ubo, currentImage);*/
 			ubo.model = glm::mat4(1.0f);
-			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[2] * 100.0f, 0)) * ubo.model;
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[1] * 100.0f, 0)) * ubo.model;
 			updateObject(windowTutorial, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
-			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[3] * 100.0f, 0)) * ubo.model;
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[2] * 100.0f, 0)) * ubo.model;
 			updateObject(visual, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
-			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[4] * 100.0f, 0)) * ubo.model;
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[3] * 100.0f, 0)) * ubo.model;
 			updateObject(movement, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
-			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[5] * 100.0f, 0)) * ubo.model;
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[4] * 100.0f, 0)) * ubo.model;
 			updateObject(interaction, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
-			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[6] * 100.0f, 0)) * ubo.model;
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[5] * 100.0f, 0)) * ubo.model;
 			updateObject(restart, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
-			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[7] * 100.0f, 0)) * ubo.model;
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[6] * 100.0f, 0)) * ubo.model;
 			updateObject(tutorialAgain, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialNextElements[0] * 100.0f, 0)) * ubo.model;
@@ -1200,20 +1203,14 @@ class MyProject : public BaseProject {
 				if (firstTutorial) {
 					firstTutorial = false;
 				}
-				//Temp
 				if (tutorialElements[0] == 0) {
-					tutorialElements[0] = 1;
-					tutorialElements[2] = 0;
-				}
-				//Correct
-				/*if (tutorialElements[0] == 0) {
 					tutorialElements[0] = 1;
 					tutorialElements[1] = 0;
 				}
 				else if (tutorialElements[1] == 0) {
 					tutorialElements[1] = 1;
 					tutorialElements[2] = 0;
-				}*/
+				}
 				else if (tutorialElements[2] == 0) {
 					tutorialElements[2] = 1;
 					tutorialElements[3] = 0;
@@ -1229,15 +1226,11 @@ class MyProject : public BaseProject {
 				else if (tutorialElements[5] == 0) {
 					tutorialElements[5] = 1;
 					tutorialElements[6] = 0;
-				}
-				else if (tutorialElements[6] == 0) {
-					tutorialElements[6] = 1;
-					tutorialElements[7] = 0;
 					tutorialNextElements[0] = 1;
 					tutorialNextElements[1] = 0;
 				}
-				else if (tutorialElements[7] == 0) {
-					tutorialElements[7] = 1;
+				else if (tutorialElements[6] == 0) {
+					tutorialElements[6] = 1;
 					tutorialNextElements[1] = 1;
 					if (doneTutorialAgain) {
 						doneTutorialAgain = false;
@@ -1271,20 +1264,14 @@ class MyProject : public BaseProject {
 				if (firstTutorial) {
 					firstTutorial = false;
 				}
-				//Temp
 				if (tutorialElements[0] == 0) {
-					tutorialElements[0] = 1;
-					tutorialElements[2] = 0;
-				}
-				//Correct
-				/*if (tutorialElements[0] == 0) {
 					tutorialElements[0] = 1;
 					tutorialElements[1] = 0;
 				}
 				else if (tutorialElements[1] == 0) {
 					tutorialElements[1] = 1;
 					tutorialElements[2] = 0;
-				}*/
+				}
 				else if (tutorialElements[2] == 0) {
 					tutorialElements[2] = 1;
 					tutorialElements[3] = 0;
@@ -1300,15 +1287,11 @@ class MyProject : public BaseProject {
 				else if (tutorialElements[5] == 0) {
 					tutorialElements[5] = 1;
 					tutorialElements[6] = 0;
-				}
-				else if (tutorialElements[6] == 0) {
-					tutorialElements[6] = 1;
-					tutorialElements[7] = 0;
 					tutorialNextElements[0] = 1;
 					tutorialNextElements[1] = 0;
 				}
-				else if (tutorialElements[7] == 0) {
-					tutorialElements[7] = 1;
+				else if (tutorialElements[6] == 0) {
+					tutorialElements[6] = 1;
 					tutorialNextElements[1] = 1;
 					if (doneTutorialAgain) {
 						doneTutorialAgain = false;
@@ -1346,7 +1329,7 @@ class MyProject : public BaseProject {
 					firstTutorialAgain = false;
 				}
 				doneTutorialAgain = true;
-				tutorialElements = { 0,1,1,1,1,1,1,1 };
+				tutorialElements = { 0,1,1,1,1,1,1 };
 				tutorialNextElements = { 0,1 };
 				if (pos.z <= -450.0f) {//-495.0f) {
 					if (firstTimeDoingTheTutorial) {
@@ -1383,7 +1366,7 @@ class MyProject : public BaseProject {
 					firstTutorialAgain = false;
 				}
 				doneTutorialAgain = true;
-				tutorialElements = { 0,1,1,1,1,1,1,1 };
+				tutorialElements = { 0,1,1,1,1,1,1 };
 				tutorialNextElements = { 0,1 };
 				if (pos.z <= -450.0f) {//-495.0f) {
 					if (firstTimeDoingTheTutorial) {
@@ -1550,9 +1533,9 @@ class MyProject : public BaseProject {
 
 
 
-		CamDir = glm::mat3(glm::rotate(glm::mat4(1.0f), lookYaw, glm::vec3(0.0f, 1.0f, 0.0f))) *
+		/*CamDir = glm::mat3(glm::rotate(glm::mat4(1.0f), lookYaw, glm::vec3(0.0f, 1.0f, 0.0f))) *
 			glm::mat3(glm::rotate(glm::mat4(1.0f), lookPitch, glm::vec3(1.0f, 0.0f, 0.0f)));
-
+*/
 
 
 		if (!canStep(pos.x, pos.z)) {
@@ -1563,10 +1546,18 @@ class MyProject : public BaseProject {
 		CamPos = pos;
 
 
+
+
 		glm::mat4 out =
-			glm::transpose(glm::mat4(CamDir)) *
+			glm::rotate(glm::mat4(1.0), -lookPitch, glm::vec3(1, 0, 0)) *
+			glm::rotate(glm::mat4(1.0), -lookYaw, glm::vec3(0, 1, 0)) *
 			glm::translate(glm::mat4(1.0), -pos);
 		return out;
+
+		/*glm::mat4 out =
+			glm::transpose(glm::mat4(CamDir)) *
+			glm::translate(glm::mat4(1.0), -pos);
+		return out;*/
 	}
 
 	void resetAll() {
@@ -1576,6 +1567,7 @@ class MyProject : public BaseProject {
 		lookRoll = 0.0f;
 
 		win = false;
+		firstWin = false;
 		jump = false;
 		jumpDown = false;
 
@@ -1609,8 +1601,12 @@ class MyProject : public BaseProject {
 	}
 
 	void checkWinning() {
-		if (win) {
-			
+		if (win && firstWin) {
+			firstWin = false;
+			pos = glm::vec3(500.0f, 199.5f, -495.0f);
+			oldPos = glm::vec3(500.0f, 199.5f, -495.0f);
+			lookYaw = 0.0f;
+			lookPitch = 0.0f;
 		}
 	}
 	
