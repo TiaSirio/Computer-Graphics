@@ -11,6 +11,7 @@ namespace utils {
 
 		DescriptorPoolSize() : numberOfUniformBlocksInPool(0), numberOfTexturesInPool(0), numberOfSetsInPool(0) {};
 
+		//The above functions manage the Descriptor pool sizes
 		void addObject() {
 			numberOfTexturesInPool++;
 			numberOfUniformBlocksInPool++;
@@ -46,7 +47,7 @@ namespace utils {
 	}
 };
 
-
+//TorchPos is to define where the light comes from
 struct GlobalUniformBufferObject {
 	alignas(16) glm::mat4 view;
 	alignas(16) glm::mat4 proj;
@@ -56,6 +57,7 @@ struct GlobalUniformBufferObject {
 
 struct UniformBufferObject {
 	alignas(16) glm::mat4 model;
+	alignas(16) glm::mat4 normal;
 };
 
 
@@ -68,6 +70,7 @@ struct DescriptorSetLayoutObject {
 	uint64_t sizeOfUniformBufferObject;
 	uint64_t sizeOfGlobalUniformBufferObject;
 
+	//Functions to manage the various values needed from a DescriptorSetLayout
 	DescriptorSetLayoutObject(std::vector<uint32_t> set, std::vector<VkDescriptorType> vkDescriptorType, std::vector<VkShaderStageFlagBits> vkShaderStageFlagBits) {
 		this->set = set;
 		this->vkDescriptorType = vkDescriptorType;
@@ -98,7 +101,7 @@ struct DescriptorSetLayoutObject {
 };
 
 
-
+//Manage the descriptor pool size and cleanup function
 struct Object {
 	Model model;
 	Texture texture;
@@ -115,6 +118,7 @@ struct Object {
 	}
 };
 
+//Manage multiple objects
 struct MultipleObject {
 	Model model;
 	Texture texture;
@@ -140,7 +144,6 @@ struct MultipleObject {
 static glm::vec3 pos = glm::vec3(500.0f, 199.5f, -495.0f);
 static glm::vec3 oldPos = glm::vec3(500.0f, 199.5f, -495.0f);
 static glm::vec3 savePos = glm::vec3(0);
-//static float lookYaw = glm::radians(-45.0f);
 	//Visual
 static float lookYaw = 0.0f;
 static float lookYawSaved = 0.0f;
@@ -245,6 +248,15 @@ static bool firstInteraction = false;
 	//To check first time the user do the tutorial and place it in its initial position
 static bool firstTimeDoingTheTutorial = true;
 
+stbi_uc* map;
+int mapWidth, mapHeight;
+
+const float checkRadius = 0.1;
+const int checkSteps = 12;
+
+const std::string MODEL_PATH = "models/";
+const std::string TEXTURE_PATH = "textures/";
+
 /// <summary>
 /// Using the position the User see if he can pass through a door or is blocked
 /// </summary>
@@ -279,8 +291,12 @@ int checkCorrectDoor(int pixDoorX, int pixDoorY) {
 	//x = 12; y = 4
 }
 
-stbi_uc* map;
-int mapWidth, mapHeight;
+/// <summary>
+/// Check the movement of the user on the map.
+/// </summary>
+/// <param name="x">X position of the user.</param>
+/// <param name="y">Y position of the user.</param>
+/// <returns>If the user can access the current x,y value or not.</returns>
 bool canStepPoint(float x, float y) {
 	//To have a precision of the square in which the player is
 	int roundX = round(x);
@@ -375,8 +391,6 @@ bool canStepPoint(float x, float y) {
 }
 
 //We keep check if the user could step or not, according to a height map
-const float checkRadius = 0.1;
-const int checkSteps = 12;
 bool canStep(float x, float y) {
 	for (int i = 0; i < checkSteps; i++) {
 		if (!canStepPoint(x + cos(6.2832 * i / (float)checkSteps) * checkRadius,
@@ -387,20 +401,19 @@ bool canStep(float x, float y) {
 	return true;
 }
 
-const std::string MODEL_PATH = "models/";
-const std::string TEXTURE_PATH = "textures/";
-
 // MAIN ! 
 class MyProject : public BaseProject {
 	protected:
 	// Here you list all the Vulkan objects you need:
 
+	//Value needed for the descriptorSetLayout
 	std::vector<uint32_t> set = {0,1};
 	std::vector<VkDescriptorType> vkDescriptorType = { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER };
 	std::vector<VkShaderStageFlagBits> vkShaderStageFlagBits = { VK_SHADER_STAGE_VERTEX_BIT, VK_SHADER_STAGE_FRAGMENT_BIT };
 
 	DescriptorSetLayoutObject descriptorSetLayoutObject = DescriptorSetLayoutObject(set, vkDescriptorType, vkShaderStageFlagBits);
 
+	//Value needed for the descriptorSetLayout
 	std::vector<uint32_t> set2 = {0};
 	std::vector<VkDescriptorType> vkDescriptorType2 = { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER };
 	std::vector<VkShaderStageFlagBits> vkShaderStageFlagBits2 = { VK_SHADER_STAGE_ALL_GRAPHICS };
@@ -769,15 +782,15 @@ class MyProject : public BaseProject {
 			manageTutorial();
 		}
 
+		updateWindow();
+
 		seeTutorialAgain();
 
 		restartTheGame();
 
 		CharacterPos = updateCameraPosition(window);
 		
-		updateWindow();
-		
-		interctWithObjects();
+		interactWithObjects();
 
 		checkWinning();
 		
@@ -788,6 +801,7 @@ class MyProject : public BaseProject {
 		gubo.view = CharacterPos;
 		gubo.proj = glm::perspective(glm::radians(90.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 50.0f);
 		gubo.proj[1][1] *= -1;
+		//If we have already taken the torch the position of the light changes, otherwise it remains static
 		if (doneTutorialAgain) {
 			gubo.torchPos = torchPosStatic;
 		}
@@ -815,18 +829,24 @@ class MyProject : public BaseProject {
 		
 		//Floor and ceiling
 		ubo.model = glm::mat4(1.0f);
+		ubo.normal = glm::inverse(glm::transpose(ubo.model));
 		updateObject(floorObject, ubo, currentImage);
 		ubo.model = glm::mat4(1.0f);
+		ubo.normal = glm::inverse(glm::transpose(ubo.model));
 		updateObject(ceilingObject, ubo, currentImage);
 
 		//Walls
 		ubo.model = glm::mat4(1.0f);
+		ubo.normal = glm::inverse(glm::transpose(ubo.model));
 		updateObject(wallEastObject, ubo, currentImage);
 		ubo.model = glm::mat4(1.0f);
+		ubo.normal = glm::inverse(glm::transpose(ubo.model));
 		updateObject(wallNorthObject, ubo, currentImage);
 		ubo.model = glm::mat4(1.0f);
+		ubo.normal = glm::inverse(glm::transpose(ubo.model));
 		updateObject(wallSouthObject, ubo, currentImage);
 		ubo.model = glm::mat4(1.0f);
+		ubo.normal = glm::inverse(glm::transpose(ubo.model));
 		updateObject(wallWestObject, ubo, currentImage);
 
 
@@ -835,16 +855,22 @@ class MyProject : public BaseProject {
 
 		//Gold key
 		ubo.model = glm::mat4(1.0f);
+		//Make the key disappear from the screen
 		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, keyTakenOrNot[0] * 1.01f, 0)) * ubo.model;
+		ubo.normal = glm::inverse(glm::transpose(ubo.model));
 		updateObject(goldKeyObject, ubo, currentImage);
 		ubo.model = glm::mat4(1.0f);
+		ubo.normal = glm::inverse(glm::transpose(ubo.model));
 		updateObject(goldKeyHoleObject, ubo, currentImage);
 
 		//Copper key
 		ubo.model = glm::mat4(1.0f);
+		//Make the key disappear from the screen
 		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, keyTakenOrNot[1] * 1.01f, 0)) * ubo.model;
+		ubo.normal = glm::inverse(glm::transpose(ubo.model));
 		updateObject(copperKeyObject, ubo, currentImage);
 		ubo.model = glm::mat4(1.0f);
+		ubo.normal = glm::inverse(glm::transpose(ubo.model));
 		updateObject(copperKeyHoleObject, ubo, currentImage);
 
 
@@ -853,11 +879,13 @@ class MyProject : public BaseProject {
 
 		//Door borders
 		ubo.model = glm::mat4(1.0f);
+		ubo.normal = glm::inverse(glm::transpose(ubo.model));
 		updateObject(doorBorders, ubo, currentImage);
 
 
 		//Doors
 		ubo.model = glm::mat4(1.0f);
+		//Logic that manage the opening and closure of a door (when a lever is involved), otherwise only opening
 		if (doorOpenOrNot[0] == 1 && slowlyOpenDoors[0] < 1.01f) {
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, doorOpenOrNot[0] * slowlyOpenDoors[0], 0)) * ubo.model;
 			slowlyOpenDoors[0] += 0.001f;
@@ -878,6 +906,7 @@ class MyProject : public BaseProject {
 		if (userCouldPassThroughDoors[0] == 1 && slowlyOpenDoors[0] < 0.9f) {
 			userCouldPassThroughDoors[0] = 0;
 		}
+		ubo.normal = glm::inverse(glm::transpose(ubo.model));
 		updateOneInstanceOfObject(doors, ubo, currentImage, 0);
 		
 		ubo.model = glm::mat4(1.0f);
@@ -893,6 +922,7 @@ class MyProject : public BaseProject {
 		if (userCouldPassThroughDoors[1] == 0 && slowlyOpenDoors[1] >= 0.95f) {
 			userCouldPassThroughDoors[1] = 1;
 		}
+		ubo.normal = glm::inverse(glm::transpose(ubo.model));
 		updateOneInstanceOfObject(doors, ubo, currentImage, 1);
 		
 		ubo.model = glm::mat4(1.0f);
@@ -921,6 +951,7 @@ class MyProject : public BaseProject {
 		if (userCouldPassThroughDoors[2] == 1 && slowlyOpenDoors[2] < 0.9f) {
 			userCouldPassThroughDoors[2] = 0;
 		}
+		ubo.normal = glm::inverse(glm::transpose(ubo.model));
 		updateOneInstanceOfObject(doors, ubo, currentImage, 2);
 		
 		ubo.model = glm::mat4(1.0f);
@@ -949,6 +980,7 @@ class MyProject : public BaseProject {
 		if (userCouldPassThroughDoors[3] == 1 && slowlyOpenDoors[3] < 0.9f) {
 			userCouldPassThroughDoors[3] = 0;
 		}
+		ubo.normal = glm::inverse(glm::transpose(ubo.model));
 		updateOneInstanceOfObject(doors, ubo, currentImage, 3);
 
 		ubo.model = glm::mat4(1.0f);
@@ -968,6 +1000,7 @@ class MyProject : public BaseProject {
 		if (userCouldPassThroughDoors[4] == 0 && slowlyOpenDoors[4] >= 0.95f) {
 			userCouldPassThroughDoors[4] = 1;
 		}
+		ubo.normal = glm::inverse(glm::transpose(ubo.model));
 		updateOneInstanceOfObject(doors, ubo, currentImage, 4);
 
 
@@ -986,6 +1019,7 @@ class MyProject : public BaseProject {
 			ubo.model = glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)) * ubo.model;
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(2.5f, 0.5f, 2.2f)) * ubo.model;
 		}
+		ubo.normal = glm::inverse(glm::transpose(ubo.model));
 		updateOneInstanceOfObject(levers, ubo, currentImage, 0);
 		ubo.model = glm::mat4(1.0f);
 		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(5.8f, 0, 1.3f)) * ubo.model;
@@ -1003,6 +1037,7 @@ class MyProject : public BaseProject {
 			ubo.model = glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)) * ubo.model;
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(8.3f, 0.5f, 3.5f)) * ubo.model;
 		}
+		ubo.normal = glm::inverse(glm::transpose(ubo.model));
 		updateOneInstanceOfObject(levers, ubo, currentImage, 1);
 		ubo.model = glm::mat4(1.0f);
 		//Rotate on the correct axis
@@ -1019,6 +1054,7 @@ class MyProject : public BaseProject {
 			ubo.model = glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)) * ubo.model;
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(3.3f, 0.5f, -1.5f)) * ubo.model;
 		}
+		ubo.normal = glm::inverse(glm::transpose(ubo.model));
 		updateOneInstanceOfObject(levers, ubo, currentImage, 2);
 
 
@@ -1035,8 +1071,10 @@ class MyProject : public BaseProject {
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(-4.0f, 0.4f, 12.0f)) * ubo.model;
 			rotatingPowerUp++;
 		}
+		ubo.normal = glm::inverse(glm::transpose(ubo.model));
 		updateObject(powerUp, ubo, currentImage);
 		ubo.model = glm::mat4(1.0f);
+		ubo.normal = glm::inverse(glm::transpose(ubo.model));
 		updateObject(powerUpBase, ubo, currentImage);
 
 
@@ -1046,6 +1084,7 @@ class MyProject : public BaseProject {
 		//Win
 		if (win) {
 			//ubo.model = glm::mat4(1.0f);
+			//ubo.normal = glm::inverse(glm::transpose(ubo.model));
 			//updateObject(winText, ubo, currentImage);
 		}
 
@@ -1056,15 +1095,23 @@ class MyProject : public BaseProject {
 		//Torch
 		ubo.model = glm::mat4(1.0f);
 		if (torchTaken) {
+			//ubo.model = glm::rotate(glm::translate(glm::mat4(1), -torchPosStatic + torchPos + glm::vec3(0.3f, 0, -0.2f)), lookYaw, glm::vec3(0, 1, 0)) * ubo.model;
+			//ubo.model = glm::translate(glm::mat4(1), -torchPosStatic + torchPos) * ubo.model;
+			//ubo.model = glm::translate(glm::mat4(1), glm::vec3(0.3f, -0.2f, 0)) * ubo.model;
+			//ubo.model = glm::rotate(glm::mat4(1), lookYaw, glm::vec3(0, 1, 0)) * ubo.model;
+			//ubo.model = glm::inverse(glm::translate(glm::mat4(1.0f), glm::vec3(-4.0f, 0.4f, 12.0f))) * ubo.model;
+			//ubo.model = glm::rotate(glm::mat4(1), lookYaw, glm::vec3(0, 1, 0)) * ubo.model;
+			//ubo.model = glm::translate(glm::rotate(glm::mat4(1), lookYaw, glm::vec3(0, 1, 0)), -torchPosStatic + torchPos + glm::vec3(0.3f, 0, -0.2f)) * ubo.model;
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 2.0f, 0)) * ubo.model;
 		}
+		ubo.normal = glm::inverse(glm::transpose(ubo.model));
 		updateObject(torch, ubo, currentImage);
 
 
 
 
 
-		//Tutorial
+		//Tutorial - is different when a gamepad is plugged or not
 		if (controllerPlugged == 1) {
 			/*controllerInput = true;
 			if (keyboardInput) {
@@ -1082,30 +1129,39 @@ class MyProject : public BaseProject {
 			}*/
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[0] * 100.0f, 0)) * ubo.model;
+			ubo.normal = glm::inverse(glm::transpose(ubo.model));
 			updateObject(tutorial, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[1] * 100.0f, 0)) * ubo.model;
+			ubo.normal = glm::inverse(glm::transpose(ubo.model));
 			updateObject(windowTutorial, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[2] * 100.0f, 0)) * ubo.model;
+			ubo.normal = glm::inverse(glm::transpose(ubo.model));
 			updateObject(visualController, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[3] * 100.0f, 0)) * ubo.model;
+			ubo.normal = glm::inverse(glm::transpose(ubo.model));
 			updateObject(movementController, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[4] * 100.0f, 0)) * ubo.model;
+			ubo.normal = glm::inverse(glm::transpose(ubo.model));
 			updateObject(interactionController, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[5] * 100.0f, 0)) * ubo.model;
+			ubo.normal = glm::inverse(glm::transpose(ubo.model));
 			updateObject(restartController, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[6] * 100.0f, 0)) * ubo.model;
+			ubo.normal = glm::inverse(glm::transpose(ubo.model));
 			updateObject(tutorialAgainController, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialNextElements[0] * 100.0f, 0)) * ubo.model;
+			ubo.normal = glm::inverse(glm::transpose(ubo.model));
 			updateObject(nextController, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialNextElements[1] * 100.0f, 0)) * ubo.model;
+			ubo.normal = glm::inverse(glm::transpose(ubo.model));
 			updateObject(endController, ubo, currentImage);
 		}
 		else {
@@ -1125,30 +1181,39 @@ class MyProject : public BaseProject {
 			}*/
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[0] * 100.0f, 0)) * ubo.model;
+			ubo.normal = glm::inverse(glm::transpose(ubo.model));
 			updateObject(tutorial, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[1] * 100.0f, 0)) * ubo.model;
+			ubo.normal = glm::inverse(glm::transpose(ubo.model));
 			updateObject(windowTutorial, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[2] * 100.0f, 0)) * ubo.model;
+			ubo.normal = glm::inverse(glm::transpose(ubo.model));
 			updateObject(visual, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[3] * 100.0f, 0)) * ubo.model;
+			ubo.normal = glm::inverse(glm::transpose(ubo.model));
 			updateObject(movement, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[4] * 100.0f, 0)) * ubo.model;
+			ubo.normal = glm::inverse(glm::transpose(ubo.model));
 			updateObject(interaction, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[5] * 100.0f, 0)) * ubo.model;
+			ubo.normal = glm::inverse(glm::transpose(ubo.model));
 			updateObject(restart, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[6] * 100.0f, 0)) * ubo.model;
+			ubo.normal = glm::inverse(glm::transpose(ubo.model));
 			updateObject(tutorialAgain, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialNextElements[0] * 100.0f, 0)) * ubo.model;
+			ubo.normal = glm::inverse(glm::transpose(ubo.model));
 			updateObject(next, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialNextElements[1] * 100.0f, 0)) * ubo.model;
+			ubo.normal = glm::inverse(glm::transpose(ubo.model));
 			updateObject(end, ubo, currentImage);
 		}
 	}
@@ -1156,7 +1221,9 @@ class MyProject : public BaseProject {
 
 
 
-	
+	/// <summary>
+	/// Initialize controller input keys
+	/// </summary>
 	void initializeInputKeys() {
 		controllerPlugged = glfwJoystickPresent(GLFW_JOYSTICK_1);
 
@@ -1188,9 +1255,13 @@ class MyProject : public BaseProject {
 			}*/
 	}
 	
+	/// <summary>
+	/// Manage the next page of the tutorial and the skip of the whole tutorial
+	/// </summary>
 	void manageTutorial() {
 		if (controllerPlugged == 1) {
-			if (buttons[2] == GLFW_PRESS)
+			//Gestire anche in or per il pulsante che si vuole per lo skip
+			if (buttons[2] == GLFW_PRESS || buttons[6] == GLFW_PRESS)
 			{
 				stateTutorial = true;
 			}
@@ -1203,55 +1274,35 @@ class MyProject : public BaseProject {
 				if (firstTutorial) {
 					firstTutorial = false;
 				}
-				if (tutorialElements[0] == 0) {
-					tutorialElements[0] = 1;
-					tutorialElements[1] = 0;
+				tutorialLogic();
+			}
+			//Scegliere il pulsante che si preferisce
+			else if (buttons[6] == GLFW_PRESS && firstTutorial) {
+				if (firstTutorial) {
+					firstTutorial = false;
 				}
-				else if (tutorialElements[1] == 0) {
-					tutorialElements[1] = 1;
-					tutorialElements[2] = 0;
+				if (doneTutorialAgain) {
+					doneTutorialAgain = false;
+					pos = savePos;
+					oldPos = savePos;
+					lookPitch = lookPitchSaved;
+					lookYaw = lookYawSaved;
 				}
-				else if (tutorialElements[2] == 0) {
-					tutorialElements[2] = 1;
-					tutorialElements[3] = 0;
+				else {
+					pos = glm::vec3(0.0f, 0.5f, 0.0f);
+					oldPos = glm::vec3(0.0f, 0.5f, 0.0f);
+					lookYaw = glm::radians(-45.0f);
+					lookPitch = 0.0f;
 				}
-				else if (tutorialElements[3] == 0) {
-					tutorialElements[3] = 1;
-					tutorialElements[4] = 0;
-				}
-				else if (tutorialElements[4] == 0) {
-					tutorialElements[4] = 1;
-					tutorialElements[5] = 0;
-				}
-				else if (tutorialElements[5] == 0) {
-					tutorialElements[5] = 1;
-					tutorialElements[6] = 0;
-					tutorialNextElements[0] = 1;
-					tutorialNextElements[1] = 0;
-				}
-				else if (tutorialElements[6] == 0) {
-					tutorialElements[6] = 1;
-					tutorialNextElements[1] = 1;
-					if (doneTutorialAgain) {
-						doneTutorialAgain = false;
-						pos = savePos;
-						oldPos = savePos;
-						lookPitch = lookPitchSaved;
-						lookYaw = lookYawSaved;
-					}
-					else {
-						pos = glm::vec3(0.0f, 0.5f, 0.0f);
-						oldPos = glm::vec3(0.0f, 0.5f, 0.0f);
-						lookYaw = glm::radians(-45.0f);
-						lookPitch = 0.0f;
-					}
-					firstTimeDoingTheTutorial = false;
-				}
+				firstTimeDoingTheTutorial = false;
+				tutorialElements = { 1,1,1,1,1,1,1 };
+				tutorialNextElements = { 1,1 };
 			}
 		}
 		else {
 			int stateTutorialInt = glfwGetKey(window, GLFW_KEY_N);
-			if (stateTutorialInt == GLFW_PRESS)
+			int stateTutorialInt2 = glfwGetKey(window, GLFW_KEY_ESCAPE);
+			if (stateTutorialInt == GLFW_PRESS || stateTutorialInt2 == GLFW_PRESS)
 			{
 				stateTutorial = true;
 			}
@@ -1264,57 +1315,87 @@ class MyProject : public BaseProject {
 				if (firstTutorial) {
 					firstTutorial = false;
 				}
-				if (tutorialElements[0] == 0) {
-					tutorialElements[0] = 1;
-					tutorialElements[1] = 0;
+				tutorialLogic();
+			}
+			else if (glfwGetKey(window, GLFW_KEY_ESCAPE) && firstTutorial) {
+				if (firstTutorial) {
+					firstTutorial = false;
 				}
-				else if (tutorialElements[1] == 0) {
-					tutorialElements[1] = 1;
-					tutorialElements[2] = 0;
+				if (doneTutorialAgain) {
+					doneTutorialAgain = false;
+					pos = savePos;
+					oldPos = savePos;
+					lookPitch = lookPitchSaved;
+					lookYaw = lookYawSaved;
 				}
-				else if (tutorialElements[2] == 0) {
-					tutorialElements[2] = 1;
-					tutorialElements[3] = 0;
+				else {
+					pos = glm::vec3(0.0f, 0.5f, 0.0f);
+					oldPos = glm::vec3(0.0f, 0.5f, 0.0f);
+					lookYaw = glm::radians(-45.0f);
+					lookPitch = 0.0f;
 				}
-				else if (tutorialElements[3] == 0) {
-					tutorialElements[3] = 1;
-					tutorialElements[4] = 0;
-				}
-				else if (tutorialElements[4] == 0) {
-					tutorialElements[4] = 1;
-					tutorialElements[5] = 0;
-				}
-				else if (tutorialElements[5] == 0) {
-					tutorialElements[5] = 1;
-					tutorialElements[6] = 0;
-					tutorialNextElements[0] = 1;
-					tutorialNextElements[1] = 0;
-				}
-				else if (tutorialElements[6] == 0) {
-					tutorialElements[6] = 1;
-					tutorialNextElements[1] = 1;
-					if (doneTutorialAgain) {
-						doneTutorialAgain = false;
-						pos = savePos;
-						oldPos = savePos;
-						lookPitch = lookPitchSaved;
-						lookYaw = lookYawSaved;
-					}
-					else {
-						pos = glm::vec3(0.0f, 0.5f, 0.0f);
-						oldPos = glm::vec3(0.0f, 0.5f, 0.0f);
-						lookYaw = glm::radians(-45.0f);
-						lookPitch = 0.0f;
-					}
-					firstTimeDoingTheTutorial = false;
-				}
+				firstTimeDoingTheTutorial = false;
+				tutorialElements = { 1,1,1,1,1,1,1 };
+				tutorialNextElements = { 1,1 };
 			}
 		}
 	}
 
+	/// <summary>
+	/// Manage tutorial logic
+	/// </summary>
+	void tutorialLogic() {
+		if (tutorialElements[0] == 0) {
+			tutorialElements[0] = 1;
+			tutorialElements[1] = 0;
+		}
+		else if (tutorialElements[1] == 0) {
+			tutorialElements[1] = 1;
+			tutorialElements[2] = 0;
+		}
+		else if (tutorialElements[2] == 0) {
+			tutorialElements[2] = 1;
+			tutorialElements[3] = 0;
+		}
+		else if (tutorialElements[3] == 0) {
+			tutorialElements[3] = 1;
+			tutorialElements[4] = 0;
+		}
+		else if (tutorialElements[4] == 0) {
+			tutorialElements[4] = 1;
+			tutorialElements[5] = 0;
+		}
+		else if (tutorialElements[5] == 0) {
+			tutorialElements[5] = 1;
+			tutorialElements[6] = 0;
+			tutorialNextElements[0] = 1;
+			tutorialNextElements[1] = 0;
+		}
+		else if (tutorialElements[6] == 0) {
+			tutorialElements[6] = 1;
+			tutorialNextElements[1] = 1;
+			if (doneTutorialAgain) {
+				doneTutorialAgain = false;
+				pos = savePos;
+				oldPos = savePos;
+				lookPitch = lookPitchSaved;
+				lookYaw = lookYawSaved;
+			}
+			else {
+				pos = glm::vec3(0.0f, 0.5f, 0.0f);
+				oldPos = glm::vec3(0.0f, 0.5f, 0.0f);
+				lookYaw = glm::radians(-45.0f);
+				lookPitch = 0.0f;
+			}
+			firstTimeDoingTheTutorial = false;
+		}
+	}
+	
+	/// <summary>
+	/// To see the tutorial again
+	/// </summary>
 	void seeTutorialAgain() {
 		if (controllerPlugged == 1) {
-			//Start
 			if (buttons[9] == GLFW_PRESS)
 			{
 				stateTutorialAgain = true;
@@ -1328,26 +1409,7 @@ class MyProject : public BaseProject {
 				if (firstTutorialAgain) {
 					firstTutorialAgain = false;
 				}
-				doneTutorialAgain = true;
-				tutorialElements = { 0,1,1,1,1,1,1 };
-				tutorialNextElements = { 0,1 };
-				if (pos.z <= -450.0f) {//-495.0f) {
-					if (firstTimeDoingTheTutorial) {
-						savePos = glm::vec3(0.0f, -0.5f, 0.0f);
-						oldPos = glm::vec3(0.0f, 0.5f, 0.0f);
-						lookYaw = glm::radians(-45.0f);
-						lookPitch = 0.0f;
-					}
-				}
-				else {
-					savePos = pos;
-					lookPitchSaved = lookPitch;
-					lookYawSaved = lookYaw;
-				}
-				pos = glm::vec3(500.0f, 199.5f, -495.0f);
-				oldPos = glm::vec3(500.0f, 199.5f, -495.0f);
-				lookYaw = 0.0f;
-				lookPitch = 0.0f;
+				tutorialAgainLogic();
 			}
 		}
 		else {
@@ -1365,29 +1427,35 @@ class MyProject : public BaseProject {
 				if (firstTutorialAgain) {
 					firstTutorialAgain = false;
 				}
-				doneTutorialAgain = true;
-				tutorialElements = { 0,1,1,1,1,1,1 };
-				tutorialNextElements = { 0,1 };
-				if (pos.z <= -450.0f) {//-495.0f) {
-					if (firstTimeDoingTheTutorial) {
-						savePos = glm::vec3(0.0f, -0.5f, 0.0f);
-						oldPos = glm::vec3(0.0f, 0.5f, 0.0f);
-						lookYaw = glm::radians(-45.0f);
-						lookPitch = 0.0f;
-					}
-				}
-				else {
-					savePos = pos;
-					lookPitchSaved = lookPitch;
-					lookYawSaved = lookYaw;
-				}
-				pos = glm::vec3(500.0f, 199.5f, -495.0f);
-				oldPos = glm::vec3(500.0f, 199.5f, -495.0f);
-				lookYaw = 0.0f;
-				lookPitch = 0.0f;
-				//std::cout << "\n\n\n" << lookYawSaved;
+				tutorialAgainLogic();
 			}
 		}
+	}
+	
+	/// <summary>
+	/// Manage the logic to see the tutorial again
+	/// </summary>
+	void tutorialAgainLogic() {
+		doneTutorialAgain = true;
+		tutorialElements = { 0,1,1,1,1,1,1 };
+		tutorialNextElements = { 0,1 };
+		if (pos.z <= -450.0f) {//-495.0f) {
+			if (firstTimeDoingTheTutorial) {
+				savePos = glm::vec3(0.0f, -0.5f, 0.0f);
+				oldPos = glm::vec3(0.0f, 0.5f, 0.0f);
+				lookYaw = glm::radians(-45.0f);
+				lookPitch = 0.0f;
+			}
+		}
+		else {
+			savePos = pos;
+			lookPitchSaved = lookPitch;
+			lookYawSaved = lookYaw;
+		}
+		pos = glm::vec3(500.0f, 199.5f, -495.0f);
+		oldPos = glm::vec3(500.0f, 199.5f, -495.0f);
+		lookYaw = 0.0f;
+		lookPitch = 0.0f;
 	}
 	
 	void restartTheGame() {
@@ -1404,6 +1472,11 @@ class MyProject : public BaseProject {
 		}
 	}
 
+	/// <summary>
+	/// Update the camera position, movement and jumping.
+	/// </summary>
+	/// <param name="window">Window</param>
+	/// <returns>The camera position.</returns>
 	glm::mat4 updateCameraPosition(GLFWwindow* window) {
 		const float ROT_SPEED = glm::radians(90.0f);
 		//const float MOVE_SPEED = powerUpTakenOrNot + 1.2f;
@@ -1543,8 +1616,8 @@ class MyProject : public BaseProject {
 		}
 
 
-		CamPos = pos;
 
+		CamPos = pos;
 
 
 
@@ -1560,6 +1633,9 @@ class MyProject : public BaseProject {
 		return out;*/
 	}
 
+	/// <summary>
+	/// Reset all parameter to start a new game.
+	/// </summary>
 	void resetAll() {
 		pos = glm::vec3(0.0f, 0.5f, 0.0f);
 		lookYaw = glm::radians(-45.0f);
@@ -1600,6 +1676,9 @@ class MyProject : public BaseProject {
 		firstTimeChange = false;
 	}
 
+	/// <summary>
+	/// Move the character to the winning position
+	/// </summary>
 	void checkWinning() {
 		if (win && firstWin) {
 			firstWin = false;
@@ -1610,6 +1689,9 @@ class MyProject : public BaseProject {
 		}
 	}
 	
+	/// <summary>
+	/// When click F11, set full screen.
+	/// </summary>
 	void updateWindow() {
 		int stateF11Int = glfwGetKey(window, GLFW_KEY_F11);
 		if (stateF11Int == GLFW_PRESS)
@@ -1635,7 +1717,10 @@ class MyProject : public BaseProject {
 		}
 	}
 
-	void interctWithObjects() {
+	/// <summary>
+	/// Interact with all objects.
+	/// </summary>
+	void interactWithObjects() {
 		openTheDoor();
 		
 		if (torchCouldBeTaken) {
@@ -1651,12 +1736,14 @@ class MyProject : public BaseProject {
 			}
 		}
 
-		//std::cout << torchTaken;
 		if (torchTaken) {
 			torchPos = pos;
 		}
 	}
 
+	/// <summary>
+	/// Check the interaction with the doors.
+	/// </summary>
 	void openTheDoor() {
 		if (controllerPlugged == 1) {
 			if (buttons[0] == GLFW_PRESS)
@@ -1672,44 +1759,7 @@ class MyProject : public BaseProject {
 				if (firstInteraction) {
 					firstInteraction = false;
 				}
-
-				if (leverCouldBeUsed[2] == 1 && leverUsedOrNot[2] == 0) {
-					doorOpenOrNot[3] = 1;
-					leverUsedOrNot[2] = 1;
-					doorAlreadyOpened[3] = 1;
-				}
-				else if (leverCouldBeUsed[2] == 1 && leverUsedOrNot[2] == 1) {
-					doorOpenOrNot[3] = 0;
-					leverUsedOrNot[2] = 0;
-				}
-
-				if (leverCouldBeUsed[1] == 1 && leverUsedOrNot[1] == 0) {
-					doorOpenOrNot[2] = 1;
-					leverUsedOrNot[1] = 1;
-					doorAlreadyOpened[2] = 1;
-				}
-				else if (leverCouldBeUsed[1] == 1 && leverUsedOrNot[1] == 1) {
-					doorOpenOrNot[2] = 0;
-					leverUsedOrNot[1] = 0;
-				}
-
-				if (leverCouldBeUsed[0] == 1 && leverUsedOrNot[0] == 0) {
-					doorOpenOrNot[0] = 1;
-					leverUsedOrNot[0] = 1;
-					doorAlreadyOpened[0] = 1;
-				}
-				else if (leverCouldBeUsed[0] == 1 && leverUsedOrNot[0] == 1) {
-					doorOpenOrNot[0] = 0;
-					leverUsedOrNot[0] = 0;
-				}
-
-				if (doorCouldBeOpened[0] == 1 && doorOpenOrNot[4] == 0) {
-					doorOpenOrNot[4] = 1;
-				}
-
-				if (doorCouldBeOpened[1] == 1 && doorOpenOrNot[1] == 0) {
-					doorOpenOrNot[1] = 1;
-				}
+				doorOpeningLogic();
 			}
 		}
 		else {
@@ -1727,48 +1777,54 @@ class MyProject : public BaseProject {
 				if (firstInteraction) {
 					firstInteraction = false;
 				}
-
-				if (leverCouldBeUsed[2] == 1 && leverUsedOrNot[2] == 0) {
-					doorOpenOrNot[3] = 1;
-					leverUsedOrNot[2] = 1;
-					doorAlreadyOpened[3] = 1;
-				}
-				else if (leverCouldBeUsed[2] == 1 && leverUsedOrNot[2] == 1) {
-					doorOpenOrNot[3] = 0;
-					leverUsedOrNot[2] = 0;
-				}
-
-				if (leverCouldBeUsed[1] == 1 && leverUsedOrNot[1] == 0) {
-					doorOpenOrNot[2] = 1;
-					leverUsedOrNot[1] = 1;
-					doorAlreadyOpened[2] = 1;
-				}
-				else if (leverCouldBeUsed[1] == 1 && leverUsedOrNot[1] == 1) {
-					doorOpenOrNot[2] = 0;
-					leverUsedOrNot[1] = 0;
-				}
-
-				if (leverCouldBeUsed[0] == 1 && leverUsedOrNot[0] == 0) {
-					doorOpenOrNot[0] = 1;
-					leverUsedOrNot[0] = 1;
-					doorAlreadyOpened[0] = 1;
-				}
-				else if (leverCouldBeUsed[0] == 1 && leverUsedOrNot[0] == 1) {
-					doorOpenOrNot[0] = 0;
-					leverUsedOrNot[0] = 0;
-				}
-
-				if (doorCouldBeOpened[0] == 1 && doorOpenOrNot[4] == 0) {
-					doorOpenOrNot[4] = 1;
-				}
-
-				if (doorCouldBeOpened[1] == 1 && doorOpenOrNot[1] == 0) {
-					doorOpenOrNot[1] = 1;
-				}
+				doorOpeningLogic();
 			}
 		}
 	}
 
+	/// <summary>
+	/// Open the doors and use the levers.
+	/// </summary>
+	void doorOpeningLogic() {
+		if (leverCouldBeUsed[2] == 1 && leverUsedOrNot[2] == 0) {
+			doorOpenOrNot[3] = 1;
+			leverUsedOrNot[2] = 1;
+			doorAlreadyOpened[3] = 1;
+		}
+		else if (leverCouldBeUsed[2] == 1 && leverUsedOrNot[2] == 1) {
+			doorOpenOrNot[3] = 0;
+			leverUsedOrNot[2] = 0;
+		}
+
+		if (leverCouldBeUsed[1] == 1 && leverUsedOrNot[1] == 0) {
+			doorOpenOrNot[2] = 1;
+			leverUsedOrNot[1] = 1;
+			doorAlreadyOpened[2] = 1;
+		}
+		else if (leverCouldBeUsed[1] == 1 && leverUsedOrNot[1] == 1) {
+			doorOpenOrNot[2] = 0;
+			leverUsedOrNot[1] = 0;
+		}
+
+		if (leverCouldBeUsed[0] == 1 && leverUsedOrNot[0] == 0) {
+			doorOpenOrNot[0] = 1;
+			leverUsedOrNot[0] = 1;
+			doorAlreadyOpened[0] = 1;
+		}
+		else if (leverCouldBeUsed[0] == 1 && leverUsedOrNot[0] == 1) {
+			doorOpenOrNot[0] = 0;
+			leverUsedOrNot[0] = 0;
+		}
+
+		if (doorCouldBeOpened[0] == 1 && doorOpenOrNot[4] == 0) {
+			doorOpenOrNot[4] = 1;
+		}
+
+		if (doorCouldBeOpened[1] == 1 && doorOpenOrNot[1] == 0) {
+			doorOpenOrNot[1] = 1;
+		}
+	}
+	
 	void descriptorSetLayoutInit(DescriptorSetLayoutObject* descriptorSetLayoutObject) {
 		std::vector<DescriptorSetLayoutBinding> elementOfDSL;
 		elementOfDSL.resize(descriptorSetLayoutObject->set.size());
@@ -1779,29 +1835,8 @@ class MyProject : public BaseProject {
 		}
 		descriptorSetLayoutObject->descriptorSetLayout.init(this, {elementOfDSL});
 	}
-	
-	uint64_t getSizeForObject(DescriptorSetElementType descriptorSetElementType, bool isAnObject) {
-		if (descriptorSetElementType == TEXTURE) {
-			return 0;
-		}
-		else if (isAnObject) {
-			return sizeof(UniformBufferObject);
-		}
-		else {
-			return sizeof(GlobalUniformBufferObject);
-		}
-	}
 
-	Texture* getPointerOfTexture(DescriptorSetElementType descriptorSetElementType, Object* object) {
-		if (descriptorSetElementType == TEXTURE) {
-			return &object->texture;
-		}
-		else {
-			return nullptr;
-		}
-	}
-
-	void objectInit(Object *object, std::string modelPath, std::string texturePath, DescriptorSetLayout descriptorSetLayout, DescriptorSetLayoutObject descriptorSetLayoutObject, bool isAText) {
+	void objectInit(Object* object, std::string modelPath, std::string texturePath, DescriptorSetLayout descriptorSetLayout, DescriptorSetLayoutObject descriptorSetLayoutObject, bool isAText) {
 		object->model.init(this, modelPath, isAText);
 		object->texture.init(this, texturePath);
 		std::vector<DescriptorSetElement> descriptorSetElements;
@@ -1815,7 +1850,7 @@ class MyProject : public BaseProject {
 			descriptorSetElements[i].size = getSizeForObject(descriptorSetLayoutObject.descriptorSetElementType[i], true);
 			descriptorSetElements[i].tex = getPointerOfTexture(descriptorSetLayoutObject.descriptorSetElementType[i], object);
 		}
-		object->descriptorSet.init(this, &descriptorSetLayout, {descriptorSetElements});
+		object->descriptorSet.init(this, &descriptorSetLayout, { descriptorSetElements });
 	}
 
 	Texture* getPointerOfTextureForMultipleObject(DescriptorSetElementType descriptorSetElementType, MultipleObject* object) {
@@ -1840,11 +1875,11 @@ class MyProject : public BaseProject {
 			descriptorSetElements[i].tex = getPointerOfTextureForMultipleObject(descriptorSetLayoutObject.descriptorSetElementType[i], object);
 		}
 		for (int i = 0; i < numberOfInstances; i++) {
-			object->descriptorSets[i].init(this, &descriptorSetLayout, {descriptorSetElements});
+			object->descriptorSets[i].init(this, &descriptorSetLayout, { descriptorSetElements });
 		}
 	}
 
-	void descriptorSetInit(DescriptorSet *descriptorSet, DescriptorSetLayout descriptorSetLayout, DescriptorSetLayoutObject descriptorSetLayoutObject) {
+	void descriptorSetInit(DescriptorSet* descriptorSet, DescriptorSetLayout descriptorSetLayout, DescriptorSetLayoutObject descriptorSetLayoutObject) {
 		std::vector<DescriptorSetElement> descriptorSetElements;
 		descriptorSetElements.resize(descriptorSetLayoutObject.set.size());
 		for (int i = 0; i < descriptorSetLayoutObject.set.size(); i++) {
@@ -1853,9 +1888,43 @@ class MyProject : public BaseProject {
 			descriptorSetElements[i].size = getSizeForObject(descriptorSetLayoutObject.descriptorSetElementType[i], false);
 			descriptorSetElements[i].tex = nullptr;
 		}
-		descriptorSet->init(this, &descriptorSetLayout, {descriptorSetElements});
+		descriptorSet->init(this, &descriptorSetLayout, { descriptorSetElements });
+	}
+	
+	/// <summary>
+	/// Get the required size.
+	/// </summary>
+	/// <param name="descriptorSetElementType">The type of descriptor</param>
+	/// <param name="isAnObject">If is an object and needs a model.</param>
+	/// <returns>The required size</returns>
+	uint64_t getSizeForObject(DescriptorSetElementType descriptorSetElementType, bool isAnObject) {
+		if (descriptorSetElementType == TEXTURE) {
+			return 0;
+		}
+		else if (isAnObject) {
+			return sizeof(UniformBufferObject);
+		}
+		else {
+			return sizeof(GlobalUniformBufferObject);
+		}
 	}
 
+	/// <summary>
+	/// Return pointer of the texture.
+	/// </summary>
+	/// <param name="descriptorSetElementType">The type of descriptor</param>
+	/// <param name="object">The object from which take the texture</param>
+	/// <returns>The pointer of the texture</returns>
+	Texture* getPointerOfTexture(DescriptorSetElementType descriptorSetElementType, Object* object) {
+		if (descriptorSetElementType == TEXTURE) {
+			return &object->texture;
+		}
+		else {
+			return nullptr;
+		}
+	}
+
+	// Draw the global descriptor set.
 	void drawSingleInstanceInGlobal(VkCommandBuffer commandBuffer, int currentImage,
 		Pipeline pipeline, DescriptorSet descriptorSet, int setUsed) {
 		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -1866,6 +1935,7 @@ class MyProject : public BaseProject {
 			0, nullptr);
 	}
 
+	// Draw single instance of object.
 	void drawSingleInstance(VkCommandBuffer commandBuffer, int currentImage,
 		Pipeline pipeline, Object object, int setUsed) {
 		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -1891,6 +1961,7 @@ class MyProject : public BaseProject {
 			static_cast<uint32_t>(object.model.indices.size()), 1, 0, 0, 0);
 	}
 
+	// Draw multiple instances of an object.
 	void drawMultipleInstance(VkCommandBuffer commandBuffer, int currentImage,
 		Pipeline pipeline, MultipleObject object, int setUsed) {
 		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -1912,7 +1983,8 @@ class MyProject : public BaseProject {
 				static_cast<uint32_t>(object.model.indices.size()), 1, 0, 0, 0);
 		}
 	}
-
+	
+	//Update an object.
 	void updateObject(Object object, UniformBufferObject ubo, uint32_t currentImage) {
 		void* data;
 		vkMapMemory(device, object.descriptorSet.uniformBuffersMemory[0][currentImage], 0,
@@ -1921,6 +1993,7 @@ class MyProject : public BaseProject {
 		vkUnmapMemory(device, object.descriptorSet.uniformBuffersMemory[0][currentImage]);
 	}
 
+	//Update a partuclar instance of an object.
 	void updateOneInstanceOfObject(MultipleObject object, UniformBufferObject ubo, uint32_t currentImage, int descriptorSetInstance) {
 		void* data;
 		vkMapMemory(device, object.descriptorSets[descriptorSetInstance].uniformBuffersMemory[0][currentImage], 0,
