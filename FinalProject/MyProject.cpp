@@ -160,6 +160,7 @@ static bool jumpDown = false;
 static glm::vec3 CamPos = glm::vec3(0);
 static glm::mat3 CamDir = glm::mat3(0);
 static glm::mat4 CharacterPos = glm::mat4(0);
+static glm::vec3 lineOfSightDirection = glm::vec3(0);
 
 //Environment
 	//User can pass
@@ -845,7 +846,7 @@ class MyProject : public BaseProject {
 
 		//Character
 		ubo.model = glm::mat4(1.0f);
-		//To let it touch it the ground
+		//-0.2f to let it touch it the ground
 		ubo.model = glm::rotate(glm::translate(glm::mat4(1), pos + glm::vec3(0, -0.2f, 0)), lookYaw, glm::vec3(0, 1, 0)) * ubo.model;
 		updateObject(mainCharacter, ubo, currentImage);
 		
@@ -860,9 +861,6 @@ class MyProject : public BaseProject {
 		ubo.model = glm::mat4(1.0f);
 		ubo.normal = glm::inverse(glm::transpose(ubo.model));
 		updateObject(ceilingObject, ubo, currentImage);
-
-
-
 
 
 		//Walls
@@ -892,6 +890,7 @@ class MyProject : public BaseProject {
 		ubo.model = glm::mat4(1.0f);
 		ubo.normal = glm::inverse(glm::transpose(ubo.model));
 		updateObject(goldKeyHoleObject, ubo, currentImage);
+
 
 		//Copper key
 		ubo.model = glm::mat4(1.0f);
@@ -1124,7 +1123,8 @@ class MyProject : public BaseProject {
 
 
 
-
+		//float distance = 0.2f;
+		//glm::vec3 objectPosition = pos + lineOfSightDirection * distance;
 		//Torch
 		ubo.model = glm::mat4(1.0f);
 		if (torchTaken) {
@@ -1135,6 +1135,13 @@ class MyProject : public BaseProject {
 			//ubo.model = glm::inverse(glm::translate(glm::mat4(1.0f), glm::vec3(-4.0f, 0.4f, 12.0f))) * ubo.model;
 			//ubo.model = glm::rotate(glm::mat4(1), lookYaw, glm::vec3(0, 1, 0)) * ubo.model;
 			//ubo.model = glm::translate(glm::rotate(glm::mat4(1), lookYaw, glm::vec3(0, 1, 0)), -torchPosStatic + torchPos + glm::vec3(0.3f, 0, -0.2f)) * ubo.model;
+			//ubo.model = glm::translate(glm::mat4(1), -torchPosStatic + torchPos + glm::vec3(cos(lookYaw), 0, sin(lookYaw))) * ubo.model;
+			//std::cout << "Yaw: " << lookYaw << '\n' << "Cos: " << cos(lookYaw) << '\n' << "Sin: " << sin(lookYaw) << '\n';
+			//lookYaw = glm::radians(-45.0f);
+			//ubo.model = glm::translate(glm::mat4(1.0f), objectPosition) * ubo.model;
+
+
+
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 2.0f, 0)) * ubo.model;
 		}
 		ubo.normal = glm::inverse(glm::transpose(ubo.model));
@@ -1688,15 +1695,15 @@ class MyProject : public BaseProject {
 					glm::vec3(0.0f, 1.0f, 0.0f)) * glm::vec4(0, 0, 1, 1)) * deltaT;
 			}
 
-			/*if (glfwGetKey(window, GLFW_KEY_SPACE)) {
+			if (glfwGetKey(window, GLFW_KEY_SPACE)) {
 				pos += MOVE_SPEED * glm::vec3(0, 1, 0) * deltaT;
 			}
 			if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT)) {
 				pos -= MOVE_SPEED * glm::vec3(0, 1, 0) * deltaT;
-			}*/
+			}
 
 			//Jump
-			if (glfwGetKey(window, GLFW_KEY_SPACE) && !jump) {
+			/*if (glfwGetKey(window, GLFW_KEY_SPACE) && !jump) {
 				jump = true;
 			}
 
@@ -1718,14 +1725,14 @@ class MyProject : public BaseProject {
 				else {
 					pos -= JUMP_SPEED * glm::vec3(0, 0.7f, 0) * deltaT;
 				}
-			}
+			}*/
 		}
 
 
 
 		/*CamDir = glm::mat3(glm::rotate(glm::mat4(1.0f), lookYaw, glm::vec3(0.0f, 1.0f, 0.0f))) *
-			glm::mat3(glm::rotate(glm::mat4(1.0f), lookPitch, glm::vec3(1.0f, 0.0f, 0.0f)));
-*/
+			glm::mat3(glm::rotate(glm::mat4(1.0f), lookPitch, glm::vec3(1.0f, 0.0f, 0.0f)));*/
+
 
 
 		if (!canStep(pos.x, pos.z)) {
@@ -1735,6 +1742,11 @@ class MyProject : public BaseProject {
 
 
 		CamPos = pos;
+
+
+
+		//lineOfSightDirection = glm::normalize(glm::vec3(glm::rotate(glm::mat4(1), lookYaw, glm::vec3(0, 1, 0)) * glm::vec4(0, 1.0f, 0, 1.0f)) - CamPos);
+		//lineOfSightDirection = glm::normalize(glm::vec3(lookYaw, lookPitch, lookRoll) - CamPos);
 
 
 
