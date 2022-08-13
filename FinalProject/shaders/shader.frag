@@ -44,7 +44,7 @@ void main() {
 	
 	//vec3 lightPos1 = vec3(0.0f, 0.5f, 0.0f);
 	//vec3 lightPos1 = vec3(-0.45f, 0.5f, 0.0f);
-	vec3 lightPos1 = vec3(gubo.torchPos.x, 0.5f, gubo.torchPos.z);
+	vec3 lightPos1 = vec3(gubo.torchPos.x, gubo.torchPos.y, gubo.torchPos.z);
 	vec3 lightC1 = vec3(1.0f, 1.0f, 0.2f);
 	vec3 lightDirection1 = point_light_dir(fragViewDir, lightPos1);
 	vec3 lightColor1 = point_light_color(fragViewDir, lightPos1, lightC1, 0.3f, 1.5f);

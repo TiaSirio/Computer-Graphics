@@ -1,11 +1,11 @@
-Rifare gli oggetti win e tutorial che pesano di meno - 
-Fare un personaggio decente e non un cubo - 
+Rifare gli oggetti win e tutorial che pesano di meno - Done
+Fare un personaggio decente e non un cubo - Done
+Scrivere per skippare premendo ESCAPE - Done
+Pensare se fare un menu iniziale dove scegliere se giocare o fare prima il tutorial - Better with tutorial first
+Commentare progetto - Done
+Rivedere manageTutorial per vedere se funzia con il controller - Done
 Chiedere per la luce all'interno di un oggetto - 
-Scrivere per skippare premendo ESCAPE - 
-Pensare se fare un menu iniziale dove scegliere se giocare o fare prima il tutorial - 
-Commentare progetto - 
 Commentare Assignments - 
 Rivedere Assignments - 
 Rimuovere seconda pipeline - 
 Mettere torcia sullo schermo che si muove con la telecamera - 
-Rivedere manageTutorial per vedere se funzia con il controller - 

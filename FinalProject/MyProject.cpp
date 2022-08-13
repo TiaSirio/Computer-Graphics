@@ -183,8 +183,8 @@ static int rotatingPowerUp = 0;
 	//Float value to be incremented slowly to slowly open the door
 static std::vector<float> slowlyOpenDoors = { 0.0f,0.0f,0.0f,0.0f,0.0f };
 	//Position of the torch to see through the labyrinth
-static glm::vec3 torchPos = glm::vec3(0.0f, 0.8f, -4.42f);
-static glm::vec3 torchPosStatic = glm::vec3(0.0f, 0.8f, -4.42f);
+static glm::vec3 torchPos = glm::vec3(0.0f, 0.65f, -4.42f);
+static glm::vec3 torchPosStatic = glm::vec3(0.0f, 0.65f, -4.42f);
 	//User could take the torch
 static bool torchCouldBeTaken = false;
 	//User has taken the torch
@@ -225,14 +225,25 @@ int buttonCount;
 const unsigned char* buttons;
 	//Set of variables to check the differences between if a controller is plugged or a keyboard
 static bool controllerInput = false;
-static bool keyboardInput = false;
+static bool keyboardInput = true;
 static bool firstTimeChange = false;
+static bool switchInput = false;
 
 //Tutorial
 	//Variable that let the user see the correct tutorial text
 static std::vector<int> tutorialElements = { 0,1,1,1,1,1,1 };
 	//Variable that let the user see the correct next button of the tutorial
 static std::vector<int> tutorialNextElements = { 0,1 };
+	//Manage the skip.
+static int skipElement = 0;
+
+	//Variable that let the user see the correct tutorial text
+static std::vector<int> tutorialElementsController = { 1,1,1,1,1,1,1 };
+	//Variable that let the user see the correct next button of the tutorial
+static std::vector<int> tutorialNextElementsController = { 1,1 };
+	//Manage the skip.
+static int skipElementController = 1;
+
 	//Saving the element of the tutorial if the user want to see it again
 static std::vector<int> savedTutorialElements = { 1,1,1,1,1,1,1,1 };
 static std::vector<int> savedTutorialNextElements = { 1,1 };
@@ -449,7 +460,8 @@ class MyProject : public BaseProject {
 	Object powerUp;
 	Object powerUpBase;
 
-	//Object winText;
+	Object winText;
+	Object winPlayAgain;
 
 	Object torch;
 
@@ -463,6 +475,7 @@ class MyProject : public BaseProject {
 	Object tutorialAgain;
 	Object next;
 	Object end;
+	Object skip;
 
 	//Controller
 	Object interactionController;
@@ -472,6 +485,7 @@ class MyProject : public BaseProject {
 	Object tutorialAgainController;
 	Object nextController;
 	Object endController;
+	Object skipController;
 
 	DescriptorSet DS_global;
 
@@ -549,7 +563,7 @@ class MyProject : public BaseProject {
 		localPipelineInit();
 
 		//Character
-		objectInit(&mainCharacter, MODEL_PATH + "Character/Character.obj", TEXTURE_PATH + "Floor.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
+		objectInit(&mainCharacter, MODEL_PATH + "Character/Character.obj", TEXTURE_PATH + "GoldKeyColor.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
 
 		//Floor and ceiling
 		objectInit(&floorObject, MODEL_PATH + "FloorAndCeiling/Floor.obj", TEXTURE_PATH + "Floor.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
@@ -581,13 +595,14 @@ class MyProject : public BaseProject {
 		objectInit(&powerUpBase, MODEL_PATH + "PowerUp/PowerUpBase.obj", TEXTURE_PATH + "Ceiling.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
 
 		//Win
-		//objectInit(&winText, MODEL_PATH + "Win/WinText.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
+		objectInit(&winText, MODEL_PATH + "Win/WinText.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
+		objectInit(&winPlayAgain, MODEL_PATH + "Win/WinPlayAgain.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
 
 		//Torch
 		objectInit(&torch, MODEL_PATH + "Torch/Torch.obj", TEXTURE_PATH + "Torch.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
 
 		//Tutorial
-		objectInit(&tutorial, MODEL_PATH + "Tutorial/Tutorial2.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
+		objectInit(&tutorial, MODEL_PATH + "Tutorial/Tutorial.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
 		objectInit(&interaction, MODEL_PATH + "Tutorial/Interaction.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
 		objectInit(&movement, MODEL_PATH + "Tutorial/Movement.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
 		objectInit(&visual, MODEL_PATH + "Tutorial/Visual.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
@@ -596,6 +611,7 @@ class MyProject : public BaseProject {
 		objectInit(&tutorialAgain, MODEL_PATH + "Tutorial/TutorialAgain.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
 		objectInit(&next, MODEL_PATH + "Tutorial/Next.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
 		objectInit(&end, MODEL_PATH + "Tutorial/End.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
+		objectInit(&skip, MODEL_PATH + "Tutorial/Skip.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
 
 		//Tutorial controller
 		objectInit(&interactionController, MODEL_PATH + "Tutorial/InteractionController.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
@@ -604,8 +620,8 @@ class MyProject : public BaseProject {
 		objectInit(&restartController, MODEL_PATH + "Tutorial/RestartController.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
 		objectInit(&tutorialAgainController, MODEL_PATH + "Tutorial/TutorialAgainController.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
 		objectInit(&nextController, MODEL_PATH + "Tutorial/NextController.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
-		
 		objectInit(&endController, MODEL_PATH + "Tutorial/EndController.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
+		objectInit(&skipController, MODEL_PATH + "Tutorial/SkipController.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject, false);
 
 		descriptorSetInit(&DS_global, descriptorSetLayoutGlobal.descriptorSetLayout, descriptorSetLayoutGlobal);
 
@@ -676,7 +692,8 @@ class MyProject : public BaseProject {
 
 		levers.cleanup();
 
-		//winText.cleanup();
+		winText.cleanup();
+		winPlayAgain.cleanup();
 
 		torch.cleanup();
 
@@ -689,6 +706,7 @@ class MyProject : public BaseProject {
 		tutorialAgain.cleanup();
 		next.cleanup();
 		end.cleanup();
+		skip.cleanup();
 
 		interactionController.cleanup();
 		movementController.cleanup();
@@ -697,6 +715,7 @@ class MyProject : public BaseProject {
 		tutorialAgainController.cleanup();
 		nextController.cleanup();
 		endController.cleanup();
+		skipController.cleanup();
 	}
 
 	// Here you destroy all the objects you created!		
@@ -746,7 +765,8 @@ class MyProject : public BaseProject {
 		drawSingleInstance(commandBuffer, currentImage, P1, powerUp, 1);
 		drawSingleInstance(commandBuffer, currentImage, P1, powerUpBase, 1);
 
-		//drawSingleInstance(commandBuffer, currentImage, P1, winText, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, winText, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, winPlayAgain, 1);
 
 		drawSingleInstance(commandBuffer, currentImage, P1, torch, 1);
 
@@ -759,6 +779,7 @@ class MyProject : public BaseProject {
 		drawSingleInstance(commandBuffer, currentImage, P1, tutorialAgain, 1);
 		drawSingleInstance(commandBuffer, currentImage, P1, next, 1);
 		drawSingleInstance(commandBuffer, currentImage, P1, end, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, skip, 1);
 
 		drawSingleInstance(commandBuffer, currentImage, P1, interactionController, 1);
 		drawSingleInstance(commandBuffer, currentImage, P1, movementController, 1);
@@ -767,6 +788,7 @@ class MyProject : public BaseProject {
 		drawSingleInstance(commandBuffer, currentImage, P1, tutorialAgainController, 1);
 		drawSingleInstance(commandBuffer, currentImage, P1, nextController, 1);
 		drawSingleInstance(commandBuffer, currentImage, P1, endController, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, skipController, 1);
 	}
 
 
@@ -827,6 +849,10 @@ class MyProject : public BaseProject {
 		ubo.model = glm::rotate(glm::translate(glm::mat4(1), pos + glm::vec3(0, -0.2f, 0)), lookYaw, glm::vec3(0, 1, 0)) * ubo.model;
 		updateObject(mainCharacter, ubo, currentImage);
 		
+
+
+
+
 		//Floor and ceiling
 		ubo.model = glm::mat4(1.0f);
 		ubo.normal = glm::inverse(glm::transpose(ubo.model));
@@ -834,6 +860,10 @@ class MyProject : public BaseProject {
 		ubo.model = glm::mat4(1.0f);
 		ubo.normal = glm::inverse(glm::transpose(ubo.model));
 		updateObject(ceilingObject, ubo, currentImage);
+
+
+
+
 
 		//Walls
 		ubo.model = glm::mat4(1.0f);
@@ -1083,9 +1113,12 @@ class MyProject : public BaseProject {
 
 		//Win
 		if (win) {
-			//ubo.model = glm::mat4(1.0f);
-			//ubo.normal = glm::inverse(glm::transpose(ubo.model));
-			//updateObject(winText, ubo, currentImage);
+			ubo.model = glm::mat4(1.0f);
+			ubo.normal = glm::inverse(glm::transpose(ubo.model));
+			updateObject(winText, ubo, currentImage);
+			ubo.model = glm::mat4(1.0f);
+			ubo.normal = glm::inverse(glm::transpose(ubo.model));
+			updateObject(winPlayAgain, ubo, currentImage);
 		}
 
 
@@ -1112,21 +1145,46 @@ class MyProject : public BaseProject {
 
 
 		//Tutorial - is different when a gamepad is plugged or not
+		//if (controllerPlugged == 1) {
+		if (controllerPlugged == 1 && keyboardInput) {
+			controllerInput = true;
+			keyboardInput = false;
+			switchInput = true;
+		}
+		else if (controllerPlugged == 0 && controllerInput) {
+			controllerInput = false;
+			keyboardInput = true;
+			switchInput = true;
+		}
+		if (switchInput && controllerInput) {
+			switchInput = false;
+			tutorialElementsController = tutorialElements;
+			tutorialNextElementsController = tutorialNextElements;
+			skipElementController = skipElement;
+			tutorialElements = { 1,1,1,1,1,1,1,1 };
+			tutorialNextElements = { 1,1 };
+			skipElement = 1;
+		} else if (switchInput && keyboardInput) {
+			switchInput = false;
+			tutorialElements = tutorialElementsController;
+			tutorialNextElements = tutorialNextElementsController;
+			skipElement = skipElementController;
+			tutorialElementsController = { 1,1,1,1,1,1,1,1 };
+			tutorialNextElementsController = { 1,1 };
+			skipElementController = 1;
+		}
+		//if (controllerPlugged == 1) {
 		if (controllerPlugged == 1) {
-			/*controllerInput = true;
-			if (keyboardInput) {
-				keyboardInput = false;
-				firstTimeChange = true;
-				savedTutorialElements = tutorialElements;
-				savedTutorialNextElements = tutorialNextElements;
-				tutorialElements = { 1,1,1,1,1,1,1,1 };
-				tutorialNextElements = { 1,1 };
-			}
-			else if (firstTimeChange) {
-				firstTimeChange = false;
-				tutorialElements = savedTutorialElements;
-				tutorialNextElements = savedTutorialNextElements;
-			}*/
+			ubo.model = glm::mat4(1.0f);
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElementsController[0] * 100.0f, 0)) * ubo.model;
+			ubo.normal = glm::inverse(glm::transpose(ubo.model));
+			updateObject(tutorial, ubo, currentImage);
+			ubo.model = glm::mat4(1.0f);
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElementsController[1] * 100.0f, 0)) * ubo.model;
+			ubo.normal = glm::inverse(glm::transpose(ubo.model));
+			updateObject(windowTutorial, ubo, currentImage);
+		}
+		else {
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[0] * 100.0f, 0)) * ubo.model;
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
@@ -1135,58 +1193,41 @@ class MyProject : public BaseProject {
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[1] * 100.0f, 0)) * ubo.model;
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
 			updateObject(windowTutorial, ubo, currentImage);
+		}
 			ubo.model = glm::mat4(1.0f);
-			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[2] * 100.0f, 0)) * ubo.model;
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElementsController[2] * 100.0f, 0)) * ubo.model;
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
 			updateObject(visualController, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
-			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[3] * 100.0f, 0)) * ubo.model;
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElementsController[3] * 100.0f, 0)) * ubo.model;
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
 			updateObject(movementController, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
-			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[4] * 100.0f, 0)) * ubo.model;
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElementsController[4] * 100.0f, 0)) * ubo.model;
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
 			updateObject(interactionController, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
-			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[5] * 100.0f, 0)) * ubo.model;
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElementsController[5] * 100.0f, 0)) * ubo.model;
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
 			updateObject(restartController, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
-			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[6] * 100.0f, 0)) * ubo.model;
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElementsController[6] * 100.0f, 0)) * ubo.model;
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
 			updateObject(tutorialAgainController, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
-			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialNextElements[0] * 100.0f, 0)) * ubo.model;
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialNextElementsController[0] * 100.0f, 0)) * ubo.model;
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
 			updateObject(nextController, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
-			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialNextElements[1] * 100.0f, 0)) * ubo.model;
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialNextElementsController[1] * 100.0f, 0)) * ubo.model;
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
 			updateObject(endController, ubo, currentImage);
-		}
-		else {
-			/*keyboardInput = true;
-			if (controllerInput) {
-				controllerInput = false;
-				firstTimeChange = true;
-				savedTutorialElements = tutorialElements;
-				savedTutorialNextElements = tutorialNextElements;
-				tutorialElements = { 1,1,1,1,1,1,1,1 };
-				tutorialNextElements = { 1,1 };
-			}
-			else if (firstTimeChange) {
-				firstTimeChange = false;
-				tutorialElements = savedTutorialElements;
-				tutorialNextElements = savedTutorialNextElements;
-			}*/
 			ubo.model = glm::mat4(1.0f);
-			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[0] * 100.0f, 0)) * ubo.model;
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, skipElementController * 100.0f, 0)) * ubo.model;
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
-			updateObject(tutorial, ubo, currentImage);
-			ubo.model = glm::mat4(1.0f);
-			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[1] * 100.0f, 0)) * ubo.model;
-			ubo.normal = glm::inverse(glm::transpose(ubo.model));
-			updateObject(windowTutorial, ubo, currentImage);
+			updateObject(skipController, ubo, currentImage);
+		//}
+		//else {
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[2] * 100.0f, 0)) * ubo.model;
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
@@ -1215,7 +1256,11 @@ class MyProject : public BaseProject {
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialNextElements[1] * 100.0f, 0)) * ubo.model;
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
 			updateObject(end, ubo, currentImage);
-		}
+			ubo.model = glm::mat4(1.0f);
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, skipElement * 100.0f, 0)) * ubo.model;
+			ubo.normal = glm::inverse(glm::transpose(ubo.model));
+			updateObject(skip, ubo, currentImage);
+		//}
 	}
 
 
@@ -1260,8 +1305,8 @@ class MyProject : public BaseProject {
 	/// </summary>
 	void manageTutorial() {
 		if (controllerPlugged == 1) {
-			//Gestire anche in or per il pulsante che si vuole per lo skip
-			if (buttons[2] == GLFW_PRESS || buttons[6] == GLFW_PRESS)
+			//R1
+			if (buttons[2] == GLFW_PRESS || buttons[5] == GLFW_PRESS)
 			{
 				stateTutorial = true;
 			}
@@ -1274,10 +1319,10 @@ class MyProject : public BaseProject {
 				if (firstTutorial) {
 					firstTutorial = false;
 				}
-				tutorialLogic();
+				tutorialLogic(tutorialElementsController, tutorialNextElementsController, skipElementController, true);
 			}
-			//Scegliere il pulsante che si preferisce
-			else if (buttons[6] == GLFW_PRESS && firstTutorial) {
+			//R1
+			else if (buttons[5] == GLFW_PRESS && firstTutorial) {
 				if (firstTutorial) {
 					firstTutorial = false;
 				}
@@ -1295,8 +1340,9 @@ class MyProject : public BaseProject {
 					lookPitch = 0.0f;
 				}
 				firstTimeDoingTheTutorial = false;
-				tutorialElements = { 1,1,1,1,1,1,1 };
-				tutorialNextElements = { 1,1 };
+				skipElementController = 1;
+				tutorialElementsController = { 1,1,1,1,1,1,1 };
+				tutorialNextElementsController = { 1,1 };
 			}
 		}
 		else {
@@ -1315,7 +1361,7 @@ class MyProject : public BaseProject {
 				if (firstTutorial) {
 					firstTutorial = false;
 				}
-				tutorialLogic();
+				tutorialLogic(tutorialElements, tutorialNextElements, skipElement, false);
 			}
 			else if (glfwGetKey(window, GLFW_KEY_ESCAPE) && firstTutorial) {
 				if (firstTutorial) {
@@ -1335,6 +1381,7 @@ class MyProject : public BaseProject {
 					lookPitch = 0.0f;
 				}
 				firstTimeDoingTheTutorial = false;
+				skipElement = 1;
 				tutorialElements = { 1,1,1,1,1,1,1 };
 				tutorialNextElements = { 1,1 };
 			}
@@ -1342,38 +1389,43 @@ class MyProject : public BaseProject {
 	}
 
 	/// <summary>
-	/// Manage tutorial logic
+	/// Manage tutorial logic.
 	/// </summary>
-	void tutorialLogic() {
-		if (tutorialElements[0] == 0) {
-			tutorialElements[0] = 1;
-			tutorialElements[1] = 0;
+	/// <param name="tutorialElementsFunc"></param>
+	/// <param name="tutorialNextElementsFunc"></param>
+	/// <param name="skipElementFunc"></param>
+	/// <param name="isControllerPlugged"></param>
+	void tutorialLogic(std::vector<int> tutorialElementsFunc, std::vector<int> tutorialNextElementsFunc, int skipElementFunc, bool isControllerPlugged) {
+		if (tutorialElementsFunc[0] == 0) {
+			tutorialElementsFunc[0] = 1;
+			tutorialElementsFunc[1] = 0;
 		}
-		else if (tutorialElements[1] == 0) {
-			tutorialElements[1] = 1;
-			tutorialElements[2] = 0;
+		else if (tutorialElementsFunc[1] == 0) {
+			tutorialElementsFunc[1] = 1;
+			tutorialElementsFunc[2] = 0;
 		}
-		else if (tutorialElements[2] == 0) {
-			tutorialElements[2] = 1;
-			tutorialElements[3] = 0;
+		else if (tutorialElementsFunc[2] == 0) {
+			tutorialElementsFunc[2] = 1;
+			tutorialElementsFunc[3] = 0;
 		}
-		else if (tutorialElements[3] == 0) {
-			tutorialElements[3] = 1;
-			tutorialElements[4] = 0;
+		else if (tutorialElementsFunc[3] == 0) {
+			tutorialElementsFunc[3] = 1;
+			tutorialElementsFunc[4] = 0;
 		}
-		else if (tutorialElements[4] == 0) {
-			tutorialElements[4] = 1;
-			tutorialElements[5] = 0;
+		else if (tutorialElementsFunc[4] == 0) {
+			tutorialElementsFunc[4] = 1;
+			tutorialElementsFunc[5] = 0;
 		}
-		else if (tutorialElements[5] == 0) {
-			tutorialElements[5] = 1;
-			tutorialElements[6] = 0;
-			tutorialNextElements[0] = 1;
-			tutorialNextElements[1] = 0;
+		else if (tutorialElementsFunc[5] == 0) {
+			tutorialElementsFunc[5] = 1;
+			tutorialElementsFunc[6] = 0;
+			tutorialNextElementsFunc[0] = 1;
+			tutorialNextElementsFunc[1] = 0;
+			skipElementFunc = 1;
 		}
-		else if (tutorialElements[6] == 0) {
-			tutorialElements[6] = 1;
-			tutorialNextElements[1] = 1;
+		else if (tutorialElementsFunc[6] == 0) {
+			tutorialElementsFunc[6] = 1;
+			tutorialNextElementsFunc[1] = 1;
 			if (doneTutorialAgain) {
 				doneTutorialAgain = false;
 				pos = savePos;
@@ -1389,10 +1441,20 @@ class MyProject : public BaseProject {
 			}
 			firstTimeDoingTheTutorial = false;
 		}
+		if (isControllerPlugged) {
+			tutorialElementsController = tutorialElementsFunc;
+			tutorialNextElementsController = tutorialNextElementsFunc;
+			skipElementController = skipElementFunc;
+		}
+		else {
+			tutorialElements = tutorialElementsFunc;
+			tutorialNextElements = tutorialNextElementsFunc;
+			skipElement = skipElementFunc;
+		}
 	}
 	
 	/// <summary>
-	/// To see the tutorial again
+	/// To see the tutorial again.
 	/// </summary>
 	void seeTutorialAgain() {
 		if (controllerPlugged == 1) {
@@ -1409,7 +1471,7 @@ class MyProject : public BaseProject {
 				if (firstTutorialAgain) {
 					firstTutorialAgain = false;
 				}
-				tutorialAgainLogic();
+				tutorialAgainLogic(true);
 			}
 		}
 		else {
@@ -1427,24 +1489,32 @@ class MyProject : public BaseProject {
 				if (firstTutorialAgain) {
 					firstTutorialAgain = false;
 				}
-				tutorialAgainLogic();
+				tutorialAgainLogic(false);
 			}
 		}
 	}
 	
 	/// <summary>
-	/// Manage the logic to see the tutorial again
+	/// Manage the logic to see the tutorial again.
 	/// </summary>
-	void tutorialAgainLogic() {
+	/// <param name="isControllerPlugged"></param>
+	void tutorialAgainLogic(bool isControllerPlugged) {
 		doneTutorialAgain = true;
-		tutorialElements = { 0,1,1,1,1,1,1 };
-		tutorialNextElements = { 0,1 };
+		if (isControllerPlugged) {
+			tutorialElementsController = { 0,1,1,1,1,1,1 };
+			tutorialNextElementsController = { 0,1 };
+			skipElementController = 0;
+		}
+		else {
+			tutorialElements = { 0,1,1,1,1,1,1 };
+			tutorialNextElements = { 0,1 };
+			skipElement = 0;
+		}
 		if (pos.z <= -450.0f) {//-495.0f) {
 			if (firstTimeDoingTheTutorial) {
 				savePos = glm::vec3(0.0f, -0.5f, 0.0f);
-				oldPos = glm::vec3(0.0f, 0.5f, 0.0f);
-				lookYaw = glm::radians(-45.0f);
-				lookPitch = 0.0f;
+				lookYawSaved = glm::radians(-45.0f);
+				lookPitchSaved = 0.0f;
 			}
 		}
 		else {
@@ -1470,6 +1540,53 @@ class MyProject : public BaseProject {
 				resetAll();
 			}
 		}
+	}
+
+	/// <summary>
+	/// Reset all parameter to start a new game.
+	/// </summary>
+	void resetAll() {
+		pos = glm::vec3(0.0f, 0.5f, 0.0f);
+		oldPos = glm::vec3(0.0f, 0.5f, 0.0f);
+		lookYaw = glm::radians(-45.0f);
+		lookPitch = 0.0f;
+		lookYawSaved = glm::radians(-45.0f);
+		lookPitchSaved = 0.0f;
+		lookRoll = 0.0f;
+
+		win = false;
+		firstWin = false;
+		jump = false;
+		jumpDown = false;
+
+		CamPos = glm::vec3(0);
+		CamDir = glm::mat3(0);
+		CharacterPos = glm::mat4(0);
+
+
+		//Environment
+		doorOpenOrNot = { 0,0,0,0,0 };
+		doorAlreadyOpened = { 0,0,0,0,0 };
+		userCouldPassThroughDoors = { 0,0,0,0,0 };
+		//Gold and Copper key
+		doorCouldBeOpened = { 0,0 };
+		leverCouldBeUsed = { 0,0,0 };
+		leverUsedOrNot = { 0,0,0 };
+		keyTakenOrNot = { 0,0 };
+		powerUpTakenOrNot = 0.0f;
+
+		rotatingPowerUp = 0;
+		slowlyOpenDoors = { 0.0f,0.0f,0.0f,0.0f,0.0f };
+
+		torchPos = torchPosStatic;
+		torchCouldBeTaken = false;
+		torchTaken = false;
+
+		//Controller
+		controllerInput = false;
+		keyboardInput = false;
+		firstTimeChange = false;
+		switchInput = false;
 	}
 
 	/// <summary>
@@ -1634,49 +1751,6 @@ class MyProject : public BaseProject {
 	}
 
 	/// <summary>
-	/// Reset all parameter to start a new game.
-	/// </summary>
-	void resetAll() {
-		pos = glm::vec3(0.0f, 0.5f, 0.0f);
-		lookYaw = glm::radians(-45.0f);
-		lookPitch = 0.0f;
-		lookRoll = 0.0f;
-
-		win = false;
-		firstWin = false;
-		jump = false;
-		jumpDown = false;
-
-		CamPos = glm::vec3(0);
-		CamDir = glm::mat3(0);
-		CharacterPos = glm::mat4(0);
-
-
-		//Environment
-		doorOpenOrNot = { 0,0,0,0,0 };
-		doorAlreadyOpened = { 0,0,0,0,0 };
-		userCouldPassThroughDoors = { 0,0,0,0,0 };
-		//Gold and Copper key
-		doorCouldBeOpened = { 0,0 };
-		leverCouldBeUsed = { 0,0,0 };
-		leverUsedOrNot = { 0,0,0 };
-		keyTakenOrNot = { 0,0 };
-		powerUpTakenOrNot = 0.0f;
-
-		rotatingPowerUp = 0;
-		slowlyOpenDoors = { 0.0f,0.0f,0.0f,0.0f,0.0f };
-
-		torchPos = glm::vec3(0.0f, 0.8f, -4.42f);
-		torchCouldBeTaken = false;
-		torchTaken = false;
-
-		//Controller
-		controllerInput = false;
-		keyboardInput = false;
-		firstTimeChange = false;
-	}
-
-	/// <summary>
 	/// Move the character to the winning position
 	/// </summary>
 	void checkWinning() {
@@ -1755,7 +1829,7 @@ class MyProject : public BaseProject {
 				stateInteraction = false;
 				firstInteraction = true;
 			}
-			if (buttons[9] == GLFW_PRESS && firstInteraction) {
+			if (buttons[0] == GLFW_PRESS && firstInteraction) {
 				if (firstInteraction) {
 					firstInteraction = false;
 				}
