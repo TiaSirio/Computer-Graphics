@@ -28,7 +28,7 @@ void main() {
 		gl_Position = gubo.proj * gubo.view * ubo.model * vec4(pos, 1.0);
 	}
 	fragViewDir = (ubo.model * vec4(pos, 1.0)).xyz;
-	//fragNorm = (ubo.model * vec4(norm, 1.0)).xyz;
+	//fragNorm = (ubo.model * vec4(norm, 0.0)).xyz;
 	fragNorm = mat3(ubo.normal) * norm;
 	fragTexCoord = texCoord;
 }
