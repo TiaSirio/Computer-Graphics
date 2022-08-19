@@ -37,13 +37,61 @@ vec3 spot_light_color(vec3 pos, vec3 lightPos, vec3 lightColor, vec3 lightDir, f
 	return (lightColor * pow(g/(length(lightPos - pos)), beta)) * clamp((dot(normalize(lightPos - pos), lightDir) - cosOut)/(cosIn - cosOut), 0, 1);
 }
 
+vec3 specular_light(vec3 lightPos, vec3 normal, vec3 lightDir, vec3 eyeDir) {
+	//vec3 lightDir = normalize(lightPos - fragViewDir);
+    	//float NdotL = dot(normal, lightDir);
+	//float NdotL = dot(lightDir, normal);
+    	//if (NdotL > 0.0)
+    	//{
+        	vec3 reflectDir = reflect(lightDir, normal);
+        	//return spec = pow(max(dot(viewDir, reflectDir), 0.0), 32.0f * shininess);
+		return vec3(pow(max(dot(eyeDir, -reflectDir), 0.0f), 150.0f));
+    	//}
+}
+
+vec3 blinn_specular(vec3 N, vec3 L, vec3 V, vec3 Cs, float gamma){
+	vec3 h0 = normalize(L + V);
+	return Cs * pow(clamp(dot(N, h0), 0.0f, 1.0f), gamma);
+}
+
+vec3 diffuse_nayar(vec3 N, vec3 V, vec3 Cd, float sigma, vec3 lightDir) {
+	// Oren Nayar Diffuse + Ambient
+	// No Specular
+	// One directional light (lightDir0 and lightColor0)
+	//
+	// Parameters are:
+	//
+	// vec3 N : normal vector
+	// vec3 V : view direction
+	// vec3 Cd : main color (diffuse color)
+	// float sigma : roughness of the material
+	float tetai = acos(dot(lightDir, N));
+	float tetar = acos(dot(V, N));
+	float alpha = max(tetai, tetar);
+	float beta = min(tetai, tetar);
+	float a = 1 - (0.5 * ((pow(sigma, 2)) / (pow(sigma, 2) + 0.33)));
+	float b = (0.45 * ((pow(sigma, 2)) / (pow(sigma, 2) + 0.09)));
+	vec3 vi = normalize(lightDir - (dot(lightDir, N) * N));
+	vec3 vr = normalize(V - (dot(V, N) * N));
+	float g = max(0, dot(vi, vr));
+	
+	vec3 elementL = Cd * clamp(dot(lightDir, N), 0.0f, 1.0f);
+	return (elementL * (a + b * g * sin(alpha) * tan(beta)));
+}
+
+
 void main() {
 	vec3 norm = normalize(fragNorm);
 	const vec3 diffColor = texture(texSampler, fragTexCoord).rgb;
 	vec3 eyeDir = normalize(gubo.eyePos.xyz - fragViewDir);
-	
+	vec3 diffuse1 = vec3(0.0f, 0.0f, 0.0f);
+	vec3 specular1 = vec3(0.0f, 0.0f, 0.0f);
+	vec3 diffuse2 = vec3(0.0f, 0.0f, 0.0f);
+	vec3 specular2 = vec3(0.0f, 0.0f, 0.0f);
+
 	//vec3 lightPos1 = vec3(0.0f, 0.5f, 0.0f);
 	//vec3 lightPos1 = vec3(-0.45f, 0.5f, 0.0f);
+
 	vec3 lightPos1 = vec3(gubo.torchPos.x, gubo.torchPos.y, gubo.torchPos.z);
 	vec3 lightC1 = vec3(1.0f, 1.0f, 0.2f);
 	vec3 lightDirection1 = point_light_dir(fragViewDir, lightPos1);
@@ -53,6 +101,7 @@ void main() {
 	vec3 lightDir2 = vec3(cos(radians(135.0f)), 0.0f, sin(radians(90.0f)));
 	vec3 lightDirection2 = spot_light_dir(fragViewDir, lightPos2);
 	vec3 lightColor2 = spot_light_color(fragViewDir, lightPos2, lightC2, lightDir2, 2.0f, 0.0f, 0.9f, 0.92f);
+
 	//vec3 lightPos2 = vec3(500.0f, 200.0f, -499.0f);
 	//vec3 lightC2 = vec3(1.0f, 1.0f, 1.0f);
 	//vec3 lightDirection2 = point_light_dir(fragViewDir, lightPos2);
@@ -65,15 +114,31 @@ void main() {
 	//vec3 ambient = vec3(0.3f,0.3f, 0.3f) * diffColor;
 	vec3 ambient = vec3(0.01f,0.01f, 0.01f) * diffColor;
 	
-	vec3 diffuse1 = diffColor * (max(dot(norm, lightDirection1), 0.0f));
-	vec3 specular1 = vec3(pow(max(dot(eyeDir, -reflect(lightDirection1, norm)),0.0f), 150.0f));
 	
-	vec3 diffuse2 = diffColor * (max(dot(norm, lightDirection2), 0.0f));
-	vec3 specular2 = vec3(pow(max(dot(eyeDir, -reflect(lightDirection2, norm)),0.0f), 150.0f));
-	
+	diffuse1 = diffuse_nayar(norm, eyeDir, diffColor, 150.0f, lightDirection1);
+	specular1 = specular_light(lightPos1, norm, lightDirection1, eyeDir);
+	//specular1 = blinn_specular(norm, lightDirection1, eyeDir, vec3(1.0f, 1.0f, 0.2f), 150.0f);
+
+	diffuse2 = diffuse_nayar(norm, eyeDir, diffColor, 150.0f, lightDirection2);
+	specular2 = specular_light(lightPos2, norm, lightDirection2, eyeDir);
+	//specular2 = blinn_specular(norm, lightDirection2, eyeDir, vec3(1.0f, 1.0f, 0.2f), 150.0f);
+
+	/*diffuse1 = diffColor * (max(dot(norm, lightDirection1), 0.0f));
+	specular1 = specular_light(lightPos1, norm, lightDirection1, eyeDir);
+
+	diffuse2 = diffColor * (max(dot(norm, lightDirection2), 0.0f));
+	specular2 = specular_light(lightPos2, norm, lightDirection2, eyeDir);*/
+
+	/*diffuse1 = diffColor * (max(dot(norm, lightDirection1), 0.0f));
+	specular1 = vec3(pow(max(dot(eyeDir, -reflect(lightDirection1, norm)),0.0f), 150.0f));
+
+	diffuse2 = diffColor * (max(dot(norm, lightDirection2), 0.0f));
+	specular2 = vec3(pow(max(dot(eyeDir, -reflect(lightDirection2, norm)),0.0f), 150.0f));*/
+
 	outColor = vec4(
 	((specular1 + diffuse1) * lightColor1) +
-	((specular2 + diffuse2) * lightColor2) +
+	//((specular2 + diffuse2) * lightColor2) +
+	(diffuse2 * lightColor2) +
 	ambient, 1.0f);
 	//outColor = vec4(ambient, 1.0f);
 }
