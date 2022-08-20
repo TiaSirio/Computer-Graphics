@@ -7,6 +7,13 @@ layout(set = 0, binding = 0) uniform GlobalUniformBufferObject {
 	vec3 eyePos;
 } gubo;
 
+layout(set = 1, binding = 0) uniform UniformBufferObject {
+	mat4 model;
+	mat4 normal;
+	bool isTaken;
+	float roughness;
+} ubo;
+
 layout(set = 1, binding = 1) uniform sampler2D texSampler;
 
 layout(location = 0) in vec3 fragViewDir;
@@ -36,7 +43,7 @@ vec3 spot_light_color(vec3 pos, vec3 lightPos, vec3 lightColor, vec3 lightDir, f
 }
 
 vec3 specular_light(vec3 lightPos, vec3 normal, vec3 lightDir, vec3 eyeDir) {
-    vec3 reflectDir = -reflect(lightDir, normal);
+      vec3 reflectDir = -reflect(lightDir, normal);
 	return vec3(pow(max(dot(eyeDir, reflectDir), 0.0f), 150.0f));
 }
 
@@ -69,8 +76,8 @@ vec3 getCorrectNorm(vec3 norm, vec3 lightDir) {
 }
 
 void main() {
-	//vec3 constNorm = normalize(fragNorm);
-	vec3 norm = normalize(fragNorm);
+	vec3 constNorm = normalize(fragNorm);
+	vec3 norm = constNorm;
 	vec3 diffColor = texture(texSampler, fragTexCoord).rgb;
 	vec3 eyeDir = normalize(gubo.eyePos - fragViewDir);
 
@@ -78,6 +85,7 @@ void main() {
 	
 	//vec3 topColor = vec3(0.1f, 0.15f, 0.3f);
 	//vec3 botColor = vec3(0.3, 0.3f, 0.1f);
+
 	/*vec3 topColor = vec3(0.005f, 0.015f, 0.015f);
 	vec3 botColor = vec3(0.015f, 0.015f, 0.005f);
 	vec3 HemiDir = vec3(0.0f, 1.0f, 0.0f);
@@ -86,10 +94,18 @@ void main() {
 
 
 
+
+	//vec3 lightPos1 = (ubo.model * vec4(gubo.torchPos, 1.0)).xyz;
+
+	//vec4 lightPosTemp1 = ubo.model * vec4(gubo.torchPos.x, gubo.torchPos.y, gubo.torchPos.z, 1.0);
+	//vec3 lightPos1 = vec3(lightPosTemp1.x, lightPosTemp1.y, lightPosTemp1.z);
+
 	vec3 lightPos1 = vec3(gubo.torchPos.x, gubo.torchPos.y, gubo.torchPos.z);
 	vec3 lightC1 = vec3(1.0f, 1.0f, 0.2f);
 	vec3 lightDirection1 = point_light_dir(fragViewDir, lightPos1);
-	vec3 lightColor1 = point_light_color(fragViewDir, lightPos1, lightC1, 0.3f, 2.0f);
+	//vec3 lightColor1 = point_light_color(fragViewDir, lightPos1, lightC1, 0.4f, 3.0f);
+	vec3 lightColor1 = point_light_color(fragViewDir, lightPos1, lightC1, 0.5f, 3.0f);
+
 	//vec3 lightColor1 = point_light_color(fragViewDir, lightPos1, lightC1, 0.3f, 1.5f);
 	
 	vec3 lightPos2 = vec3(490.0f, 200.0f, -490.0f);
@@ -100,26 +116,26 @@ void main() {
 	
 	
 	
-	// Hemispheric ambient
-	//vec3 ambient  = (vec3(0.1f,0.1f, 0.1f) * (1.0f + norm.y) + vec3(0.0f,0.0f, 0.1f) * (1.0f - norm.y)) * diffColor;
-	//vec3 ambient  = (vec3(0.1f,0.1f, 0.1f) * (1.0f + norm.y) + vec3(0.0f, 0.1f, 0.0f) * (1.0f - norm.y)) * diffColor;
-	//vec3 ambient = vec3(0.02f,0.02f, 0.02f) * diffColor;
+	//Ambient
 	//vec3 ambient = vec3(0.1f, 0.1f, 0.1f) * diffColor;
 	//vec3 ambient = vec3(0, 0, 0) * diffColor;
-	vec3 ambient = vec3(0.01f, 0.01f, 0.01f) * diffColor;
+	vec3 ambient = vec3(0.02f, 0.02f, 0.02f) * diffColor;
 	
 	
 	
-	//norm = getCorrectNorm(norm, lightDirection1);
+	norm = getCorrectNorm(norm, lightDirection1);
 	
-	vec3 diffuse1 = diffuse_nayar(norm, eyeDir, diffColor, 150.0f, lightDirection1);
+	vec3 diffuse1 = diffuse_nayar(norm, eyeDir, diffColor, ubo.roughness, lightDirection1);
 	vec3 specular1 = specular_light(lightPos1, norm, lightDirection1, eyeDir);
 	//vec3 specular1 = blinn_specular(norm, lightDirection1, eyeDir, vec3(1.0f, 1.0f, 0.2f), 300.0f);
 
-	//norm = constNorm;
-	//norm = getCorrectNorm(norm, lightDirection2);
+	//float lightDist = length(lightDirection1);
+	//float attenuation = clamp(5.0 / lightDist, 0.0, 1.0);
 
-	vec3 diffuse2 = diffuse_nayar(norm, eyeDir, diffColor, 150.0f, lightDirection2);
+	norm = constNorm;
+	norm = getCorrectNorm(norm, lightDirection2);
+
+	vec3 diffuse2 = diffuse_nayar(norm, eyeDir, diffColor, ubo.roughness, lightDirection2);
 	vec3 specular2 = specular_light(lightPos2, norm, lightDirection2, eyeDir);
 	//vec3 specular2 = blinn_specular(norm, lightDirection2, eyeDir, vec3(1.0f, 1.0f, 0.2f), 10.0f);
 
@@ -144,7 +160,7 @@ void main() {
 	outColor = vec4(
 	((specular1 + diffuse1) * lightColor1) +
 	((specular2 + diffuse2) * lightColor2) +
-	//(topValue + botValue) * diffColor, 1.0f);
 	ambient, 1.0f);
+	//(topValue + botValue) * diffColor, 1.0f);
 	//outColor = vec4(ambient, 1.0f);
 }

@@ -59,6 +59,7 @@ struct UniformBufferObject {
 	alignas(16) glm::mat4 model;
 	alignas(16) glm::mat4 normal;
 	alignas(16) bool isTaken;
+	alignas(16) float roughness;
 };
 
 
@@ -189,6 +190,8 @@ static std::vector<float> slowlyOpenDoors = { 0.0f,0.0f,0.0f,0.0f,0.0f };
 	//Position of the torch to see through the labyrinth
 static glm::vec3 torchPos = glm::vec3(0.0f, 0.65f, -4.42f);
 static glm::vec3 torchPosStatic = glm::vec3(0.0f, 0.65f, -4.42f);
+	//Position of the torch object
+static glm::vec3 objectTorchPos = glm::vec3(0.0f, 0.65f, -4.42f);
 	//User could take the torch
 static bool torchCouldBeTaken = false;
 	//User has taken the torch
@@ -343,7 +346,7 @@ bool canStepPoint(float x, float y) {
 		keyCouldBeTaken[0] = 0;
 	}
 	//For all the interaction except for the keys, there is a double control, because the user could interact with something only at a certain distance
-	if (roundX == 12 && (roundFirstDecimalY >= 3.7 && roundFirstDecimalY <= 3.9) && keyTakenOrNot[0] == 1 && doorOpenOrNot[4] == 0) {
+	if (roundX == 12 && (roundFirstDecimalY >= 3.4 && roundFirstDecimalY <= 4) && keyTakenOrNot[0] == 1 && doorOpenOrNot[4] == 0) {
 		//GoldKey
 		doorCouldBeOpened[0] = 1;
 	}
@@ -366,14 +369,16 @@ bool canStepPoint(float x, float y) {
 	}
 	//x = 3.3, y = -1.5
 	if ((roundFirstDecimalX >= 3 && roundFirstDecimalX <= 3.6) && (roundFirstDecimalY >= -1.5 && roundFirstDecimalY <= -1.1) /* && leverUsedOrNot[2] == 0 && doorOpenOrNot[3] == 0*/) {
-		//First lever
-		leverCouldBeUsed[2] = 1;
+		if (torchTaken) {
+			//First lever
+			leverCouldBeUsed[2] = 1;
+		}
 	}
 	else {
 		leverCouldBeUsed[2] = 0;
 	}
 	//x = 8.3, y = 3.5
-	if ((roundFirstDecimalX >= 8.0 && roundFirstDecimalX <= 8.6) && (roundFirstDecimalY >= 3.5 && roundFirstDecimalY <= 3.9)/* && leverUsedOrNot[1] == 0 && doorOpenOrNot[2] == 0*/) {
+	if ((roundFirstDecimalX >= 8.0 && roundFirstDecimalX <= 8.6) && (roundFirstDecimalY >= 3.5 && roundFirstDecimalY <= 4.1)/* && leverUsedOrNot[1] == 0 && doorOpenOrNot[2] == 0*/) {
 		//Second lever
 		leverCouldBeUsed[1] = 1;
 	}
@@ -438,7 +443,8 @@ class MyProject : public BaseProject {
 	//Value needed for the descriptorSetLayout
 	std::vector<uint32_t> set = {0,1};
 	std::vector<VkDescriptorType> vkDescriptorType = { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER };
-	std::vector<VkShaderStageFlagBits> vkShaderStageFlagBits = { VK_SHADER_STAGE_VERTEX_BIT, VK_SHADER_STAGE_FRAGMENT_BIT };
+	//std::vector<VkShaderStageFlagBits> vkShaderStageFlagBits = { VK_SHADER_STAGE_VERTEX_BIT, VK_SHADER_STAGE_FRAGMENT_BIT };
+	std::vector<VkShaderStageFlagBits> vkShaderStageFlagBits = { VK_SHADER_STAGE_ALL_GRAPHICS, VK_SHADER_STAGE_FRAGMENT_BIT };
 
 	DescriptorSetLayoutObject descriptorSetLayoutObject = DescriptorSetLayoutObject(set, vkDescriptorType, vkShaderStageFlagBits);
 
@@ -844,7 +850,7 @@ class MyProject : public BaseProject {
 		gubo.proj = glm::perspective(glm::radians(90.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 50.0f);
 		gubo.proj[1][1] *= -1;
 		//If we have already taken the torch the position of the light changes, otherwise it remains static
-		if (doneTutorialAgain) {
+		if (doneTutorialAgain && !firstTimeDoingTheTutorial) {
 			gubo.torchPos = torchPosStatic;
 		}
 		else {
@@ -868,6 +874,7 @@ class MyProject : public BaseProject {
 		//-0.2f to let it touch it the ground
 		ubo.model = glm::rotate(glm::translate(glm::mat4(1), pos + glm::vec3(0, -0.2f, 0)), lookYaw, glm::vec3(0, 1, 0)) * ubo.model;
 		ubo.isTaken = false;
+		ubo.roughness = 50.0f;
 		updateObject(mainCharacter, ubo, currentImage);
 		
 
@@ -878,10 +885,12 @@ class MyProject : public BaseProject {
 		ubo.model = glm::mat4(1.0f);
 		ubo.normal = glm::inverse(glm::transpose(ubo.model));
 		ubo.isTaken = false;
+		ubo.roughness = 200.0f;
 		updateObject(floorObject, ubo, currentImage);
 		ubo.model = glm::mat4(1.0f);
 		ubo.normal = glm::inverse(glm::transpose(ubo.model));
 		ubo.isTaken = false;
+		ubo.roughness = 200.0f;
 		updateObject(ceilingObject, ubo, currentImage);
 
 
@@ -889,18 +898,22 @@ class MyProject : public BaseProject {
 		ubo.model = glm::mat4(1.0f);
 		ubo.normal = glm::inverse(glm::transpose(ubo.model));
 		ubo.isTaken = false;
+		ubo.roughness = 200.0f;
 		updateObject(wallEastObject, ubo, currentImage);
 		ubo.model = glm::mat4(1.0f);
 		ubo.normal = glm::inverse(glm::transpose(ubo.model));
 		ubo.isTaken = false;
+		ubo.roughness = 200.0f;
 		updateObject(wallNorthObject, ubo, currentImage);
 		ubo.model = glm::mat4(1.0f);
 		ubo.normal = glm::inverse(glm::transpose(ubo.model));
 		ubo.isTaken = false;
+		ubo.roughness = 200.0f;
 		updateObject(wallSouthObject, ubo, currentImage);
 		ubo.model = glm::mat4(1.0f);
 		ubo.normal = glm::inverse(glm::transpose(ubo.model));
 		ubo.isTaken = false;
+		ubo.roughness = 200.0f;
 		updateObject(wallWestObject, ubo, currentImage);
 
 
@@ -924,10 +937,12 @@ class MyProject : public BaseProject {
 		}
 		ubo.normal = glm::inverse(glm::transpose(ubo.model));
 		ubo.isTaken = false;
+		ubo.roughness = 50.0f;
 		updateObject(goldKeyObject, ubo, currentImage);
 		ubo.model = glm::mat4(1.0f);
 		ubo.normal = glm::inverse(glm::transpose(ubo.model));
 		ubo.isTaken = false;
+		ubo.roughness = 50.0f;
 		updateObject(goldKeyHoleObject, ubo, currentImage);
 
 
@@ -943,10 +958,12 @@ class MyProject : public BaseProject {
 		}
 		ubo.normal = glm::inverse(glm::transpose(ubo.model));
 		ubo.isTaken = false;
+		ubo.roughness = 50.0f;
 		updateObject(copperKeyObject, ubo, currentImage);
 		ubo.model = glm::mat4(1.0f);
 		ubo.normal = glm::inverse(glm::transpose(ubo.model));
 		ubo.isTaken = false;
+		ubo.roughness = 50.0f;
 		updateObject(copperKeyHoleObject, ubo, currentImage);
 
 
@@ -957,6 +974,7 @@ class MyProject : public BaseProject {
 		ubo.model = glm::mat4(1.0f);
 		ubo.normal = glm::inverse(glm::transpose(ubo.model));
 		ubo.isTaken = false;
+		ubo.roughness = 200.0f;
 		updateObject(doorBorders, ubo, currentImage);
 
 
@@ -985,6 +1003,7 @@ class MyProject : public BaseProject {
 		}
 		ubo.normal = glm::inverse(glm::transpose(ubo.model));
 		ubo.isTaken = false;
+		ubo.roughness = 300.0f;
 		updateOneInstanceOfObject(doors, ubo, currentImage, 0);
 		
 		ubo.model = glm::mat4(1.0f);
@@ -1002,6 +1021,7 @@ class MyProject : public BaseProject {
 		}
 		ubo.normal = glm::inverse(glm::transpose(ubo.model));
 		ubo.isTaken = false;
+		ubo.roughness = 300.0f;
 		updateOneInstanceOfObject(doors, ubo, currentImage, 1);
 		
 		ubo.model = glm::mat4(1.0f);
@@ -1032,6 +1052,7 @@ class MyProject : public BaseProject {
 		}
 		ubo.normal = glm::inverse(glm::transpose(ubo.model));
 		ubo.isTaken = false;
+		ubo.roughness = 300.0f;
 		updateOneInstanceOfObject(doors, ubo, currentImage, 2);
 		
 		ubo.model = glm::mat4(1.0f);
@@ -1062,6 +1083,7 @@ class MyProject : public BaseProject {
 		}
 		ubo.normal = glm::inverse(glm::transpose(ubo.model));
 		ubo.isTaken = false;
+		ubo.roughness = 300.0f;
 		updateOneInstanceOfObject(doors, ubo, currentImage, 3);
 
 		ubo.model = glm::mat4(1.0f);
@@ -1083,6 +1105,7 @@ class MyProject : public BaseProject {
 		}
 		ubo.normal = glm::inverse(glm::transpose(ubo.model));
 		ubo.isTaken = false;
+		ubo.roughness = 300.0f;
 		updateOneInstanceOfObject(doors, ubo, currentImage, 4);
 
 
@@ -1103,6 +1126,7 @@ class MyProject : public BaseProject {
 		}
 		ubo.normal = glm::inverse(glm::transpose(ubo.model));
 		ubo.isTaken = false;
+		ubo.roughness = 200.0f;
 		updateOneInstanceOfObject(levers, ubo, currentImage, 0);
 		ubo.model = glm::mat4(1.0f);
 		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(5.8f, 0, 1.3f)) * ubo.model;
@@ -1122,6 +1146,7 @@ class MyProject : public BaseProject {
 		}
 		ubo.normal = glm::inverse(glm::transpose(ubo.model));
 		ubo.isTaken = false;
+		ubo.roughness = 200.0f;
 		updateOneInstanceOfObject(levers, ubo, currentImage, 1);
 		ubo.model = glm::mat4(1.0f);
 		//Rotate on the correct axis
@@ -1140,6 +1165,7 @@ class MyProject : public BaseProject {
 		}
 		ubo.normal = glm::inverse(glm::transpose(ubo.model));
 		ubo.isTaken = false;
+		ubo.roughness = 200.0f;
 		updateOneInstanceOfObject(levers, ubo, currentImage, 2);
 
 
@@ -1158,10 +1184,12 @@ class MyProject : public BaseProject {
 		}
 		ubo.normal = glm::inverse(glm::transpose(ubo.model));
 		ubo.isTaken = false;
+		ubo.roughness = 20.0f;
 		updateObject(powerUp, ubo, currentImage);
 		ubo.model = glm::mat4(1.0f);
 		ubo.normal = glm::inverse(glm::transpose(ubo.model));
 		ubo.isTaken = false;
+		ubo.roughness = 20.0f;
 		updateObject(powerUpBase, ubo, currentImage);
 
 
@@ -1171,14 +1199,27 @@ class MyProject : public BaseProject {
 		//Win
 		if (win) {
 			ubo.model = glm::mat4(1.0f);
-			ubo.normal = glm::inverse(glm::transpose(ubo.model));
-			ubo.isTaken = false;
-			updateObject(winText, ubo, currentImage);
-			ubo.model = glm::mat4(1.0f);
-			ubo.normal = glm::inverse(glm::transpose(ubo.model));
-			ubo.isTaken = false;
-			updateObject(winPlayAgain, ubo, currentImage);
 		}
+		else {
+			ubo.model = glm::mat4(1.0f);
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 100.0f, 0)) * ubo.model;
+		}
+		ubo.normal = glm::inverse(glm::transpose(ubo.model));
+		ubo.isTaken = false;
+		ubo.roughness = 500.0f;
+		updateObject(winText, ubo, currentImage);
+
+		if (win) {
+			ubo.model = glm::mat4(1.0f);
+		}
+		else {
+			ubo.model = glm::mat4(1.0f);
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 100.0f, 0)) * ubo.model;
+		}
+		ubo.normal = glm::inverse(glm::transpose(ubo.model));
+		ubo.isTaken = false;
+		ubo.roughness = 500.0f;
+		updateObject(winPlayAgain, ubo, currentImage);
 
 
 
@@ -1187,11 +1228,13 @@ class MyProject : public BaseProject {
 		//Torch
 		ubo.model = glm::mat4(1.0f);
 		if (torchTaken) {
-			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0.3f, -0.8f, 4.2f)) * ubo.model;
+			ubo.model = glm::translate(glm::mat4(1), objectTorchPos + glm::vec3(0.0f, -0.45f, 0.0f)) * ubo.model;
+			//ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0.3f, -0.8f, 4.2f)) * ubo.model;
 		}
 		ubo.normal = glm::inverse(glm::transpose(ubo.model));
 		//Not place the object in the world but in the view
 		ubo.isTaken = torchTaken;
+		ubo.roughness = 50.0f;
 		updateObject(torch, ubo, currentImage);
 
 
@@ -1232,11 +1275,13 @@ class MyProject : public BaseProject {
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElementsController[0] * 100.0f, 0)) * ubo.model;
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
 			ubo.isTaken = false;
+			ubo.roughness = 500.0f;
 			updateObject(tutorial, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElementsController[1] * 100.0f, 0)) * ubo.model;
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
 			ubo.isTaken = false;
+			ubo.roughness = 500.0f;
 			updateObject(windowTutorial, ubo, currentImage);
 		}
 		else {
@@ -1244,93 +1289,111 @@ class MyProject : public BaseProject {
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[0] * 100.0f, 0)) * ubo.model;
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
 			ubo.isTaken = false;
+			ubo.roughness = 500.0f;
 			updateObject(tutorial, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[1] * 100.0f, 0)) * ubo.model;
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
 			ubo.isTaken = false;
+			ubo.roughness = 500.0f;
 			updateObject(windowTutorial, ubo, currentImage);
 		}
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElementsController[2] * 100.0f, 0)) * ubo.model;
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
 			ubo.isTaken = false;
+			ubo.roughness = 500.0f;
 			updateObject(visualController, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElementsController[3] * 100.0f, 0)) * ubo.model;
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
 			ubo.isTaken = false;
+			ubo.roughness = 500.0f;
 			updateObject(movementController, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElementsController[4] * 100.0f, 0)) * ubo.model;
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
 			ubo.isTaken = false;
+			ubo.roughness = 500.0f;
 			updateObject(interactionController, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElementsController[5] * 100.0f, 0)) * ubo.model;
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
 			ubo.isTaken = false;
+			ubo.roughness = 500.0f;
 			updateObject(restartController, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElementsController[6] * 100.0f, 0)) * ubo.model;
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
 			ubo.isTaken = false;
+			ubo.roughness = 500.0f;
 			updateObject(tutorialAgainController, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialNextElementsController[0] * 100.0f, 0)) * ubo.model;
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
 			ubo.isTaken = false;
+			ubo.roughness = 500.0f;
 			updateObject(nextController, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialNextElementsController[1] * 100.0f, 0)) * ubo.model;
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
 			ubo.isTaken = false;
+			ubo.roughness = 500.0f;
 			updateObject(endController, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, skipElementController * 100.0f, 0)) * ubo.model;
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
 			ubo.isTaken = false;
+			ubo.roughness = 500.0f;
 			updateObject(skipController, ubo, currentImage);
 
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[2] * 100.0f, 0)) * ubo.model;
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
 			ubo.isTaken = false;
+			ubo.roughness = 500.0f;
 			updateObject(visual, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[3] * 100.0f, 0)) * ubo.model;
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
 			ubo.isTaken = false;
+			ubo.roughness = 500.0f;
 			updateObject(movement, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[4] * 100.0f, 0)) * ubo.model;
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
 			ubo.isTaken = false;
+			ubo.roughness = 500.0f;
 			updateObject(interaction, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[5] * 100.0f, 0)) * ubo.model;
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
 			ubo.isTaken = false;
+			ubo.roughness = 500.0f;
 			updateObject(restart, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[6] * 100.0f, 0)) * ubo.model;
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
 			ubo.isTaken = false;
+			ubo.roughness = 500.0f;
 			updateObject(tutorialAgain, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialNextElements[0] * 100.0f, 0)) * ubo.model;
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
 			ubo.isTaken = false;
+			ubo.roughness = 500.0f;
 			updateObject(next, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialNextElements[1] * 100.0f, 0)) * ubo.model;
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
 			ubo.isTaken = false;
+			ubo.roughness = 500.0f;
 			updateObject(end, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, skipElement * 100.0f, 0)) * ubo.model;
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
 			ubo.isTaken = false;
+			ubo.roughness = 500.0f;
 			updateObject(skip, ubo, currentImage);
 	}
 
@@ -1529,39 +1592,41 @@ class MyProject : public BaseProject {
 	/// To see the tutorial again.
 	/// </summary>
 	void seeTutorialAgain() {
-		if (controllerPlugged == 1) {
-			if (buttons[9] == GLFW_PRESS)
-			{
-				stateTutorialAgain = true;
-			}
-			else
-			{
-				stateTutorialAgain = false;
-				firstTutorialAgain = true;
-			}
-			if (buttons[9] == GLFW_PRESS && firstTutorialAgain) {
-				if (firstTutorialAgain) {
-					firstTutorialAgain = false;
+		if (!win) {
+			if (controllerPlugged == 1) {
+				if (buttons[9] == GLFW_PRESS)
+				{
+					stateTutorialAgain = true;
 				}
-				tutorialAgainLogic(true);
-			}
-		}
-		else {
-			int stateTutorialAgainInt = glfwGetKey(window, GLFW_KEY_T);
-			if (stateTutorialAgainInt == GLFW_PRESS)
-			{
-				stateTutorialAgain = true;
-			}
-			else
-			{
-				stateTutorialAgain = false;
-				firstTutorialAgain = true;
-			}
-			if (glfwGetKey(window, GLFW_KEY_T) && firstTutorialAgain) {
-				if (firstTutorialAgain) {
-					firstTutorialAgain = false;
+				else
+				{
+					stateTutorialAgain = false;
+					firstTutorialAgain = true;
 				}
-				tutorialAgainLogic(false);
+				if (buttons[9] == GLFW_PRESS && firstTutorialAgain) {
+					if (firstTutorialAgain) {
+						firstTutorialAgain = false;
+					}
+					tutorialAgainLogic(true);
+				}
+			}
+			else {
+				int stateTutorialAgainInt = glfwGetKey(window, GLFW_KEY_T);
+				if (stateTutorialAgainInt == GLFW_PRESS)
+				{
+					stateTutorialAgain = true;
+				}
+				else
+				{
+					stateTutorialAgain = false;
+					firstTutorialAgain = true;
+				}
+				if (glfwGetKey(window, GLFW_KEY_T) && firstTutorialAgain) {
+					if (firstTutorialAgain) {
+						firstTutorialAgain = false;
+					}
+					tutorialAgainLogic(false);
+				}
 			}
 		}
 	}
@@ -1587,6 +1652,8 @@ class MyProject : public BaseProject {
 				savePos = glm::vec3(0.0f, 0.5f, 0.0f);
 				lookYawSaved = glm::radians(-45.0f);
 				lookPitchSaved = 0.0f;
+				torchPos = torchPosStatic;
+				objectTorchPos = torchPosStatic;
 			}
 		}
 		else {
@@ -1652,6 +1719,7 @@ class MyProject : public BaseProject {
 		slowlyOpenDoors = { 0.0f,0.0f,0.0f,0.0f,0.0f };
 
 		torchPos = torchPosStatic;
+		objectTorchPos = torchPosStatic;
 		torchCouldBeTaken = false;
 		torchTaken = false;
 
@@ -1764,15 +1832,15 @@ class MyProject : public BaseProject {
 					glm::vec3(0.0f, 1.0f, 0.0f)) * glm::vec4(0, 0, 1, 1)) * deltaT;
 			}
 
-			if (glfwGetKey(window, GLFW_KEY_SPACE)) {
+			/*if (glfwGetKey(window, GLFW_KEY_SPACE)) {
 				pos += MOVE_SPEED * glm::vec3(0, 1, 0) * deltaT;
 			}
 			if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT)) {
 				pos -= MOVE_SPEED * glm::vec3(0, 1, 0) * deltaT;
-			}
+			}*/
 
 			//Jump
-			/*if (glfwGetKey(window, GLFW_KEY_SPACE) && !jump) {
+			if (glfwGetKey(window, GLFW_KEY_SPACE) && !jump) {
 				jump = true;
 			}
 
@@ -1794,7 +1862,7 @@ class MyProject : public BaseProject {
 				else {
 					pos -= JUMP_SPEED * glm::vec3(0, 0.7f, 0) * deltaT;
 				}
-			}*/
+			}
 		}
 
 
@@ -1895,6 +1963,7 @@ class MyProject : public BaseProject {
 
 		if (torchTaken) {
 			torchPos = pos;
+			objectTorchPos = manageTorchPositionObject(torchPosStatic);
 		}
 	}
 
@@ -1933,6 +2002,34 @@ class MyProject : public BaseProject {
 		if (keyTakenOrNot[1] == 1) {
 			copperKeyPos = manageKeyPosition(copperKeyPosStatic);
 		}
+	}
+
+	glm::vec3 manageTorchPositionObject(glm::vec3 keyPosStatic) {
+		glm::vec3 positionTempKey = glm::vec3((pos.x - keyPosStatic.x), 0.1f, (pos.z - keyPosStatic.z) + 0.08f);
+		//glm::vec3 positionTempKey = glm::vec3(0,0.1f,0.05f);
+		/*if (pos.x > oldPos.x) {
+			positionTempKey.x += (pos.x - keyPosStatic.x) + positionTempKey.x + 0.1f;
+			savePosKey.x = positionTempKey.x;
+		}
+		else if (pos.x < oldPos.x) {
+			positionTempKey.x += (pos.x - keyPosStatic.x) + positionTempKey.x - 0.1f;
+			savePosKey.x = positionTempKey.x;
+		}
+		else {
+			positionTempKey.x += savePosKey.x;
+		}
+		if (pos.z > oldPos.z) {
+			positionTempKey.z += (pos.z - keyPosStatic.z) + positionTempKey.z + 0.1f;
+			savePosKey.z = positionTempKey.z;
+		}
+		else if (pos.z < oldPos.z) {
+			positionTempKey.z += (pos.z - keyPosStatic.z) + positionTempKey.z - 0.1f;
+			savePosKey.z = positionTempKey.z;
+		}
+		else {
+			positionTempKey.z += savePosKey.z;
+		}*/
+		return positionTempKey;
 	}
 
 	/// <summary>
@@ -2174,7 +2271,7 @@ class MyProject : public BaseProject {
 		// property .indexBuffer of models, contains the VkBuffer handle to its index buffer
 		vkCmdBindIndexBuffer(commandBuffer, object.model.indexBuffer, 0,
 			VK_INDEX_TYPE_UINT32);
-
+		
 		// property .pipelineLayout of a pipeline contains its layout.
 		// property .descriptorSets of a descriptor set contains its elements.
 		vkCmdBindDescriptorSets(commandBuffer,
