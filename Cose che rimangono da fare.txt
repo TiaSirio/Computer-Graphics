@@ -11,5 +11,5 @@ Rimuovere seconda pipeline - Done
 Mettere torcia sullo schermo che si muove con la telecamera - Done (se la lascio in camera view non è troppo il massimo, quindi la tengo sotto).
 
 Aggiungere scritte salto - 
-Se faccio menù iniziale, aggiungere scritte per giocare e per tutorial - 
+Se faccio menù iniziale, aggiungere scritte per giocare e per tutorial - Done
 Muoversi nel tutorial per provare le cose - Done

@@ -554,11 +554,10 @@ class MyProject : public BaseProject {
 		// window size, title and initial background
 		windowWidth = 800;//1920;
 		windowHeight = 600;//1080;
-		windowTitle = "Labyrinth game";
+		windowTitle = "Labyrinth Escape";
 		//initialBackgroundColor = {1.0f, 1.0f, 0.0f, 1.0f};
 		initialBackgroundColor = { 0.0f, 0.0f, 0.0f, 1.0f };
-
-		initialBackgroundColor = { 0.0f, 0.0f, 1.0f, 1.0f };
+		//initialBackgroundColor = { 0.0f, 0.0f, 1.0f, 1.0f };
 
 		//Done for DS_global
 		utils::addDescriptor();
@@ -652,7 +651,7 @@ class MyProject : public BaseProject {
 		objectInit(&torch, MODEL_PATH + "Torch/Torch.obj", TEXTURE_PATH + "Torch.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
 
 		//Tutorial
-		objectInit(&tutorial, MODEL_PATH + "Tutorial/Tutorial.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
+		objectInit(&tutorial, MODEL_PATH + "Tutorial/TutorialFirstText.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
 		objectInit(&interaction, MODEL_PATH + "Tutorial/Interaction.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
 		objectInit(&movement, MODEL_PATH + "Tutorial/Movement.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
 		objectInit(&visual, MODEL_PATH + "Tutorial/Visual.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
@@ -674,9 +673,9 @@ class MyProject : public BaseProject {
 		objectInit(&skipController, MODEL_PATH + "Tutorial/SkipController.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
 
 		//Menu
-		objectInit(&welcomeTextInTheGame, MODEL_PATH + "Tutorial/Tutorial.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
-		objectInit(&startPlayTheGame, MODEL_PATH + "Tutorial/Next.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
-		objectInit(&goToSeeTheTutorial, MODEL_PATH + "Tutorial/Skip.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
+		objectInit(&welcomeTextInTheGame, MODEL_PATH + "Menu/Tutorial.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
+		objectInit(&startPlayTheGame, MODEL_PATH + "Menu/Play.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
+		objectInit(&goToSeeTheTutorial, MODEL_PATH + "Menu/StartTutorial.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
 		
 		descriptorSetInit(&DS_global, descriptorSetLayoutGlobal.descriptorSetLayout, descriptorSetLayoutGlobal);
 
