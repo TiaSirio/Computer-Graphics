@@ -94,7 +94,7 @@ void main() {
 
 
 
-
+	//vec3 lightPos1 = (gubo.proj * mat4(1.0f) * ubo.model * vec4(gubo.torchPos, 1.0)).xyz;
 	//vec3 lightPos1 = (ubo.model * vec4(gubo.torchPos, 1.0)).xyz;
 
 	//vec4 lightPosTemp1 = ubo.model * vec4(gubo.torchPos.x, gubo.torchPos.y, gubo.torchPos.z, 1.0);

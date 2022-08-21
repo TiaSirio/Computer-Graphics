@@ -246,21 +246,21 @@ static bool switchInput = false;
 
 //Tutorial
 	//Variable that let the user see the correct tutorial text
-static std::vector<int> tutorialElements = { 1,1,1,1,1,1,1 };
+static std::vector<int> tutorialElements = { 1,1,1,1,1,1,1,1 };
 	//Variable that let the user see the correct next button of the tutorial
 static std::vector<int> tutorialNextElements = { 1,1 };
 	//Manage the skip.
 static int skipElement = 1;
 
 	//Variable that let the user see the correct tutorial text
-static std::vector<int> tutorialElementsController = { 1,1,1,1,1,1,1 };
+static std::vector<int> tutorialElementsController = { 1,1,1,1,1,1,1,1 };
 	//Variable that let the user see the correct next button of the tutorial
 static std::vector<int> tutorialNextElementsController = { 1,1 };
 	//Manage the skip.
 static int skipElementController = 1;
 
 	//Saving the element of the tutorial if the user want to see it again
-static std::vector<int> savedTutorialElements = { 1,1,1,1,1,1,1,1 };
+static std::vector<int> savedTutorialElements = { 1,1,1,1,1,1,1,1,1 };
 static std::vector<int> savedTutorialNextElements = { 1,1 };
 	//To let the user not spam keyboard input
 static bool stateTutorial = false;
@@ -519,6 +519,7 @@ class MyProject : public BaseProject {
 	Object next;
 	Object end;
 	Object skip;
+	Object jumpObject;
 
 	//Controller
 	Object interactionController;
@@ -529,6 +530,7 @@ class MyProject : public BaseProject {
 	Object nextController;
 	Object endController;
 	Object skipController;
+	Object jumpController;
 
 	//Menu
 	Object welcomeTextInTheGame;
@@ -536,17 +538,6 @@ class MyProject : public BaseProject {
 	Object goToSeeTheTutorial;
 
 	DescriptorSet DS_global;
-
-	//Texts
-	/*Pipeline P2;
-
-	std::vector<uint32_t> set3 = { 0,1 };
-	std::vector<VkDescriptorType> vkDescriptorType3 = { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER };
-	std::vector<VkShaderStageFlagBits> vkShaderStageFlagBits3 = { VK_SHADER_STAGE_VERTEX_BIT, VK_SHADER_STAGE_FRAGMENT_BIT };
-
-	DescriptorSetLayoutObject descriptorSetLayoutText = DescriptorSetLayoutObject(set3, vkDescriptorType3, vkShaderStageFlagBits3);
-	
-	DescriptorSet DS_text;*/
 
 
 	// Here you set the main application parameters
@@ -607,8 +598,6 @@ class MyProject : public BaseProject {
 
 		descriptorSetLayoutInit(&descriptorSetLayoutGlobal);
 
-		//descriptorSetLayoutInit(&descriptorSetLayoutText);
-
 		localPipelineInit();
 
 		//Character
@@ -661,6 +650,7 @@ class MyProject : public BaseProject {
 		objectInit(&next, MODEL_PATH + "Tutorial/Next.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
 		objectInit(&end, MODEL_PATH + "Tutorial/End.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
 		objectInit(&skip, MODEL_PATH + "Tutorial/Skip.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
+		objectInit(&jumpObject, MODEL_PATH + "Tutorial/Jump.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
 
 		//Tutorial controller
 		objectInit(&interactionController, MODEL_PATH + "Tutorial/InteractionController.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
@@ -671,6 +661,7 @@ class MyProject : public BaseProject {
 		objectInit(&nextController, MODEL_PATH + "Tutorial/NextController.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
 		objectInit(&endController, MODEL_PATH + "Tutorial/EndController.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
 		objectInit(&skipController, MODEL_PATH + "Tutorial/SkipController.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
+		objectInit(&jumpController, MODEL_PATH + "Tutorial/JumpController.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
 
 		//Menu
 		objectInit(&welcomeTextInTheGame, MODEL_PATH + "Menu/Tutorial.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
@@ -678,8 +669,6 @@ class MyProject : public BaseProject {
 		objectInit(&goToSeeTheTutorial, MODEL_PATH + "Menu/StartTutorial.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
 		
 		descriptorSetInit(&DS_global, descriptorSetLayoutGlobal.descriptorSetLayout, descriptorSetLayoutGlobal);
-
-		//descriptorSetInit(&DS_text, descriptorSetLayoutText.descriptorSetLayout, descriptorSetLayoutText);
 
 		//Load height map
 		map = stbi_load((TEXTURE_PATH + "displ.png").c_str(),
@@ -698,7 +687,6 @@ class MyProject : public BaseProject {
 
 	void localPipelineInit() {
 		P1.init(this, "shaders/vert.spv", "shaders/frag.spv", { &descriptorSetLayoutGlobal.descriptorSetLayout, &descriptorSetLayoutObject.descriptorSetLayout });
-		//P2.init(this, "shaders/textVert.spv", "shaders/textFrag.spv", { &descriptorSetLayoutText.descriptorSetLayout }, true);
 	}
 
 
@@ -708,7 +696,6 @@ class MyProject : public BaseProject {
 	void localPipelineCleanup() {
 		//Here clean all the pipelines.
 		P1.cleanup();
-		//P2.cleanup();
 	}
 
 	void descriptorLayoutsCleanup() {
@@ -761,6 +748,7 @@ class MyProject : public BaseProject {
 		next.cleanup();
 		end.cleanup();
 		skip.cleanup();
+		jumpObject.cleanup();
 
 		interactionController.cleanup();
 		movementController.cleanup();
@@ -770,6 +758,7 @@ class MyProject : public BaseProject {
 		nextController.cleanup();
 		endController.cleanup();
 		skipController.cleanup();
+		jumpController.cleanup();
 
 		welcomeTextInTheGame.cleanup();
 		startPlayTheGame.cleanup();
@@ -838,6 +827,7 @@ class MyProject : public BaseProject {
 		drawSingleInstance(commandBuffer, currentImage, P1, next, 1);
 		drawSingleInstance(commandBuffer, currentImage, P1, end, 1);
 		drawSingleInstance(commandBuffer, currentImage, P1, skip, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, jumpObject, 1);
 
 		drawSingleInstance(commandBuffer, currentImage, P1, interactionController, 1);
 		drawSingleInstance(commandBuffer, currentImage, P1, movementController, 1);
@@ -847,6 +837,7 @@ class MyProject : public BaseProject {
 		drawSingleInstance(commandBuffer, currentImage, P1, nextController, 1);
 		drawSingleInstance(commandBuffer, currentImage, P1, endController, 1);
 		drawSingleInstance(commandBuffer, currentImage, P1, skipController, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, jumpController, 1);
 
 		drawSingleInstance(commandBuffer, currentImage, P1, welcomeTextInTheGame, 1);
 		drawSingleInstance(commandBuffer, currentImage, P1, startPlayTheGame, 1);
@@ -1298,7 +1289,7 @@ class MyProject : public BaseProject {
 			tutorialElementsController = tutorialElements;
 			tutorialNextElementsController = tutorialNextElements;
 			skipElementController = skipElement;
-			tutorialElements = { 1,1,1,1,1,1,1,1 };
+			tutorialElements = { 1,1,1,1,1,1,1,1,1 };
 			tutorialNextElements = { 1,1 };
 			skipElement = 1;
 		} else if (switchInput && keyboardInput) {
@@ -1306,7 +1297,7 @@ class MyProject : public BaseProject {
 			tutorialElements = tutorialElementsController;
 			tutorialNextElements = tutorialNextElementsController;
 			skipElement = skipElementController;
-			tutorialElementsController = { 1,1,1,1,1,1,1,1 };
+			tutorialElementsController = { 1,1,1,1,1,1,1,1,1 };
 			tutorialNextElementsController = { 1,1 };
 			skipElementController = 1;
 		}
@@ -1356,15 +1347,21 @@ class MyProject : public BaseProject {
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
 			ubo.isTaken = false;
 			ubo.roughness = 500.0f;
-			updateObject(interactionController, ubo, currentImage);
+			updateObject(jumpController, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElementsController[5] * 100.0f, 0)) * ubo.model;
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
 			ubo.isTaken = false;
 			ubo.roughness = 500.0f;
-			updateObject(restartController, ubo, currentImage);
+			updateObject(interactionController, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElementsController[6] * 100.0f, 0)) * ubo.model;
+			ubo.normal = glm::inverse(glm::transpose(ubo.model));
+			ubo.isTaken = false;
+			ubo.roughness = 500.0f;
+			updateObject(restartController, ubo, currentImage);
+			ubo.model = glm::mat4(1.0f);
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElementsController[7] * 100.0f, 0)) * ubo.model;
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
 			ubo.isTaken = false;
 			ubo.roughness = 500.0f;
@@ -1405,15 +1402,21 @@ class MyProject : public BaseProject {
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
 			ubo.isTaken = false;
 			ubo.roughness = 500.0f;
-			updateObject(interaction, ubo, currentImage);
+			updateObject(jumpObject, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[5] * 100.0f, 0)) * ubo.model;
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
 			ubo.isTaken = false;
 			ubo.roughness = 500.0f;
-			updateObject(restart, ubo, currentImage);
+			updateObject(interaction, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[6] * 100.0f, 0)) * ubo.model;
+			ubo.normal = glm::inverse(glm::transpose(ubo.model));
+			ubo.isTaken = false;
+			ubo.roughness = 500.0f;
+			updateObject(restart, ubo, currentImage);
+			ubo.model = glm::mat4(1.0f);
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[7] * 100.0f, 0)) * ubo.model;
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
 			ubo.isTaken = false;
 			ubo.roughness = 500.0f;
@@ -1547,10 +1550,10 @@ class MyProject : public BaseProject {
 			firstTimeDoingTheTutorial = false;
 			doneTutorialAgain = false;
 			skipElement = 1;
-			tutorialElements = { 1,1,1,1,1,1,1 };
+			tutorialElements = { 1,1,1,1,1,1,1,1 };
 			tutorialNextElements = { 1,1 };
 			skipElementController = 1;
-			tutorialElementsController = { 1,1,1,1,1,1,1 };
+			tutorialElementsController = { 1,1,1,1,1,1,1,1 };
 			tutorialNextElementsController = { 1,1 };
 			//Game
 			pos = glm::vec3(0.0f, 0.5f, 0.0f);
@@ -1562,10 +1565,10 @@ class MyProject : public BaseProject {
 			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 			//Tutorial
 			skipElementController = 1;
-			tutorialElementsController = { 1,1,1,1,1,1,1 };
+			tutorialElementsController = { 1,1,1,1,1,1,1,1 };
 			tutorialNextElementsController = { 1,1 };
 			skipElement = 0;
-			tutorialElements = { 0,1,1,1,1,1,1 };
+			tutorialElements = { 0,1,1,1,1,1,1,1 };
 			tutorialNextElements = { 0,1 };
 		}
 	}
@@ -1611,7 +1614,7 @@ class MyProject : public BaseProject {
 				}
 				firstTimeDoingTheTutorial = false;
 				skipElementController = 1;
-				tutorialElementsController = { 1,1,1,1,1,1,1 };
+				tutorialElementsController = { 1,1,1,1,1,1,1,1 };
 				tutorialNextElementsController = { 1,1 };
 			}
 		}
@@ -1652,7 +1655,7 @@ class MyProject : public BaseProject {
 				}
 				firstTimeDoingTheTutorial = false;
 				skipElement = 1;
-				tutorialElements = { 1,1,1,1,1,1,1 };
+				tutorialElements = { 1,1,1,1,1,1,1,1 };
 				tutorialNextElements = { 1,1 };
 			}
 		}
@@ -1689,12 +1692,16 @@ class MyProject : public BaseProject {
 		else if (tutorialElementsFunc[5] == 0) {
 			tutorialElementsFunc[5] = 1;
 			tutorialElementsFunc[6] = 0;
+		}
+		else if (tutorialElementsFunc[6] == 0) {
+			tutorialElementsFunc[6] = 1;
+			tutorialElementsFunc[7] = 0;
 			tutorialNextElementsFunc[0] = 1;
 			tutorialNextElementsFunc[1] = 0;
 			skipElementFunc = 1;
 		}
-		else if (tutorialElementsFunc[6] == 0) {
-			tutorialElementsFunc[6] = 1;
+		else if (tutorialElementsFunc[7] == 0) {
+			tutorialElementsFunc[7] = 1;
 			tutorialNextElementsFunc[1] = 1;
 			//glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 			if (doneTutorialAgain) {
@@ -1774,12 +1781,12 @@ class MyProject : public BaseProject {
 	void tutorialAgainLogic(bool isControllerPlugged) {
 		doneTutorialAgain = true;
 		if (isControllerPlugged) {
-			tutorialElementsController = { 0,1,1,1,1,1,1 };
+			tutorialElementsController = { 0,1,1,1,1,1,1,1 };
 			tutorialNextElementsController = { 0,1 };
 			skipElementController = 0;
 		}
 		else {
-			tutorialElements = { 0,1,1,1,1,1,1 };
+			tutorialElements = { 0,1,1,1,1,1,1,1 };
 			tutorialNextElements = { 0,1 };
 			skipElement = 0;
 		}
