@@ -246,11 +246,11 @@ static bool switchInput = false;
 
 //Tutorial
 	//Variable that let the user see the correct tutorial text
-static std::vector<int> tutorialElements = { 0,1,1,1,1,1,1 };
+static std::vector<int> tutorialElements = { 1,1,1,1,1,1,1 };
 	//Variable that let the user see the correct next button of the tutorial
-static std::vector<int> tutorialNextElements = { 0,1 };
+static std::vector<int> tutorialNextElements = { 1,1 };
 	//Manage the skip.
-static int skipElement = 0;
+static int skipElement = 1;
 
 	//Variable that let the user see the correct tutorial text
 static std::vector<int> tutorialElementsController = { 1,1,1,1,1,1,1 };
@@ -282,6 +282,19 @@ const int checkSteps = 12;
 
 const std::string MODEL_PATH = "models/";
 const std::string TEXTURE_PATH = "textures/";
+
+	//Window dimensions
+int width = 0;
+int height = 0;
+
+	//Mouse position
+double xpos = 0;
+double ypos = 0;
+
+	//Menu values
+static bool menuOpen = true;
+static bool enterTheGame = false;
+static bool enterTheTutorial = false;
 
 /// <summary>
 /// Using the position the User see if he can pass through a door or is blocked
@@ -330,6 +343,12 @@ bool canStepPoint(float x, float y) {
 	//To have a higher precision
 	float roundFirstDecimalX = round(x * 10.0) / 10.0;
 	float roundFirstDecimalY = round(y * 10.0) / 10.0;
+
+	//To move in the tutorial
+	/*if (roundX == 500 && roundY == -495) {
+		return true;
+	}*/
+
 	//It calculate the pixel in which the user is, according to a height map present in the resources.
 	int pixX = round(fmax(0.0f, fmin(mapWidth - 1, (x + 16.9) * mapWidth / 33.8)));
 	int pixY = round(fmax(0.0f, fmin(mapHeight - 1, (y + 16.9) * mapHeight / 33.8)));
@@ -511,6 +530,11 @@ class MyProject : public BaseProject {
 	Object endController;
 	Object skipController;
 
+	//Menu
+	Object welcomeTextInTheGame;
+	Object startPlayTheGame;
+	Object goToSeeTheTutorial;
+
 	DescriptorSet DS_global;
 
 	//Texts
@@ -649,6 +673,11 @@ class MyProject : public BaseProject {
 		objectInit(&endController, MODEL_PATH + "Tutorial/EndController.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
 		objectInit(&skipController, MODEL_PATH + "Tutorial/SkipController.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
 
+		//Menu
+		objectInit(&welcomeTextInTheGame, MODEL_PATH + "Tutorial/Tutorial.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
+		objectInit(&startPlayTheGame, MODEL_PATH + "Tutorial/Next.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
+		objectInit(&goToSeeTheTutorial, MODEL_PATH + "Tutorial/Skip.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
+		
 		descriptorSetInit(&DS_global, descriptorSetLayoutGlobal.descriptorSetLayout, descriptorSetLayoutGlobal);
 
 		//descriptorSetInit(&DS_text, descriptorSetLayoutText.descriptorSetLayout, descriptorSetLayoutText);
@@ -742,6 +771,10 @@ class MyProject : public BaseProject {
 		nextController.cleanup();
 		endController.cleanup();
 		skipController.cleanup();
+
+		welcomeTextInTheGame.cleanup();
+		startPlayTheGame.cleanup();
+		goToSeeTheTutorial.cleanup();
 	}
 
 	// Here you destroy all the objects you created!		
@@ -815,6 +848,10 @@ class MyProject : public BaseProject {
 		drawSingleInstance(commandBuffer, currentImage, P1, nextController, 1);
 		drawSingleInstance(commandBuffer, currentImage, P1, endController, 1);
 		drawSingleInstance(commandBuffer, currentImage, P1, skipController, 1);
+
+		drawSingleInstance(commandBuffer, currentImage, P1, welcomeTextInTheGame, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, startPlayTheGame, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, goToSeeTheTutorial, 1);
 	}
 
 
@@ -826,7 +863,11 @@ class MyProject : public BaseProject {
 	void updateUniformBuffer(uint32_t currentImage) {
 		initializeInputKeys();
 
-		if (firstTimeDoingTheTutorial || doneTutorialAgain) {
+		if (menuOpen) {
+			manageMenu();
+		}
+		
+		if ((firstTimeDoingTheTutorial || doneTutorialAgain) && !menuOpen) {
 			manageTutorial();
 		}
 
@@ -965,6 +1006,7 @@ class MyProject : public BaseProject {
 		ubo.isTaken = false;
 		ubo.roughness = 50.0f;
 		updateObject(copperKeyHoleObject, ubo, currentImage);
+
 
 
 
@@ -1395,7 +1437,43 @@ class MyProject : public BaseProject {
 			ubo.isTaken = false;
 			ubo.roughness = 500.0f;
 			updateObject(skip, ubo, currentImage);
+
+
+
+
+
+			//Menu
+			ubo.model = glm::mat4(1.0f);
+			if (!menuOpen) {
+				ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 100.0f, 0)) * ubo.model;
+			}
+			ubo.normal = glm::inverse(glm::transpose(ubo.model));
+			ubo.isTaken = false;
+			ubo.roughness = 500.0f;
+			updateObject(welcomeTextInTheGame, ubo, currentImage);
+			ubo.model = glm::mat4(1.0f);
+			if (!menuOpen) {
+				ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 100.0f, 0)) * ubo.model;
+			}
+			ubo.normal = glm::inverse(glm::transpose(ubo.model));
+			ubo.isTaken = false;
+			ubo.roughness = 500.0f;
+			updateObject(goToSeeTheTutorial, ubo, currentImage);
+			ubo.model = glm::mat4(1.0f);
+			if (!menuOpen) {
+				ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 100.0f, 0)) * ubo.model;
+			}
+			ubo.normal = glm::inverse(glm::transpose(ubo.model));
+			ubo.isTaken = false;
+			ubo.roughness = 500.0f;
+			updateObject(startPlayTheGame, ubo, currentImage);
 	}
+
+
+
+
+
+
 
 
 
@@ -1414,24 +1492,83 @@ class MyProject : public BaseProject {
 		//std::cout << "\nRight stick Y Axis: " << axes[3];
 		//std::cout << "\nL2: " << axes[4];
 		//std::cout << "\nR2: " << axes[5];
-		
+
 		buttons = glfwGetJoystickButtons(GLFW_JOYSTICK_1, &buttonCount);
-			/*if (buttons[0] == GLFW_PRESS) {
-				//Square
-				//std::cout << buttons[0];
+		/*if (buttons[0] == GLFW_PRESS) {
+			//Square
+			//std::cout << buttons[0];
+		}
+		if (buttons[1] == GLFW_PRESS) {
+			//X
+			//std::cout << buttons[1];
+		}*/
+		/*if (buttons[2] == GLFW_PRESS) {
+			//Circle
+			//std::cout << buttons[2];
+		}
+		if (buttons[3] == GLFW_PRESS) {
+			//Triangle
+			//std::cout << buttons[3];
+		}*/
+	}
+
+	/// <summary>
+	/// Manage the menu
+	/// </summary>
+	void manageMenu() {
+		lookYaw = 0;
+		lookPitch = 0;
+		glfwGetCursorPos(window, &xpos, &ypos);
+		glfwGetWindowSize(window, &width, &height);
+
+		//Handle position of the mouse with the controller
+		if (controllerPlugged == 1) {
+			//glfwSetCursorPos(window, xpos + round(axes[2] * 10.0) / 10.0, ypos + round(axes[3] * 10.0) / 10.0);
+			glfwSetCursorPos(window, xpos + round(axes[2] * 10.0) / 10.0, height / 2);
+		}
+
+		int state = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
+		if (xpos < width / 2) {
+			if (state == GLFW_PRESS)
+			{
+				menuOpen = false;
+				enterTheGame = true;
 			}
-			if (buttons[1] == GLFW_PRESS) {
-				//X
-				//std::cout << buttons[1];
-			}*/
-			/*if (buttons[2] == GLFW_PRESS) {
-				//Circle
-				//std::cout << buttons[2];
+		}
+		else {
+			if (state == GLFW_PRESS)
+			{
+				menuOpen = false;
+				enterTheTutorial = true;
 			}
-			if (buttons[3] == GLFW_PRESS) {
-				//Triangle
-				//std::cout << buttons[3];
-			}*/
+		}
+		if (enterTheGame) {
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+			//Tutorial
+			firstTimeDoingTheTutorial = false;
+			doneTutorialAgain = false;
+			skipElement = 1;
+			tutorialElements = { 1,1,1,1,1,1,1 };
+			tutorialNextElements = { 1,1 };
+			skipElementController = 1;
+			tutorialElementsController = { 1,1,1,1,1,1,1 };
+			tutorialNextElementsController = { 1,1 };
+			//Game
+			pos = glm::vec3(0.0f, 0.5f, 0.0f);
+			oldPos = glm::vec3(0.0f, 0.5f, 0.0f);
+			lookYaw = glm::radians(-45.0f);
+			lookPitch = 0.0f;
+		}
+		else if (enterTheTutorial) {
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+			//Tutorial
+			skipElementController = 1;
+			tutorialElementsController = { 1,1,1,1,1,1,1 };
+			tutorialNextElementsController = { 1,1 };
+			skipElement = 0;
+			tutorialElements = { 0,1,1,1,1,1,1 };
+			tutorialNextElements = { 0,1 };
+		}
 	}
 	
 	/// <summary>
@@ -1560,7 +1697,7 @@ class MyProject : public BaseProject {
 		else if (tutorialElementsFunc[6] == 0) {
 			tutorialElementsFunc[6] = 1;
 			tutorialNextElementsFunc[1] = 1;
-			torchTaken = true;
+			//glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 			if (doneTutorialAgain) {
 				doneTutorialAgain = false;
 				pos = savePos;
@@ -1754,6 +1891,7 @@ class MyProject : public BaseProject {
 
 		oldPos = pos;
 
+		
 		if (controllerPlugged == 1) {
 			lookYaw -= (round(axes[2] * 10.0) / 10.0) / 100.0;
 			//lookPitch -= (round(axes[3] * 10.0) / 10.0) / 100.0;
@@ -2004,32 +2142,9 @@ class MyProject : public BaseProject {
 		}
 	}
 
-	glm::vec3 manageTorchPositionObject(glm::vec3 keyPosStatic) {
-		glm::vec3 positionTempKey = glm::vec3((pos.x - keyPosStatic.x), 0.1f, (pos.z - keyPosStatic.z) + 0.08f);
-		//glm::vec3 positionTempKey = glm::vec3(0,0.1f,0.05f);
-		/*if (pos.x > oldPos.x) {
-			positionTempKey.x += (pos.x - keyPosStatic.x) + positionTempKey.x + 0.1f;
-			savePosKey.x = positionTempKey.x;
-		}
-		else if (pos.x < oldPos.x) {
-			positionTempKey.x += (pos.x - keyPosStatic.x) + positionTempKey.x - 0.1f;
-			savePosKey.x = positionTempKey.x;
-		}
-		else {
-			positionTempKey.x += savePosKey.x;
-		}
-		if (pos.z > oldPos.z) {
-			positionTempKey.z += (pos.z - keyPosStatic.z) + positionTempKey.z + 0.1f;
-			savePosKey.z = positionTempKey.z;
-		}
-		else if (pos.z < oldPos.z) {
-			positionTempKey.z += (pos.z - keyPosStatic.z) + positionTempKey.z - 0.1f;
-			savePosKey.z = positionTempKey.z;
-		}
-		else {
-			positionTempKey.z += savePosKey.z;
-		}*/
-		return positionTempKey;
+	glm::vec3 manageTorchPositionObject(glm::vec3 torchPosStatic) {
+		glm::vec3 positionTempTorch = glm::vec3((pos.x - torchPosStatic.x), (pos.y - torchPosStatic.y) + 0.2f, (pos.z - torchPosStatic.z) + 0.08f);
+		return positionTempTorch;
 	}
 
 	/// <summary>
@@ -2038,7 +2153,7 @@ class MyProject : public BaseProject {
 	/// <param name="keyPosStatic">To recognize between gold key and copper key</param>
 	/// <returns>The position of the key</returns>
 	glm::vec3 manageKeyPosition(glm::vec3 keyPosStatic) {
-		glm::vec3 positionTempKey = glm::vec3((pos.x - keyPosStatic.x), 0.2f, (pos.z - keyPosStatic.z));
+		glm::vec3 positionTempKey = glm::vec3((pos.x - keyPosStatic.x), (pos.y - keyPosStatic.y) - 0.4f, (pos.z - keyPosStatic.z));
 		/*if (pos.x > oldPos.x) {
 			positionTempKey.x = (pos.x - keyPosStatic.x) + positionTempKey.x - 0.2f;
 			savePosKey.x = positionTempKey.x;

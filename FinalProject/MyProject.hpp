@@ -375,7 +375,7 @@ protected:
 		stbi_image_free(images[0].pixels);
 
 		//Disappear cursor
-		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+		//glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 
 		//Load mappings of controllers
 		//const char* mappings = load_file_contents("controller/gamecontrollerdb.txt");
