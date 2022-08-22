@@ -13,4 +13,13 @@ Mettere torcia sullo schermo che si muove con la telecamera - Done (se la lascio
 Aggiungere scritte salto - Done
 Se faccio menù iniziale, aggiungere scritte per giocare e per tutorial - Done
 Muoversi nel tutorial per provare le cose - Done
-Aggiungere il colore per ogni model (Oren Nayar) - 
+Aggiungere il colore per ogni model (Oren Nayar) - Done with texture
+
+Per il power up, farlo un po carino (magari un succo di frutta o del latte (utilizzando texture)) - 
+Vedere se riesco a gestire le normali per fare un effetto più carino - 
+Vedere se nell'A06 rimettere la moltiplicazione o tenere con la negazione - 
+Rivedere formule A09,A18 - 
+Assignments riguardanti tutorial: 12,13,14 -> Ricontrollare gli output - 
+Assignments riguardanti shader: 15,16,17 -> Ricontrollare con le formule bene - 
+
+Fare un file con scritto le modifiche fatte a Vulkan e tutte le cose fatte per il progetto - 

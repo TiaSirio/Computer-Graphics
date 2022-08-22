@@ -11,7 +11,7 @@ namespace utils {
 
 		DescriptorPoolSize() : numberOfUniformBlocksInPool(0), numberOfTexturesInPool(0), numberOfSetsInPool(0) {};
 
-		//The above functions manage the Descriptor pool sizes
+		//The below functions manage the Descriptor pool sizes (only one add for all because the descriptor set used for object is only one)
 		void addObject() {
 			numberOfTexturesInPool++;
 			numberOfUniformBlocksInPool++;
@@ -546,8 +546,8 @@ class MyProject : public BaseProject {
 		windowWidth = 800;//1920;
 		windowHeight = 600;//1080;
 		windowTitle = "Labyrinth Escape";
-		//initialBackgroundColor = {1.0f, 1.0f, 0.0f, 1.0f};
-		initialBackgroundColor = { 0.0f, 0.0f, 0.0f, 1.0f };
+		initialBackgroundColor = {1.0f, 1.0f, 0.0f, 1.0f};
+		//initialBackgroundColor = { 0.0f, 0.0f, 0.0f, 1.0f };
 		//initialBackgroundColor = { 0.0f, 0.0f, 1.0f, 1.0f };
 
 		//Done for DS_global
@@ -594,8 +594,8 @@ class MyProject : public BaseProject {
 	// Here you load and setup all your Vulkan objects
 	void localInit() {
 
+		//Init of the two descriptor set layout (0,1)
 		descriptorSetLayoutInit(&descriptorSetLayoutObject);
-
 		descriptorSetLayoutInit(&descriptorSetLayoutGlobal);
 
 		localPipelineInit();
@@ -668,6 +668,7 @@ class MyProject : public BaseProject {
 		objectInit(&startPlayTheGame, MODEL_PATH + "Menu/Play.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
 		objectInit(&goToSeeTheTutorial, MODEL_PATH + "Menu/StartTutorial.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
 		
+		//Init of the global descriptor set used
 		descriptorSetInit(&DS_global, descriptorSetLayoutGlobal.descriptorSetLayout, descriptorSetLayoutGlobal);
 
 		//Load height map
@@ -681,7 +682,7 @@ class MyProject : public BaseProject {
 		std::cout << "map -> size: " << mapWidth
 			<< "x" << mapHeight << "\n";
 
-		//Show in the terminal a tutorial of the commands
+		//Show in the cmd a tutorial of the commands
 		showTutorialInfo();
 	}
 
@@ -851,26 +852,34 @@ class MyProject : public BaseProject {
 	// Here is where you update the uniforms.
 	// Very likely this will be where you will be writing the logic of your application.
 	void updateUniformBuffer(uint32_t currentImage) {
+		//Initializae controller keys
 		initializeInputKeys();
 
+		//Manage menu input and logic
 		if (menuOpen) {
 			manageMenu();
 		}
 		
+		//Manage tutorial input and logic
 		if ((firstTimeDoingTheTutorial || doneTutorialAgain) && !menuOpen) {
 			manageTutorial();
 		}
 
+		//Resize to full screen
 		updateWindow();
 
+		//Manage the logic to start again the tutorial
 		seeTutorialAgain();
 
+		//Manage the logic to restart the game
 		restartTheGame();
 
 		CharacterPos = updateCameraPosition(window);
 		
+		//Manage the interaction with the objects
 		interactWithObjects();
 
+		//Manage the winning condition
 		checkWinning();
 		
 		GlobalUniformBufferObject gubo{};
@@ -1524,7 +1533,7 @@ class MyProject : public BaseProject {
 		glfwGetWindowSize(window, &width, &height);
 
 		//Handle position of the mouse with the controller
-		if (controllerPlugged == 1) {
+		if (controllerPlugged == 1 && xpos < width && xpos > 0) {
 			//glfwSetCursorPos(window, xpos + round(axes[2] * 10.0) / 10.0, ypos + round(axes[3] * 10.0) / 10.0);
 			glfwSetCursorPos(window, xpos + round(axes[2] * 10.0) / 10.0, height / 2);
 		}
@@ -1546,6 +1555,7 @@ class MyProject : public BaseProject {
 		}
 		if (enterTheGame) {
 			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+			initialBackgroundColor = { 0.0f, 0.0f, 0.0f, 1.0f };
 			//Tutorial
 			firstTimeDoingTheTutorial = false;
 			doneTutorialAgain = false;
@@ -1563,13 +1573,24 @@ class MyProject : public BaseProject {
 		}
 		else if (enterTheTutorial) {
 			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+			initialBackgroundColor = { 0.0f, 0.0f, 0.0f, 1.0f };
 			//Tutorial
-			skipElementController = 1;
-			tutorialElementsController = { 1,1,1,1,1,1,1,1 };
-			tutorialNextElementsController = { 1,1 };
-			skipElement = 0;
-			tutorialElements = { 0,1,1,1,1,1,1,1 };
-			tutorialNextElements = { 0,1 };
+			if (controllerPlugged == 1) {
+				skipElementController = 0;
+				tutorialElementsController = { 0,1,1,1,1,1,1,1 };
+				tutorialNextElementsController = { 0,1 };
+				skipElement = 1;
+				tutorialElements = { 1,1,1,1,1,1,1,1 };
+				tutorialNextElements = { 1,1 };
+			}
+			else {
+				skipElementController = 1;
+				tutorialElementsController = { 1,1,1,1,1,1,1,1 };
+				tutorialNextElementsController = { 1,1 };
+				skipElement = 0;
+				tutorialElements = { 0,1,1,1,1,1,1,1 };
+				tutorialNextElements = { 0,1 };
+			}
 		}
 	}
 	
@@ -2368,7 +2389,7 @@ class MyProject : public BaseProject {
 		}
 	}
 
-	// Draw the global descriptor set.
+	//Draw the global descriptor set.
 	void drawSingleInstanceInGlobal(VkCommandBuffer commandBuffer, int currentImage,
 		Pipeline pipeline, DescriptorSet descriptorSet, int firstDescriptorSetUsed, int numberOfDescriptor) {
 		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -2379,7 +2400,7 @@ class MyProject : public BaseProject {
 			0, nullptr);
 	}
 
-	// Draw single instance of object.
+	//Draw single instance of object.
 	void drawSingleInstance(VkCommandBuffer commandBuffer, int currentImage,
 		Pipeline pipeline, Object object, int firstDescriptorSetUsed, int numberOfDescriptor) {
 		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -2405,7 +2426,7 @@ class MyProject : public BaseProject {
 			static_cast<uint32_t>(object.model.indices.size()), 1, 0, 0, 0);
 	}
 
-	// Draw multiple instances of an object.
+	//Draw multiple instances of an object.
 	void drawMultipleInstance(VkCommandBuffer commandBuffer, int currentImage,
 		Pipeline pipeline, MultipleObject object, int firstDescriptorSetUsed, int numberOfDescriptor) {
 		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -2437,7 +2458,7 @@ class MyProject : public BaseProject {
 		vkUnmapMemory(device, object.descriptorSet.uniformBuffersMemory[0][currentImage]);
 	}
 
-	//Update a partuclar instance of an object.
+	//Update a particular instance of an object.
 	void updateOneInstanceOfObject(MultipleObject object, UniformBufferObject ubo, uint32_t currentImage, int descriptorSetInstance) {
 		void* data;
 		vkMapMemory(device, object.descriptorSets[descriptorSetInstance].uniformBuffersMemory[0][currentImage], 0,

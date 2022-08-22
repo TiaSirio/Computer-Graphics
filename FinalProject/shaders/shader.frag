@@ -159,7 +159,8 @@ void main() {
 
 	outColor = vec4(
 	((specular1 + diffuse1) * lightColor1) +
-	((specular2 + diffuse2) * lightColor2) +
+	((diffuse2) * lightColor2) +
+	//((specular2 + diffuse2) * lightColor2) +
 	ambient, 1.0f);
 	//(topValue + botValue) * diffColor, 1.0f);
 	//outColor = vec4(ambient, 1.0f);
