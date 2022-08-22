@@ -10,7 +10,7 @@ layout(set = 0, binding = 0) uniform GlobalUniformBufferObject {
 layout(set = 1, binding = 0) uniform UniformBufferObject {
 	mat4 model;
 	mat4 normal;
-	bool isTaken;
+	//bool isTaken;
 	float roughness;
 } ubo;
 

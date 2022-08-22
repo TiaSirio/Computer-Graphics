@@ -13,3 +13,4 @@ Mettere torcia sullo schermo che si muove con la telecamera - Done (se la lascio
 Aggiungere scritte salto - Done
 Se faccio menù iniziale, aggiungere scritte per giocare e per tutorial - Done
 Muoversi nel tutorial per provare le cose - Done
+Aggiungere il colore per ogni model (Oren Nayar) - 

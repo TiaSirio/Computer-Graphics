@@ -58,7 +58,7 @@ struct GlobalUniformBufferObject {
 struct UniformBufferObject {
 	alignas(16) glm::mat4 model;
 	alignas(16) glm::mat4 normal;
-	alignas(16) bool isTaken;
+	//alignas(16) bool isTaken;
 	alignas(16) float roughness;
 };
 
@@ -160,9 +160,9 @@ static bool jump = false;
 static bool jumpDown = false;
 	//Camera
 static glm::vec3 CamPos = glm::vec3(0);
-static glm::mat3 CamDir = glm::mat3(0);
+//static glm::mat3 CamDir = glm::mat3(0);
 static glm::mat4 CharacterPos = glm::mat4(0);
-static glm::vec3 lineOfSightDirection = glm::vec3(0);
+//static glm::vec3 lineOfSightDirection = glm::vec3(0);
 
 //Environment
 	//User can pass
@@ -274,15 +274,6 @@ static bool firstInteraction = false;
 	//To check first time the user do the tutorial and place it in its initial position
 static bool firstTimeDoingTheTutorial = true;
 
-stbi_uc* map;
-int mapWidth, mapHeight;
-
-const float checkRadius = 0.1;
-const int checkSteps = 12;
-
-const std::string MODEL_PATH = "models/";
-const std::string TEXTURE_PATH = "textures/";
-
 	//Window dimensions
 int width = 0;
 int height = 0;
@@ -295,6 +286,15 @@ double ypos = 0;
 static bool menuOpen = true;
 static bool enterTheGame = false;
 static bool enterTheTutorial = false;
+
+stbi_uc* map;
+int mapWidth, mapHeight;
+
+const float checkRadius = 0.1;
+const int checkSteps = 12;
+
+const std::string MODEL_PATH = "models/";
+const std::string TEXTURE_PATH = "textures/";
 
 /// <summary>
 /// Using the position the User see if he can pass through a door or is blocked
@@ -785,63 +785,63 @@ class MyProject : public BaseProject {
 	// You send to the GPU all the objects you want to draw,
 	// with their buffers and textures
 	void populateCommandBuffer(VkCommandBuffer commandBuffer, int currentImage) {
-		drawSingleInstanceInGlobal(commandBuffer, currentImage, P1, DS_global, 0);
+		drawSingleInstanceInGlobal(commandBuffer, currentImage, P1, DS_global, 0, 1);
 
-		drawSingleInstance(commandBuffer, currentImage, P1, mainCharacter, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, mainCharacter, 1, 1);
 
-		drawSingleInstance(commandBuffer, currentImage, P1, floorObject, 1);
-		drawSingleInstance(commandBuffer, currentImage, P1, ceilingObject, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, floorObject, 1, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, ceilingObject, 1, 1);
 
-		drawSingleInstance(commandBuffer, currentImage, P1, wallEastObject, 1);
-		drawSingleInstance(commandBuffer, currentImage, P1, wallNorthObject, 1);
-		drawSingleInstance(commandBuffer, currentImage, P1, wallSouthObject, 1);
-		drawSingleInstance(commandBuffer, currentImage, P1, wallWestObject, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, wallEastObject, 1, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, wallNorthObject, 1, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, wallSouthObject, 1, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, wallWestObject, 1, 1);
 
-		drawSingleInstance(commandBuffer, currentImage, P1, goldKeyObject, 1);
-		drawSingleInstance(commandBuffer, currentImage, P1, goldKeyHoleObject, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, goldKeyObject, 1, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, goldKeyHoleObject, 1, 1);
 
-		drawSingleInstance(commandBuffer, currentImage, P1, copperKeyObject, 1);
-		drawSingleInstance(commandBuffer, currentImage, P1, copperKeyHoleObject, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, copperKeyObject, 1, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, copperKeyHoleObject, 1, 1);
 
-		drawSingleInstance(commandBuffer, currentImage, P1, doorBorders, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, doorBorders, 1, 1);
 
-		drawMultipleInstance(commandBuffer, currentImage, P1, doors, 1);
+		drawMultipleInstance(commandBuffer, currentImage, P1, doors, 1, 1);
 
-		drawMultipleInstance(commandBuffer, currentImage, P1, levers, 1);
+		drawMultipleInstance(commandBuffer, currentImage, P1, levers, 1, 1);
 
-		drawSingleInstance(commandBuffer, currentImage, P1, powerUp, 1);
-		drawSingleInstance(commandBuffer, currentImage, P1, powerUpBase, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, powerUp, 1, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, powerUpBase, 1, 1);
 
-		drawSingleInstance(commandBuffer, currentImage, P1, winText, 1);
-		drawSingleInstance(commandBuffer, currentImage, P1, winPlayAgain, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, winText, 1, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, winPlayAgain, 1, 1);
 
-		drawSingleInstance(commandBuffer, currentImage, P1, torch, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, torch, 1, 1);
 
-		drawSingleInstance(commandBuffer, currentImage, P1, tutorial, 1);
-		drawSingleInstance(commandBuffer, currentImage, P1, interaction, 1);
-		drawSingleInstance(commandBuffer, currentImage, P1, movement, 1);
-		drawSingleInstance(commandBuffer, currentImage, P1, visual, 1);
-		drawSingleInstance(commandBuffer, currentImage, P1, windowTutorial, 1);
-		drawSingleInstance(commandBuffer, currentImage, P1, restart, 1);
-		drawSingleInstance(commandBuffer, currentImage, P1, tutorialAgain, 1);
-		drawSingleInstance(commandBuffer, currentImage, P1, next, 1);
-		drawSingleInstance(commandBuffer, currentImage, P1, end, 1);
-		drawSingleInstance(commandBuffer, currentImage, P1, skip, 1);
-		drawSingleInstance(commandBuffer, currentImage, P1, jumpObject, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, tutorial, 1, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, interaction, 1, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, movement, 1, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, visual, 1, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, windowTutorial, 1, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, restart, 1, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, tutorialAgain, 1, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, next, 1, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, end, 1, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, skip, 1, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, jumpObject, 1, 1);
 
-		drawSingleInstance(commandBuffer, currentImage, P1, interactionController, 1);
-		drawSingleInstance(commandBuffer, currentImage, P1, movementController, 1);
-		drawSingleInstance(commandBuffer, currentImage, P1, visualController, 1);
-		drawSingleInstance(commandBuffer, currentImage, P1, restartController, 1);
-		drawSingleInstance(commandBuffer, currentImage, P1, tutorialAgainController, 1);
-		drawSingleInstance(commandBuffer, currentImage, P1, nextController, 1);
-		drawSingleInstance(commandBuffer, currentImage, P1, endController, 1);
-		drawSingleInstance(commandBuffer, currentImage, P1, skipController, 1);
-		drawSingleInstance(commandBuffer, currentImage, P1, jumpController, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, interactionController, 1, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, movementController, 1, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, visualController, 1, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, restartController, 1, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, tutorialAgainController, 1, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, nextController, 1, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, endController, 1, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, skipController, 1, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, jumpController, 1, 1);
 
-		drawSingleInstance(commandBuffer, currentImage, P1, welcomeTextInTheGame, 1);
-		drawSingleInstance(commandBuffer, currentImage, P1, startPlayTheGame, 1);
-		drawSingleInstance(commandBuffer, currentImage, P1, goToSeeTheTutorial, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, welcomeTextInTheGame, 1, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, startPlayTheGame, 1, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, goToSeeTheTutorial, 1, 1);
 	}
 
 
@@ -904,7 +904,7 @@ class MyProject : public BaseProject {
 		ubo.model = glm::mat4(1.0f);
 		//-0.2f to let it touch it the ground
 		ubo.model = glm::rotate(glm::translate(glm::mat4(1), pos + glm::vec3(0, -0.2f, 0)), lookYaw, glm::vec3(0, 1, 0)) * ubo.model;
-		ubo.isTaken = false;
+		//ubo.isTaken = false;
 		ubo.roughness = 50.0f;
 		updateObject(mainCharacter, ubo, currentImage);
 		
@@ -915,12 +915,12 @@ class MyProject : public BaseProject {
 		//Floor and ceiling
 		ubo.model = glm::mat4(1.0f);
 		ubo.normal = glm::inverse(glm::transpose(ubo.model));
-		ubo.isTaken = false;
+		//ubo.isTaken = false;
 		ubo.roughness = 200.0f;
 		updateObject(floorObject, ubo, currentImage);
 		ubo.model = glm::mat4(1.0f);
 		ubo.normal = glm::inverse(glm::transpose(ubo.model));
-		ubo.isTaken = false;
+		//ubo.isTaken = false;
 		ubo.roughness = 200.0f;
 		updateObject(ceilingObject, ubo, currentImage);
 
@@ -928,22 +928,22 @@ class MyProject : public BaseProject {
 		//Walls
 		ubo.model = glm::mat4(1.0f);
 		ubo.normal = glm::inverse(glm::transpose(ubo.model));
-		ubo.isTaken = false;
+		//ubo.isTaken = false;
 		ubo.roughness = 200.0f;
 		updateObject(wallEastObject, ubo, currentImage);
 		ubo.model = glm::mat4(1.0f);
 		ubo.normal = glm::inverse(glm::transpose(ubo.model));
-		ubo.isTaken = false;
+		//ubo.isTaken = false;
 		ubo.roughness = 200.0f;
 		updateObject(wallNorthObject, ubo, currentImage);
 		ubo.model = glm::mat4(1.0f);
 		ubo.normal = glm::inverse(glm::transpose(ubo.model));
-		ubo.isTaken = false;
+		//ubo.isTaken = false;
 		ubo.roughness = 200.0f;
 		updateObject(wallSouthObject, ubo, currentImage);
 		ubo.model = glm::mat4(1.0f);
 		ubo.normal = glm::inverse(glm::transpose(ubo.model));
-		ubo.isTaken = false;
+		//ubo.isTaken = false;
 		ubo.roughness = 200.0f;
 		updateObject(wallWestObject, ubo, currentImage);
 
@@ -967,12 +967,12 @@ class MyProject : public BaseProject {
 			//ubo.model = glm::translate(glm::mat4(1.0f), goldKeyPos) * ubo.model;
 		}
 		ubo.normal = glm::inverse(glm::transpose(ubo.model));
-		ubo.isTaken = false;
+		//ubo.isTaken = false;
 		ubo.roughness = 50.0f;
 		updateObject(goldKeyObject, ubo, currentImage);
 		ubo.model = glm::mat4(1.0f);
 		ubo.normal = glm::inverse(glm::transpose(ubo.model));
-		ubo.isTaken = false;
+		//ubo.isTaken = false;
 		ubo.roughness = 50.0f;
 		updateObject(goldKeyHoleObject, ubo, currentImage);
 
@@ -988,12 +988,12 @@ class MyProject : public BaseProject {
 			ubo.model = glm::translate(glm::mat4(1), copperKeyPos) * ubo.model;
 		}
 		ubo.normal = glm::inverse(glm::transpose(ubo.model));
-		ubo.isTaken = false;
+		//ubo.isTaken = false;
 		ubo.roughness = 50.0f;
 		updateObject(copperKeyObject, ubo, currentImage);
 		ubo.model = glm::mat4(1.0f);
 		ubo.normal = glm::inverse(glm::transpose(ubo.model));
-		ubo.isTaken = false;
+		//ubo.isTaken = false;
 		ubo.roughness = 50.0f;
 		updateObject(copperKeyHoleObject, ubo, currentImage);
 
@@ -1005,7 +1005,7 @@ class MyProject : public BaseProject {
 		//Door borders
 		ubo.model = glm::mat4(1.0f);
 		ubo.normal = glm::inverse(glm::transpose(ubo.model));
-		ubo.isTaken = false;
+		//ubo.isTaken = false;
 		ubo.roughness = 200.0f;
 		updateObject(doorBorders, ubo, currentImage);
 
@@ -1034,7 +1034,7 @@ class MyProject : public BaseProject {
 			userCouldPassThroughDoors[0] = 0;
 		}
 		ubo.normal = glm::inverse(glm::transpose(ubo.model));
-		ubo.isTaken = false;
+		//ubo.isTaken = false;
 		ubo.roughness = 300.0f;
 		updateOneInstanceOfObject(doors, ubo, currentImage, 0);
 		
@@ -1052,7 +1052,7 @@ class MyProject : public BaseProject {
 			userCouldPassThroughDoors[1] = 1;
 		}
 		ubo.normal = glm::inverse(glm::transpose(ubo.model));
-		ubo.isTaken = false;
+		//ubo.isTaken = false;
 		ubo.roughness = 300.0f;
 		updateOneInstanceOfObject(doors, ubo, currentImage, 1);
 		
@@ -1083,7 +1083,7 @@ class MyProject : public BaseProject {
 			userCouldPassThroughDoors[2] = 0;
 		}
 		ubo.normal = glm::inverse(glm::transpose(ubo.model));
-		ubo.isTaken = false;
+		//ubo.isTaken = false;
 		ubo.roughness = 300.0f;
 		updateOneInstanceOfObject(doors, ubo, currentImage, 2);
 		
@@ -1114,7 +1114,7 @@ class MyProject : public BaseProject {
 			userCouldPassThroughDoors[3] = 0;
 		}
 		ubo.normal = glm::inverse(glm::transpose(ubo.model));
-		ubo.isTaken = false;
+		//ubo.isTaken = false;
 		ubo.roughness = 300.0f;
 		updateOneInstanceOfObject(doors, ubo, currentImage, 3);
 
@@ -1136,7 +1136,7 @@ class MyProject : public BaseProject {
 			userCouldPassThroughDoors[4] = 1;
 		}
 		ubo.normal = glm::inverse(glm::transpose(ubo.model));
-		ubo.isTaken = false;
+		//ubo.isTaken = false;
 		ubo.roughness = 300.0f;
 		updateOneInstanceOfObject(doors, ubo, currentImage, 4);
 
@@ -1157,7 +1157,7 @@ class MyProject : public BaseProject {
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(2.5f, 0.5f, 2.2f)) * ubo.model;
 		}
 		ubo.normal = glm::inverse(glm::transpose(ubo.model));
-		ubo.isTaken = false;
+		//ubo.isTaken = false;
 		ubo.roughness = 200.0f;
 		updateOneInstanceOfObject(levers, ubo, currentImage, 0);
 		ubo.model = glm::mat4(1.0f);
@@ -1177,7 +1177,7 @@ class MyProject : public BaseProject {
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(8.3f, 0.5f, 3.5f)) * ubo.model;
 		}
 		ubo.normal = glm::inverse(glm::transpose(ubo.model));
-		ubo.isTaken = false;
+		//ubo.isTaken = false;
 		ubo.roughness = 200.0f;
 		updateOneInstanceOfObject(levers, ubo, currentImage, 1);
 		ubo.model = glm::mat4(1.0f);
@@ -1196,7 +1196,7 @@ class MyProject : public BaseProject {
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(3.3f, 0.5f, -1.5f)) * ubo.model;
 		}
 		ubo.normal = glm::inverse(glm::transpose(ubo.model));
-		ubo.isTaken = false;
+		//ubo.isTaken = false;
 		ubo.roughness = 200.0f;
 		updateOneInstanceOfObject(levers, ubo, currentImage, 2);
 
@@ -1215,12 +1215,12 @@ class MyProject : public BaseProject {
 			rotatingPowerUp++;
 		}
 		ubo.normal = glm::inverse(glm::transpose(ubo.model));
-		ubo.isTaken = false;
+		//ubo.isTaken = false;
 		ubo.roughness = 20.0f;
 		updateObject(powerUp, ubo, currentImage);
 		ubo.model = glm::mat4(1.0f);
 		ubo.normal = glm::inverse(glm::transpose(ubo.model));
-		ubo.isTaken = false;
+		//ubo.isTaken = false;
 		ubo.roughness = 20.0f;
 		updateObject(powerUpBase, ubo, currentImage);
 
@@ -1237,7 +1237,7 @@ class MyProject : public BaseProject {
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 100.0f, 0)) * ubo.model;
 		}
 		ubo.normal = glm::inverse(glm::transpose(ubo.model));
-		ubo.isTaken = false;
+		//ubo.isTaken = false;
 		ubo.roughness = 500.0f;
 		updateObject(winText, ubo, currentImage);
 
@@ -1249,7 +1249,7 @@ class MyProject : public BaseProject {
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 100.0f, 0)) * ubo.model;
 		}
 		ubo.normal = glm::inverse(glm::transpose(ubo.model));
-		ubo.isTaken = false;
+		//ubo.isTaken = false;
 		ubo.roughness = 500.0f;
 		updateObject(winPlayAgain, ubo, currentImage);
 
@@ -1265,7 +1265,7 @@ class MyProject : public BaseProject {
 		}
 		ubo.normal = glm::inverse(glm::transpose(ubo.model));
 		//Not place the object in the world but in the view
-		ubo.isTaken = torchTaken;
+		//ubo.isTaken = torchTaken;
 		ubo.roughness = 50.0f;
 		updateObject(torch, ubo, currentImage);
 
@@ -1306,13 +1306,13 @@ class MyProject : public BaseProject {
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElementsController[0] * 100.0f, 0)) * ubo.model;
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
-			ubo.isTaken = false;
+			//ubo.isTaken = false;
 			ubo.roughness = 500.0f;
 			updateObject(tutorial, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElementsController[1] * 100.0f, 0)) * ubo.model;
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
-			ubo.isTaken = false;
+			//ubo.isTaken = false;
 			ubo.roughness = 500.0f;
 			updateObject(windowTutorial, ubo, currentImage);
 		}
@@ -1320,123 +1320,123 @@ class MyProject : public BaseProject {
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[0] * 100.0f, 0)) * ubo.model;
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
-			ubo.isTaken = false;
+			//ubo.isTaken = false;
 			ubo.roughness = 500.0f;
 			updateObject(tutorial, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[1] * 100.0f, 0)) * ubo.model;
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
-			ubo.isTaken = false;
+			//ubo.isTaken = false;
 			ubo.roughness = 500.0f;
 			updateObject(windowTutorial, ubo, currentImage);
 		}
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElementsController[2] * 100.0f, 0)) * ubo.model;
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
-			ubo.isTaken = false;
+			//ubo.isTaken = false;
 			ubo.roughness = 500.0f;
 			updateObject(visualController, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElementsController[3] * 100.0f, 0)) * ubo.model;
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
-			ubo.isTaken = false;
+			//ubo.isTaken = false;
 			ubo.roughness = 500.0f;
 			updateObject(movementController, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElementsController[4] * 100.0f, 0)) * ubo.model;
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
-			ubo.isTaken = false;
+			//ubo.isTaken = false;
 			ubo.roughness = 500.0f;
 			updateObject(jumpController, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElementsController[5] * 100.0f, 0)) * ubo.model;
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
-			ubo.isTaken = false;
+			//ubo.isTaken = false;
 			ubo.roughness = 500.0f;
 			updateObject(interactionController, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElementsController[6] * 100.0f, 0)) * ubo.model;
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
-			ubo.isTaken = false;
+			//ubo.isTaken = false;
 			ubo.roughness = 500.0f;
 			updateObject(restartController, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElementsController[7] * 100.0f, 0)) * ubo.model;
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
-			ubo.isTaken = false;
+			//ubo.isTaken = false;
 			ubo.roughness = 500.0f;
 			updateObject(tutorialAgainController, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialNextElementsController[0] * 100.0f, 0)) * ubo.model;
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
-			ubo.isTaken = false;
+			//ubo.isTaken = false;
 			ubo.roughness = 500.0f;
 			updateObject(nextController, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialNextElementsController[1] * 100.0f, 0)) * ubo.model;
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
-			ubo.isTaken = false;
+			//ubo.isTaken = false;
 			ubo.roughness = 500.0f;
 			updateObject(endController, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, skipElementController * 100.0f, 0)) * ubo.model;
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
-			ubo.isTaken = false;
+			//ubo.isTaken = false;
 			ubo.roughness = 500.0f;
 			updateObject(skipController, ubo, currentImage);
 
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[2] * 100.0f, 0)) * ubo.model;
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
-			ubo.isTaken = false;
+			//ubo.isTaken = false;
 			ubo.roughness = 500.0f;
 			updateObject(visual, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[3] * 100.0f, 0)) * ubo.model;
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
-			ubo.isTaken = false;
+			//ubo.isTaken = false;
 			ubo.roughness = 500.0f;
 			updateObject(movement, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[4] * 100.0f, 0)) * ubo.model;
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
-			ubo.isTaken = false;
+			//ubo.isTaken = false;
 			ubo.roughness = 500.0f;
 			updateObject(jumpObject, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[5] * 100.0f, 0)) * ubo.model;
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
-			ubo.isTaken = false;
+			//ubo.isTaken = false;
 			ubo.roughness = 500.0f;
 			updateObject(interaction, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[6] * 100.0f, 0)) * ubo.model;
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
-			ubo.isTaken = false;
+			//ubo.isTaken = false;
 			ubo.roughness = 500.0f;
 			updateObject(restart, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[7] * 100.0f, 0)) * ubo.model;
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
-			ubo.isTaken = false;
+			//ubo.isTaken = false;
 			ubo.roughness = 500.0f;
 			updateObject(tutorialAgain, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialNextElements[0] * 100.0f, 0)) * ubo.model;
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
-			ubo.isTaken = false;
+			//ubo.isTaken = false;
 			ubo.roughness = 500.0f;
 			updateObject(next, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialNextElements[1] * 100.0f, 0)) * ubo.model;
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
-			ubo.isTaken = false;
+			//ubo.isTaken = false;
 			ubo.roughness = 500.0f;
 			updateObject(end, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, skipElement * 100.0f, 0)) * ubo.model;
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
-			ubo.isTaken = false;
+			//ubo.isTaken = false;
 			ubo.roughness = 500.0f;
 			updateObject(skip, ubo, currentImage);
 
@@ -1450,7 +1450,7 @@ class MyProject : public BaseProject {
 				ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 100.0f, 0)) * ubo.model;
 			}
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
-			ubo.isTaken = false;
+			//ubo.isTaken = false;
 			ubo.roughness = 500.0f;
 			updateObject(welcomeTextInTheGame, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
@@ -1458,7 +1458,7 @@ class MyProject : public BaseProject {
 				ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 100.0f, 0)) * ubo.model;
 			}
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
-			ubo.isTaken = false;
+			//ubo.isTaken = false;
 			ubo.roughness = 500.0f;
 			updateObject(goToSeeTheTutorial, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
@@ -1466,7 +1466,7 @@ class MyProject : public BaseProject {
 				ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 100.0f, 0)) * ubo.model;
 			}
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
-			ubo.isTaken = false;
+			//ubo.isTaken = false;
 			ubo.roughness = 500.0f;
 			updateObject(startPlayTheGame, ubo, currentImage);
 	}
@@ -1515,7 +1515,7 @@ class MyProject : public BaseProject {
 	}
 
 	/// <summary>
-	/// Manage the menu
+	/// Manage the menu and the movement to the menu and to the game
 	/// </summary>
 	void manageMenu() {
 		lookYaw = 0;
@@ -1842,7 +1842,7 @@ class MyProject : public BaseProject {
 		jumpDown = false;
 
 		CamPos = glm::vec3(0);
-		CamDir = glm::mat3(0);
+		//CamDir = glm::mat3(0);
 		CharacterPos = glm::mat4(0);
 
 
@@ -2370,18 +2370,18 @@ class MyProject : public BaseProject {
 
 	// Draw the global descriptor set.
 	void drawSingleInstanceInGlobal(VkCommandBuffer commandBuffer, int currentImage,
-		Pipeline pipeline, DescriptorSet descriptorSet, int setUsed) {
+		Pipeline pipeline, DescriptorSet descriptorSet, int firstDescriptorSetUsed, int numberOfDescriptor) {
 		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
 			pipeline.graphicsPipeline);
 		vkCmdBindDescriptorSets(commandBuffer,
 			VK_PIPELINE_BIND_POINT_GRAPHICS,
-			pipeline.pipelineLayout, setUsed, 1, &descriptorSet.descriptorSets[currentImage],
+			pipeline.pipelineLayout, firstDescriptorSetUsed, numberOfDescriptor, &descriptorSet.descriptorSets[currentImage],
 			0, nullptr);
 	}
 
 	// Draw single instance of object.
 	void drawSingleInstance(VkCommandBuffer commandBuffer, int currentImage,
-		Pipeline pipeline, Object object, int setUsed) {
+		Pipeline pipeline, Object object, int firstDescriptorSetUsed, int numberOfDescriptor) {
 		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
 			pipeline.graphicsPipeline);
 
@@ -2397,7 +2397,7 @@ class MyProject : public BaseProject {
 		// property .descriptorSets of a descriptor set contains its elements.
 		vkCmdBindDescriptorSets(commandBuffer,
 			VK_PIPELINE_BIND_POINT_GRAPHICS,
-			pipeline.pipelineLayout, setUsed, 1, &object.descriptorSet.descriptorSets[currentImage],
+			pipeline.pipelineLayout, firstDescriptorSetUsed, numberOfDescriptor, &object.descriptorSet.descriptorSets[currentImage],
 			0, nullptr);
 
 		// property .indices.size() of models, contains the number of triangles * 3 of the mesh.
@@ -2407,7 +2407,7 @@ class MyProject : public BaseProject {
 
 	// Draw multiple instances of an object.
 	void drawMultipleInstance(VkCommandBuffer commandBuffer, int currentImage,
-		Pipeline pipeline, MultipleObject object, int setUsed) {
+		Pipeline pipeline, MultipleObject object, int firstDescriptorSetUsed, int numberOfDescriptor) {
 		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
 			pipeline.graphicsPipeline);
 
@@ -2420,7 +2420,7 @@ class MyProject : public BaseProject {
 		for (int i = 0; i < object.descriptorSets.size(); i++) {
 			vkCmdBindDescriptorSets(commandBuffer,
 				VK_PIPELINE_BIND_POINT_GRAPHICS,
-				pipeline.pipelineLayout, setUsed, 1, &object.descriptorSets[i].descriptorSets[currentImage],
+				pipeline.pipelineLayout, firstDescriptorSetUsed, numberOfDescriptor, &object.descriptorSets[i].descriptorSets[currentImage],
 				0, nullptr);
 
 			vkCmdDrawIndexed(commandBuffer,
