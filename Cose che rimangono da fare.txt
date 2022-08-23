@@ -23,3 +23,4 @@ Assignments riguardanti tutorial: 12,13,14 -> Ricontrollare gli output -
 Assignments riguardanti shader: 15,16,17 -> Ricontrollare con le formule bene - 
 
 Fare un file con scritto le modifiche fatte a Vulkan e tutte le cose fatte per il progetto - 
+Girare il personaggio verso l'alto quando ci guarda - 

@@ -546,7 +546,8 @@ class MyProject : public BaseProject {
 		windowWidth = 800;//1920;
 		windowHeight = 600;//1080;
 		windowTitle = "Labyrinth Escape";
-		initialBackgroundColor = {1.0f, 1.0f, 0.0f, 1.0f};
+		initialBackgroundColor = { 1.0f, 0.3f, 0.0f, 1.0f };
+		//initialBackgroundColor = {1.0f, 1.0f, 0.0f, 1.0f};
 		//initialBackgroundColor = { 0.0f, 0.0f, 0.0f, 1.0f };
 		//initialBackgroundColor = { 0.0f, 0.0f, 1.0f, 1.0f };
 
@@ -664,9 +665,9 @@ class MyProject : public BaseProject {
 		objectInit(&jumpController, MODEL_PATH + "Tutorial/JumpController.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
 
 		//Menu
-		objectInit(&welcomeTextInTheGame, MODEL_PATH + "Menu/Tutorial.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
-		objectInit(&startPlayTheGame, MODEL_PATH + "Menu/Play.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
-		objectInit(&goToSeeTheTutorial, MODEL_PATH + "Menu/StartTutorial.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
+		objectInit(&welcomeTextInTheGame, MODEL_PATH + "Menu/Tutorial.obj", TEXTURE_PATH + "MenuText.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
+		objectInit(&startPlayTheGame, MODEL_PATH + "Menu/Play.obj", TEXTURE_PATH + "MenuText.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
+		objectInit(&goToSeeTheTutorial, MODEL_PATH + "Menu/StartTutorial.obj", TEXTURE_PATH + "MenuText.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
 		
 		//Init of the global descriptor set used
 		descriptorSetInit(&DS_global, descriptorSetLayoutGlobal.descriptorSetLayout, descriptorSetLayoutGlobal);

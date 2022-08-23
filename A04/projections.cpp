@@ -6,14 +6,26 @@ float f = 12.0f;
 glm::mat4 PO1(float a) {
 	glm::mat4 out = glm::mat4(1.0);
 
-	//Orthogonal matrix
-	out = glm::scale(glm::mat4(1.0), glm::vec3(1, -1, 1)) * glm::ortho(-w, w, -(w/a), w/a, n, f);
+	//Orthogonal matrix + y pointing up
+	out = glm::scale(glm::mat4(1.0), glm::vec3(1, -1, 1)) * glm::ortho(-w, w, -(w / a), w / a, n, f);
 
 	//Rotation on x-axis.
 	out = out * rotate(glm::mat4(1.0), glm::radians(35.26f), glm::vec3(1, 0, 0));
 
 	//Rotation on y-axis.
 	out = out * rotate(glm::mat4(1.0), glm::radians(45.0f), glm::vec3(0, 1, 0));
+
+	//Rotation on y-axis.
+	/*out = rotate(glm::mat4(1.0), glm::radians(45.0f), glm::vec3(0, 1, 0)) * out;
+
+	//Rotation on x-axis.
+	out = rotate(glm::mat4(1.0), glm::radians(35.26f), glm::vec3(1, 0, 0)) * out;
+
+	//Orthogonal matrix
+	out = glm::ortho(-w, w, -(w / a), w / a, n, f) * out;
+
+	//Y pointing up
+	out = glm::scale(glm::mat4(1.0), glm::vec3(1, -1, 1)) * out;*/
 
 	return out;
 }
