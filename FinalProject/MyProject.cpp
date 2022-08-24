@@ -890,7 +890,7 @@ class MyProject : public BaseProject {
 		gubo.view = CharacterPos;
 		gubo.proj = glm::perspective(glm::radians(90.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 50.0f);
 		gubo.proj[1][1] *= -1;
-		//If we have already taken the torch the position of the light changes, otherwise it remains static
+		//If we have already taken the torch the position of the light changes, otherwise it remains static (and it will not be present in the tutorial)
 		if (doneTutorialAgain && !firstTimeDoingTheTutorial) {
 			gubo.torchPos = torchPosStatic;
 		}
@@ -914,6 +914,7 @@ class MyProject : public BaseProject {
 		ubo.model = glm::mat4(1.0f);
 		//-0.2f to let it touch it the ground
 		ubo.model = glm::rotate(glm::translate(glm::mat4(1), pos + glm::vec3(0, -0.2f, 0)), lookYaw, glm::vec3(0, 1, 0)) * ubo.model;
+		//ubo.model = glm::rotate(glm::rotate(glm::translate(glm::mat4(1), pos + glm::vec3(0, -0.2f, 0)), lookYaw, glm::vec3(0, 1, 0)), lookPitch, glm::vec3(1, 0, 0)) * ubo.model;
 		//ubo.isTaken = false;
 		ubo.roughness = 50.0f;
 		updateObject(mainCharacter, ubo, currentImage);

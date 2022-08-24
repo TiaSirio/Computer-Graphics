@@ -47,11 +47,6 @@ vec3 specular_light(vec3 lightPos, vec3 normal, vec3 lightDir, vec3 eyeDir) {
 	return vec3(pow(max(dot(eyeDir, reflectDir), 0.0f), 150.0f));
 }
 
-vec3 blinn_specular(vec3 N, vec3 L, vec3 V, vec3 Cs, float gamma){
-	vec3 h0 = normalize(L + V);
-	return Cs * pow(clamp(dot(N, h0), 0.0f, 1.0f), gamma);
-}
-
 vec3 diffuse_nayar(vec3 N, vec3 V, vec3 Cd, float sigma, vec3 lightDir) {
 	float tetai = acos(dot(lightDir, N));
 	float tetar = acos(dot(V, N));
@@ -76,8 +71,8 @@ vec3 getCorrectNorm(vec3 norm, vec3 lightDir) {
 }
 
 void main() {
-	vec3 constNorm = normalize(fragNorm);
-	vec3 norm = constNorm;
+	//vec3 constNorm = normalize(fragNorm);
+	vec3 norm = normalize(fragNorm);
 	vec3 diffColor = texture(texSampler, fragTexCoord).rgb;
 	vec3 eyeDir = normalize(gubo.eyePos - fragViewDir);
 
@@ -94,19 +89,10 @@ void main() {
 
 
 
-	//vec3 lightPos1 = (gubo.proj * mat4(1.0f) * ubo.model * vec4(gubo.torchPos, 1.0)).xyz;
-	//vec3 lightPos1 = (ubo.model * vec4(gubo.torchPos, 1.0)).xyz;
-
-	//vec4 lightPosTemp1 = ubo.model * vec4(gubo.torchPos.x, gubo.torchPos.y, gubo.torchPos.z, 1.0);
-	//vec3 lightPos1 = vec3(lightPosTemp1.x, lightPosTemp1.y, lightPosTemp1.z);
-
 	vec3 lightPos1 = vec3(gubo.torchPos.x, gubo.torchPos.y, gubo.torchPos.z);
 	vec3 lightC1 = vec3(1.0f, 1.0f, 0.2f);
 	vec3 lightDirection1 = point_light_dir(fragViewDir, lightPos1);
-	//vec3 lightColor1 = point_light_color(fragViewDir, lightPos1, lightC1, 0.4f, 3.0f);
 	vec3 lightColor1 = point_light_color(fragViewDir, lightPos1, lightC1, 0.5f, 3.0f);
-
-	//vec3 lightColor1 = point_light_color(fragViewDir, lightPos1, lightC1, 0.3f, 1.5f);
 	
 	vec3 lightPos2 = vec3(490.0f, 200.0f, -490.0f);
 	vec3 lightC2 = vec3(1.0f, 1.0f, 0.2f);
@@ -117,42 +103,20 @@ void main() {
 	
 	
 	//Ambient
-	//vec3 ambient = vec3(0.1f, 0.1f, 0.1f) * diffColor;
-	//vec3 ambient = vec3(0, 0, 0) * diffColor;
 	vec3 ambient = vec3(0.02f, 0.02f, 0.02f) * diffColor;
 	
 	
 	
-	norm = getCorrectNorm(norm, lightDirection1);
+	//norm = getCorrectNorm(norm, lightDirection1);
 	
 	vec3 diffuse1 = diffuse_nayar(norm, eyeDir, diffColor, ubo.roughness, lightDirection1);
 	vec3 specular1 = specular_light(lightPos1, norm, lightDirection1, eyeDir);
-	//vec3 specular1 = blinn_specular(norm, lightDirection1, eyeDir, vec3(1.0f, 1.0f, 0.2f), 300.0f);
 
-	//float lightDist = length(lightDirection1);
-	//float attenuation = clamp(5.0 / lightDist, 0.0, 1.0);
-
-	norm = constNorm;
-	norm = getCorrectNorm(norm, lightDirection2);
+	//norm = constNorm;
+	//norm = getCorrectNorm(norm, lightDirection2);
 
 	vec3 diffuse2 = diffuse_nayar(norm, eyeDir, diffColor, ubo.roughness, lightDirection2);
 	vec3 specular2 = specular_light(lightPos2, norm, lightDirection2, eyeDir);
-	//vec3 specular2 = blinn_specular(norm, lightDirection2, eyeDir, vec3(1.0f, 1.0f, 0.2f), 10.0f);
-
-
-
-
-	/*diffuse1 = diffColor * (max(dot(norm, lightDirection1), 0.0f));
-	specular1 = specular_light(lightPos1, norm, lightDirection1, eyeDir);
-
-	diffuse2 = diffColor * (max(dot(norm, lightDirection2), 0.0f));
-	specular2 = specular_light(lightPos2, norm, lightDirection2, eyeDir);*/
-
-	/*diffuse1 = diffColor * (max(dot(norm, lightDirection1), 0.0f));
-	specular1 = vec3(pow(max(dot(eyeDir, -reflect(lightDirection1, norm)),0.0f), 150.0f));
-
-	diffuse2 = diffColor * (max(dot(norm, lightDirection2), 0.0f));
-	specular2 = vec3(pow(max(dot(eyeDir, -reflect(lightDirection2, norm)),0.0f), 150.0f));*/
 
 
 
@@ -163,5 +127,4 @@ void main() {
 	//((specular2 + diffuse2) * lightColor2) +
 	ambient, 1.0f);
 	//(topValue + botValue) * diffColor, 1.0f);
-	//outColor = vec4(ambient, 1.0f);
 }

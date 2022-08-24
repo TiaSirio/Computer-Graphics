@@ -89,7 +89,7 @@ private:
         if (result != VK_SUCCESS) {
             throw std::runtime_error("failed to allocate command buffer!");
         }
-        std::cout << "\n\tCommand buffer created! (" << commandBuffer << ")";
+        std::cout << "\n\n\tCommand buffer created! (" << commandBuffer << ")";
     }
 
     void createCommandPool() {
@@ -101,7 +101,7 @@ private:
         if (result != VK_SUCCESS) {
             throw std::runtime_error("failed to create command pool!");
         }
-        std::cout << "\n\tCommand pool created! (" << commandPool << ")";
+        std::cout << "\n\n\tCommand pool created! (" << commandPool << ")";
     }
 
     void createLogicalDevice() {
@@ -136,7 +136,7 @@ private:
         if (result != VK_SUCCESS) {
             throw std::runtime_error("failed to create logical device!");
         }
-        std::cout << "\n\tLogical device created! (" << logicalDevice << ")";
+        std::cout << "\n\n\tLogical device created! (" << logicalDevice << ")";
         vkGetDeviceQueue(logicalDevice, indicesDevice.aQueueWithGraphicsCapability.value(), 0, &graphicsQueue);
         vkGetDeviceQueue(logicalDevice, indicesDevice.aQueueWithPresentationCapability.value(), 0, &presentQueue);
     }
@@ -152,7 +152,7 @@ private:
 
         
         for (unsigned int i = 0; i < queueFamCount; i++) {
-            std::cout << "\n\t\QqueueCount = " << queues[i].queueCount << "; ";
+            std::cout << "\n\tQueueCount = " << queues[i].queueCount << "; ";
             if ((queues[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0) {
                 std::cout << " Graphics";
                 indices.aQueueWithGraphicsCapability = i;
@@ -185,7 +185,7 @@ private:
         for (const auto& device : devices) {
             if (isDeviceSuitable(device)) {
                 physicalDevice = device;
-                std::cout << "\n\tPhysical device chosen! (" << physicalDevice << ")";
+                std::cout << "\n\n\tPhysical device chosen! (" << physicalDevice << ")";
                 break;
             }
         }
@@ -213,7 +213,7 @@ private:
 
     void checkDeviceProperties(VkPhysicalDevice device) {
         vkGetPhysicalDeviceProperties(device, &deviceProperties);
-        std::cout << "\tAPI version: 0x" << std::hex << deviceProperties.apiVersion << "\n";
+        std::cout << "\n\tAPI version: 0x" << std::hex << deviceProperties.apiVersion << "\n";
         std::cout << "\tDriver version: 0x" << std::hex << deviceProperties.driverVersion << "\n";
         std::cout << "\tVendor ID: 0x" << std::hex << deviceProperties.vendorID << "\n";
         std::cout << "\tDevice ID: 0x" << std::hex << deviceProperties.deviceID << "\n";
@@ -247,7 +247,7 @@ private:
 
     void checkDeviceMemoryProperties(VkPhysicalDevice device) {
         vkGetPhysicalDeviceMemoryProperties(device, &vpdmp);
-        std::cout << "\n\tMemory Types: " << vpdmp.memoryTypeCount << "\n";
+        std::cout << "\n\n\tMemory Types: " << vpdmp.memoryTypeCount << "\n";
         for (unsigned int i = 0; i < vpdmp.memoryTypeCount; i++) {
             VkMemoryType vmt = vpdmp.memoryTypes[i];
         }
@@ -284,7 +284,7 @@ private:
         if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS) {
             throw std::runtime_error("failed to create window surface!");
         }
-        std::cout << "\n\tPresentation surface created! (" << surface << ")";
+        std::cout << "\n\n\tPresentation surface created! (" << surface << ")";
     }
 
     void createInstance() {

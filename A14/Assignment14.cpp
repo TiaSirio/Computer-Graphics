@@ -93,15 +93,15 @@ private:
         createCommandPool();
         createCommandBuffer();
         // Continue with:
-        // Prsentation Surface Creation DONE
-        // Physical Device selection DONE
-        // Logical Device creation DONE
-        // Command Pool creation DONE
-        // Command Buffer creation DONE
+        // Prsentation Surface Creation - DONE
+        // Physical Device selection - DONE
+        // Logical Device creation - DONE
+        // Command Pool creation - DONE
+        // Command Buffer creation - DONE
 
         //****** New!
-        // Swap chain creation DONE
-        // Image view creation DONE
+        // Swap chain creation - DONE
+        // Image view creation - DONE
     }
 
     void createImageViews() {
@@ -240,7 +240,7 @@ private:
         if (formatCount != 0) {
             details.formats.resize(formatCount);
             vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, details.formats.data());
-            std::cout << "\t Supported Formats: " << formatCount << "\n";
+            std::cout << "\n\t Supported Formats: " << formatCount << "\n";
             for (int i = 0; i < formatCount; i++) {
                 std::cout << "\t\tFormat: " << details.formats[i].format <<
                     ", Color Space:" << details.formats[i].colorSpace << "\n";
