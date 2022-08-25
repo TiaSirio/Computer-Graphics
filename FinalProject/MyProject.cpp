@@ -630,7 +630,8 @@ class MyProject : public BaseProject {
 		multipleInstanceObjectInit(&levers, MODEL_PATH + "Lever/Lever.obj", TEXTURE_PATH + "Levers.png", descriptorSetLayoutObject.descriptorSetLayout, 3, descriptorSetLayoutObject);
 
 		//Power up
-		objectInit(&powerUp, MODEL_PATH + "PowerUp/PowerUp.obj", TEXTURE_PATH + "GoldKeyColor.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
+		objectInit(&powerUp, MODEL_PATH + "PowerUp/Juice.obj", TEXTURE_PATH + "Juice.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
+		//objectInit(&powerUp, MODEL_PATH + "PowerUp/PowerUp.obj", TEXTURE_PATH + "GoldKeyColor.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
 		objectInit(&powerUpBase, MODEL_PATH + "PowerUp/PowerUpBase.obj", TEXTURE_PATH + "Ceiling.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
 
 		//Win
@@ -638,7 +639,8 @@ class MyProject : public BaseProject {
 		objectInit(&winPlayAgain, MODEL_PATH + "Win/WinPlayAgain.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
 
 		//Torch
-		objectInit(&torch, MODEL_PATH + "Torch/Torch.obj", TEXTURE_PATH + "Torch.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
+		//objectInit(&torch, MODEL_PATH + "Torch/Torch.obj", TEXTURE_PATH + "Torch.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
+		objectInit(&torch, MODEL_PATH + "Torch/Torch2.obj", TEXTURE_PATH + "Torch.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
 
 		//Tutorial
 		objectInit(&tutorial, MODEL_PATH + "Tutorial/TutorialFirstText.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
@@ -1221,7 +1223,7 @@ class MyProject : public BaseProject {
 		//Rotate on the correct axis
 		if (powerUpTakenOrNot == 0) {
 			ubo.model = glm::inverse(glm::translate(glm::mat4(1.0f), glm::vec3(-4.0f, 0.4f, 12.0f))) * ubo.model;
-			ubo.model = glm::rotate(glm::mat4(1.0f), rotatingPowerUp * glm::radians(0.05f), glm::vec3(0.0f, 1.0f, 0.0f)) * ubo.model;
+			ubo.model = glm::rotate(glm::mat4(1.0f), rotatingPowerUp * glm::radians(0.10f), glm::vec3(0.0f, 1.0f, 0.0f)) * ubo.model;
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(-4.0f, 0.4f, 12.0f)) * ubo.model;
 			rotatingPowerUp++;
 		}
