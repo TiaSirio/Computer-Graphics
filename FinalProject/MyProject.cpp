@@ -177,6 +177,8 @@ static std::vector<int> doorCouldBeOpened = { 0,0 };
 static std::vector<int> leverCouldBeUsed = { 0,0,0 };
 	//User has used a lever
 static std::vector<int> leverUsedOrNot = { 0,0,0 };
+	//For stats
+static std::vector<int> leverUsedAtLeastOnce = { 0,0,0 };
 	//User could pick a key
 static std::vector<int> keyCouldBeTaken = { 0,0 };
 	//User has pick a key
@@ -205,6 +207,9 @@ static glm::vec3 copperKeyPosStatic = glm::vec3(15.0f, 0.0f, 3.0f);
 	//Save the position of the keys
 static glm::vec3 savePosKey = glm::vec3(0.0f, 0.0f, 0.0f);
 
+	//Static postion of the key for stats
+static glm::vec3 keyPositionStats = glm::vec3(500.0f, 200.5f, 500.0f);
+
 
 //Game input
 	//User see the tutorial
@@ -228,6 +233,9 @@ const char* keyF11;*/
 	//Whenever there is a state + first, is done as a semaphore like logic to not spam key input of the user
 static bool stateF11 = false;
 static bool firstF11 = true;
+
+static bool stateX = false;
+static bool firstX = true;
 
 //Controller
 	//Variable that check if the controller is plugged or not
@@ -286,6 +294,18 @@ double ypos = 0;
 static bool menuOpen = true;
 static bool enterTheGame = false;
 static bool enterTheTutorial = false;
+
+//Stats
+	//Variable that manage the stats texts
+static int enterInTheStats = 1;
+	//Stats for the doors
+static std::vector<int> statsForDoorsAtTheEnd = { 1,1,1 };
+	//Stats for keys
+static int statsForKeysAtTheEnd = 1;
+	//Stats for fruit
+static std::vector<int> statsForFruitAtTheEnd = { 1,1 };
+	//Stats for levers
+static std::vector<int> statsForLeversAtTheEnd = { 1,1,1 };
 
 stbi_uc* map;
 int mapWidth, mapHeight;
@@ -505,6 +525,7 @@ class MyProject : public BaseProject {
 
 	Object winText;
 	Object winPlayAgain;
+	Object winPlayAgainController;
 
 	Object torch;
 
@@ -521,7 +542,7 @@ class MyProject : public BaseProject {
 	Object skip;
 	Object jumpObject;
 
-	//Controller
+	//Tutorial Controller
 	Object interactionController;
 	Object movementController;
 	Object visualController;
@@ -536,6 +557,25 @@ class MyProject : public BaseProject {
 	Object welcomeTextInTheGame;
 	Object startPlayTheGame;
 	Object goToSeeTheTutorial;
+
+	//Stats
+	Object statsText;
+	Object statsObjects;
+	Object statsEnter;
+	Object statsEnterController;
+	Object statsExit;
+	Object statsExitController;
+
+	//Stats value
+	Object statsValueDoors3;
+	Object statsValueDoors4;
+	Object statsValueDoors5;
+	Object statsValueKeys;
+	Object statsValueFruit0;
+	Object statsValueFruit1;
+	Object statsValueLevers1;
+	Object statsValueLevers2;
+	Object statsValueLevers3;
 
 	DescriptorSet DS_global;
 
@@ -589,7 +629,7 @@ class MyProject : public BaseProject {
 		std::cout << "\nMovement keys:" << "\n\t Move left: A" << "\n\t Move right: D" << "\n\t Move forward: W" << "\n\t Move backward: S";
 		std::cout << "\nVisual keys:" << "\n\t Look left: Left" << "\n\t Look right: Right" << "\n\t Look forward: Top" << "\n\t Look backward: Bottom";
 		std::cout << "\nWindow keys:" << "\n\t FullScreen on and off: F11";
-		std::cout << "\nOther keys:" << "\n\t Interact with object: E" << "\n\t Restart game when ended: P" << "\n\t See again the tutorial: T\n";
+		std::cout << "\nOther keys:" << "\n\t Interact with object: E" << "\n\t Restart game when ended: P" << "\n\t See again the tutorial: T\n" << "\n\t See the stats: X\n";
 	}
 
 	// Here you load and setup all your Vulkan objects
@@ -637,6 +677,7 @@ class MyProject : public BaseProject {
 		//Win
 		objectInit(&winText, MODEL_PATH + "Win/WinText.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
 		objectInit(&winPlayAgain, MODEL_PATH + "Win/WinPlayAgain.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
+		objectInit(&winPlayAgainController, MODEL_PATH + "Win/WinPlayAgainController.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
 
 		//Torch
 		//objectInit(&torch, MODEL_PATH + "Torch/Torch.obj", TEXTURE_PATH + "Torch.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
@@ -670,6 +711,26 @@ class MyProject : public BaseProject {
 		objectInit(&welcomeTextInTheGame, MODEL_PATH + "Menu/Tutorial.obj", TEXTURE_PATH + "MenuText.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
 		objectInit(&startPlayTheGame, MODEL_PATH + "Menu/Play.obj", TEXTURE_PATH + "MenuText.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
 		objectInit(&goToSeeTheTutorial, MODEL_PATH + "Menu/StartTutorial.obj", TEXTURE_PATH + "MenuText.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
+		
+		//Stats
+		objectInit(&statsText, MODEL_PATH + "Stats/Stats.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
+		objectInit(&statsObjects, MODEL_PATH + "Stats/StatsKey.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
+		objectInit(&statsEnter, MODEL_PATH + "Stats/StatsEnter.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
+		objectInit(&statsEnterController, MODEL_PATH + "Stats/StatsEnterController.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
+		objectInit(&statsExit, MODEL_PATH + "Stats/StatsExit.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
+		objectInit(&statsExitController, MODEL_PATH + "Stats/StatsExitController.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
+
+		//Stats value
+		objectInit(&statsValueDoors3, MODEL_PATH + "Stats/StatsValueDoors3.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
+		objectInit(&statsValueDoors4, MODEL_PATH + "Stats/StatsValueDoors4.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
+		objectInit(&statsValueDoors5, MODEL_PATH + "Stats/StatsValueDoors5.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
+		objectInit(&statsValueKeys, MODEL_PATH + "Stats/StatsValueKeys.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
+		objectInit(&statsValueFruit0, MODEL_PATH + "Stats/StatsValueFruit0.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
+		objectInit(&statsValueFruit1, MODEL_PATH + "Stats/StatsValueFruit1.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
+		objectInit(&statsValueLevers1, MODEL_PATH + "Stats/StatsValueLevers1.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
+		objectInit(&statsValueLevers2, MODEL_PATH + "Stats/StatsValueLevers2.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
+		objectInit(&statsValueLevers3, MODEL_PATH + "Stats/StatsValueLevers3.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
+
 		
 		//Init of the global descriptor set used
 		descriptorSetInit(&DS_global, descriptorSetLayoutGlobal.descriptorSetLayout, descriptorSetLayoutGlobal);
@@ -739,6 +800,7 @@ class MyProject : public BaseProject {
 
 		winText.cleanup();
 		winPlayAgain.cleanup();
+		winPlayAgainController.cleanup();
 
 		torch.cleanup();
 
@@ -767,6 +829,13 @@ class MyProject : public BaseProject {
 		welcomeTextInTheGame.cleanup();
 		startPlayTheGame.cleanup();
 		goToSeeTheTutorial.cleanup();
+
+		statsText.cleanup();
+		statsObjects.cleanup();
+		statsEnter.cleanup();
+		statsEnterController.cleanup();
+		statsExit.cleanup();
+		statsExitController.cleanup();
 	}
 
 	// Here you destroy all the objects you created!		
@@ -818,6 +887,7 @@ class MyProject : public BaseProject {
 
 		drawSingleInstance(commandBuffer, currentImage, P1, winText, 1, 1);
 		drawSingleInstance(commandBuffer, currentImage, P1, winPlayAgain, 1, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, winPlayAgainController, 1, 1);
 
 		drawSingleInstance(commandBuffer, currentImage, P1, torch, 1, 1);
 
@@ -846,6 +916,23 @@ class MyProject : public BaseProject {
 		drawSingleInstance(commandBuffer, currentImage, P1, welcomeTextInTheGame, 1, 1);
 		drawSingleInstance(commandBuffer, currentImage, P1, startPlayTheGame, 1, 1);
 		drawSingleInstance(commandBuffer, currentImage, P1, goToSeeTheTutorial, 1, 1);
+
+		drawSingleInstance(commandBuffer, currentImage, P1, statsText, 1, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, statsObjects, 1, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, statsEnter, 1, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, statsEnterController, 1, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, statsExit, 1, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, statsExitController, 1, 1);
+
+		drawSingleInstance(commandBuffer, currentImage, P1, statsValueDoors3, 1, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, statsValueDoors4, 1, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, statsValueDoors5, 1, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, statsValueKeys, 1, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, statsValueFruit0, 1, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, statsValueFruit1, 1, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, statsValueLevers1, 1, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, statsValueLevers2, 1, 1);
+		drawSingleInstance(commandBuffer, currentImage, P1, statsValueLevers3, 1, 1);
 	}
 
 
@@ -988,6 +1075,7 @@ class MyProject : public BaseProject {
 		//ubo.isTaken = false;
 		ubo.roughness = 50.0f;
 		updateObject(goldKeyHoleObject, ubo, currentImage);
+
 
 
 		//Copper key
@@ -1242,7 +1330,7 @@ class MyProject : public BaseProject {
 
 
 		//Win
-		if (win) {
+		if (win && enterInTheStats != 0) {
 			ubo.model = glm::mat4(1.0f);
 		}
 		else {
@@ -1254,17 +1342,49 @@ class MyProject : public BaseProject {
 		ubo.roughness = 500.0f;
 		updateObject(winText, ubo, currentImage);
 
-		if (win) {
-			ubo.model = glm::mat4(1.0f);
+		if (win && enterInTheStats != 0) {
+			if (controllerPlugged == 1) {
+				ubo.model = glm::mat4(1.0f);
+				ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 100.0f, 0)) * ubo.model;
+				ubo.normal = glm::inverse(glm::transpose(ubo.model));
+				//ubo.isTaken = false;
+				ubo.roughness = 500.0f;
+				updateObject(winPlayAgain, ubo, currentImage);
+				ubo.model = glm::mat4(1.0f);
+				ubo.normal = glm::inverse(glm::transpose(ubo.model));
+				//ubo.isTaken = false;
+				ubo.roughness = 500.0f;
+				updateObject(winPlayAgainController, ubo, currentImage);
+			}
+			else {
+				ubo.model = glm::mat4(1.0f);
+				ubo.normal = glm::inverse(glm::transpose(ubo.model));
+				//ubo.isTaken = false;
+				ubo.roughness = 500.0f;
+				updateObject(winPlayAgain, ubo, currentImage);
+				ubo.model = glm::mat4(1.0f);
+				ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 100.0f, 0)) * ubo.model;
+				ubo.normal = glm::inverse(glm::transpose(ubo.model));
+				//ubo.isTaken = false;
+				ubo.roughness = 500.0f;
+				updateObject(winPlayAgainController, ubo, currentImage);
+			}
+			
 		}
 		else {
 			ubo.model = glm::mat4(1.0f);
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 100.0f, 0)) * ubo.model;
+			ubo.normal = glm::inverse(glm::transpose(ubo.model));
+			//ubo.isTaken = false;
+			ubo.roughness = 500.0f;
+			updateObject(winPlayAgain, ubo, currentImage);
+			ubo.model = glm::mat4(1.0f);
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 100.0f, 0)) * ubo.model;
+			ubo.normal = glm::inverse(glm::transpose(ubo.model));
+			//ubo.isTaken = false;
+			ubo.roughness = 500.0f;
+			updateObject(winPlayAgainController, ubo, currentImage);
 		}
-		ubo.normal = glm::inverse(glm::transpose(ubo.model));
-		//ubo.isTaken = false;
-		ubo.roughness = 500.0f;
-		updateObject(winPlayAgain, ubo, currentImage);
 
 
 
@@ -1343,145 +1463,330 @@ class MyProject : public BaseProject {
 			ubo.roughness = 500.0f;
 			updateObject(windowTutorial, ubo, currentImage);
 		}
-			ubo.model = glm::mat4(1.0f);
-			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElementsController[2] * 100.0f, 0)) * ubo.model;
-			ubo.normal = glm::inverse(glm::transpose(ubo.model));
-			//ubo.isTaken = false;
-			ubo.roughness = 500.0f;
-			updateObject(visualController, ubo, currentImage);
-			ubo.model = glm::mat4(1.0f);
-			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElementsController[3] * 100.0f, 0)) * ubo.model;
-			ubo.normal = glm::inverse(glm::transpose(ubo.model));
-			//ubo.isTaken = false;
-			ubo.roughness = 500.0f;
-			updateObject(movementController, ubo, currentImage);
-			ubo.model = glm::mat4(1.0f);
-			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElementsController[4] * 100.0f, 0)) * ubo.model;
-			ubo.normal = glm::inverse(glm::transpose(ubo.model));
-			//ubo.isTaken = false;
-			ubo.roughness = 500.0f;
-			updateObject(jumpController, ubo, currentImage);
-			ubo.model = glm::mat4(1.0f);
-			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElementsController[5] * 100.0f, 0)) * ubo.model;
-			ubo.normal = glm::inverse(glm::transpose(ubo.model));
-			//ubo.isTaken = false;
-			ubo.roughness = 500.0f;
-			updateObject(interactionController, ubo, currentImage);
-			ubo.model = glm::mat4(1.0f);
-			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElementsController[6] * 100.0f, 0)) * ubo.model;
-			ubo.normal = glm::inverse(glm::transpose(ubo.model));
-			//ubo.isTaken = false;
-			ubo.roughness = 500.0f;
-			updateObject(restartController, ubo, currentImage);
-			ubo.model = glm::mat4(1.0f);
-			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElementsController[7] * 100.0f, 0)) * ubo.model;
-			ubo.normal = glm::inverse(glm::transpose(ubo.model));
-			//ubo.isTaken = false;
-			ubo.roughness = 500.0f;
-			updateObject(tutorialAgainController, ubo, currentImage);
-			ubo.model = glm::mat4(1.0f);
-			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialNextElementsController[0] * 100.0f, 0)) * ubo.model;
-			ubo.normal = glm::inverse(glm::transpose(ubo.model));
-			//ubo.isTaken = false;
-			ubo.roughness = 500.0f;
-			updateObject(nextController, ubo, currentImage);
-			ubo.model = glm::mat4(1.0f);
-			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialNextElementsController[1] * 100.0f, 0)) * ubo.model;
-			ubo.normal = glm::inverse(glm::transpose(ubo.model));
-			//ubo.isTaken = false;
-			ubo.roughness = 500.0f;
-			updateObject(endController, ubo, currentImage);
-			ubo.model = glm::mat4(1.0f);
-			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, skipElementController * 100.0f, 0)) * ubo.model;
-			ubo.normal = glm::inverse(glm::transpose(ubo.model));
-			//ubo.isTaken = false;
-			ubo.roughness = 500.0f;
-			updateObject(skipController, ubo, currentImage);
+		ubo.model = glm::mat4(1.0f);
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElementsController[2] * 100.0f, 0)) * ubo.model;
+		ubo.normal = glm::inverse(glm::transpose(ubo.model));
+		//ubo.isTaken = false;
+		ubo.roughness = 500.0f;
+		updateObject(visualController, ubo, currentImage);
+		ubo.model = glm::mat4(1.0f);
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElementsController[3] * 100.0f, 0)) * ubo.model;
+		ubo.normal = glm::inverse(glm::transpose(ubo.model));
+		//ubo.isTaken = false;
+		ubo.roughness = 500.0f;
+		updateObject(movementController, ubo, currentImage);
+		ubo.model = glm::mat4(1.0f);
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElementsController[4] * 100.0f, 0)) * ubo.model;
+		ubo.normal = glm::inverse(glm::transpose(ubo.model));
+		//ubo.isTaken = false;
+		ubo.roughness = 500.0f;
+		updateObject(jumpController, ubo, currentImage);
+		ubo.model = glm::mat4(1.0f);
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElementsController[5] * 100.0f, 0)) * ubo.model;
+		ubo.normal = glm::inverse(glm::transpose(ubo.model));
+		//ubo.isTaken = false;
+		ubo.roughness = 500.0f;
+		updateObject(interactionController, ubo, currentImage);
+		ubo.model = glm::mat4(1.0f);
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElementsController[6] * 100.0f, 0)) * ubo.model;
+		ubo.normal = glm::inverse(glm::transpose(ubo.model));
+		//ubo.isTaken = false;
+		ubo.roughness = 500.0f;
+		updateObject(restartController, ubo, currentImage);
+		ubo.model = glm::mat4(1.0f);
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElementsController[7] * 100.0f, 0)) * ubo.model;
+		ubo.normal = glm::inverse(glm::transpose(ubo.model));
+		//ubo.isTaken = false;
+		ubo.roughness = 500.0f;
+		updateObject(tutorialAgainController, ubo, currentImage);
+		ubo.model = glm::mat4(1.0f);
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialNextElementsController[0] * 100.0f, 0)) * ubo.model;
+		ubo.normal = glm::inverse(glm::transpose(ubo.model));
+		//ubo.isTaken = false;
+		ubo.roughness = 500.0f;
+		updateObject(nextController, ubo, currentImage);
+		ubo.model = glm::mat4(1.0f);
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialNextElementsController[1] * 100.0f, 0)) * ubo.model;
+		ubo.normal = glm::inverse(glm::transpose(ubo.model));
+		//ubo.isTaken = false;
+		ubo.roughness = 500.0f;
+		updateObject(endController, ubo, currentImage);
+		ubo.model = glm::mat4(1.0f);
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, skipElementController * 100.0f, 0)) * ubo.model;
+		ubo.normal = glm::inverse(glm::transpose(ubo.model));
+		//ubo.isTaken = false;
+		ubo.roughness = 500.0f;
+		updateObject(skipController, ubo, currentImage);
 
-			ubo.model = glm::mat4(1.0f);
-			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[2] * 100.0f, 0)) * ubo.model;
-			ubo.normal = glm::inverse(glm::transpose(ubo.model));
-			//ubo.isTaken = false;
-			ubo.roughness = 500.0f;
-			updateObject(visual, ubo, currentImage);
-			ubo.model = glm::mat4(1.0f);
-			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[3] * 100.0f, 0)) * ubo.model;
-			ubo.normal = glm::inverse(glm::transpose(ubo.model));
-			//ubo.isTaken = false;
-			ubo.roughness = 500.0f;
-			updateObject(movement, ubo, currentImage);
-			ubo.model = glm::mat4(1.0f);
-			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[4] * 100.0f, 0)) * ubo.model;
-			ubo.normal = glm::inverse(glm::transpose(ubo.model));
-			//ubo.isTaken = false;
-			ubo.roughness = 500.0f;
-			updateObject(jumpObject, ubo, currentImage);
-			ubo.model = glm::mat4(1.0f);
-			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[5] * 100.0f, 0)) * ubo.model;
-			ubo.normal = glm::inverse(glm::transpose(ubo.model));
-			//ubo.isTaken = false;
-			ubo.roughness = 500.0f;
-			updateObject(interaction, ubo, currentImage);
-			ubo.model = glm::mat4(1.0f);
-			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[6] * 100.0f, 0)) * ubo.model;
-			ubo.normal = glm::inverse(glm::transpose(ubo.model));
-			//ubo.isTaken = false;
-			ubo.roughness = 500.0f;
-			updateObject(restart, ubo, currentImage);
-			ubo.model = glm::mat4(1.0f);
-			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[7] * 100.0f, 0)) * ubo.model;
-			ubo.normal = glm::inverse(glm::transpose(ubo.model));
-			//ubo.isTaken = false;
-			ubo.roughness = 500.0f;
-			updateObject(tutorialAgain, ubo, currentImage);
-			ubo.model = glm::mat4(1.0f);
-			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialNextElements[0] * 100.0f, 0)) * ubo.model;
-			ubo.normal = glm::inverse(glm::transpose(ubo.model));
-			//ubo.isTaken = false;
-			ubo.roughness = 500.0f;
-			updateObject(next, ubo, currentImage);
-			ubo.model = glm::mat4(1.0f);
-			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialNextElements[1] * 100.0f, 0)) * ubo.model;
-			ubo.normal = glm::inverse(glm::transpose(ubo.model));
-			//ubo.isTaken = false;
-			ubo.roughness = 500.0f;
-			updateObject(end, ubo, currentImage);
-			ubo.model = glm::mat4(1.0f);
-			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, skipElement * 100.0f, 0)) * ubo.model;
-			ubo.normal = glm::inverse(glm::transpose(ubo.model));
-			//ubo.isTaken = false;
-			ubo.roughness = 500.0f;
-			updateObject(skip, ubo, currentImage);
-
-
+		ubo.model = glm::mat4(1.0f);
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[2] * 100.0f, 0)) * ubo.model;
+		ubo.normal = glm::inverse(glm::transpose(ubo.model));
+		//ubo.isTaken = false;
+		ubo.roughness = 500.0f;
+		updateObject(visual, ubo, currentImage);
+		ubo.model = glm::mat4(1.0f);
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[3] * 100.0f, 0)) * ubo.model;
+		ubo.normal = glm::inverse(glm::transpose(ubo.model));
+		//ubo.isTaken = false;
+		ubo.roughness = 500.0f;
+		updateObject(movement, ubo, currentImage);
+		ubo.model = glm::mat4(1.0f);
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[4] * 100.0f, 0)) * ubo.model;
+		ubo.normal = glm::inverse(glm::transpose(ubo.model));
+		//ubo.isTaken = false;
+		ubo.roughness = 500.0f;
+		updateObject(jumpObject, ubo, currentImage);
+		ubo.model = glm::mat4(1.0f);
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[5] * 100.0f, 0)) * ubo.model;
+		ubo.normal = glm::inverse(glm::transpose(ubo.model));
+		//ubo.isTaken = false;
+		ubo.roughness = 500.0f;
+		updateObject(interaction, ubo, currentImage);
+		ubo.model = glm::mat4(1.0f);
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[6] * 100.0f, 0)) * ubo.model;
+		ubo.normal = glm::inverse(glm::transpose(ubo.model));
+		//ubo.isTaken = false;
+		ubo.roughness = 500.0f;
+		updateObject(restart, ubo, currentImage);
+		ubo.model = glm::mat4(1.0f);
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElements[7] * 100.0f, 0)) * ubo.model;
+		ubo.normal = glm::inverse(glm::transpose(ubo.model));
+		//ubo.isTaken = false;
+		ubo.roughness = 500.0f;
+		updateObject(tutorialAgain, ubo, currentImage);
+		ubo.model = glm::mat4(1.0f);
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialNextElements[0] * 100.0f, 0)) * ubo.model;
+		ubo.normal = glm::inverse(glm::transpose(ubo.model));
+		//ubo.isTaken = false;
+		ubo.roughness = 500.0f;
+		updateObject(next, ubo, currentImage);
+		ubo.model = glm::mat4(1.0f);
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialNextElements[1] * 100.0f, 0)) * ubo.model;
+		ubo.normal = glm::inverse(glm::transpose(ubo.model));
+		//ubo.isTaken = false;
+		ubo.roughness = 500.0f;
+		updateObject(end, ubo, currentImage);
+		ubo.model = glm::mat4(1.0f);
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, skipElement * 100.0f, 0)) * ubo.model;
+		ubo.normal = glm::inverse(glm::transpose(ubo.model));
+		//ubo.isTaken = false;
+		ubo.roughness = 500.0f;
+		updateObject(skip, ubo, currentImage);
 
 
 
-			//Menu
+
+
+		//Menu
+		ubo.model = glm::mat4(1.0f);
+		if (!menuOpen) {
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 100.0f, 0)) * ubo.model;
+		}
+		ubo.normal = glm::inverse(glm::transpose(ubo.model));
+		//ubo.isTaken = false;
+		ubo.roughness = 500.0f;
+		updateObject(welcomeTextInTheGame, ubo, currentImage);
+		ubo.model = glm::mat4(1.0f);
+		if (!menuOpen) {
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 100.0f, 0)) * ubo.model;
+		}
+		ubo.normal = glm::inverse(glm::transpose(ubo.model));
+		//ubo.isTaken = false;
+		ubo.roughness = 500.0f;
+		updateObject(goToSeeTheTutorial, ubo, currentImage);
+		ubo.model = glm::mat4(1.0f);
+		if (!menuOpen) {
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 100.0f, 0)) * ubo.model;
+		}
+		ubo.normal = glm::inverse(glm::transpose(ubo.model));
+		//ubo.isTaken = false;
+		ubo.roughness = 500.0f;
+		updateObject(startPlayTheGame, ubo, currentImage);
+
+
+
+
+
+		//Stats
+		if (win) {
 			ubo.model = glm::mat4(1.0f);
-			if (!menuOpen) {
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, enterInTheStats * 100.0f, 0)) * ubo.model;
+			ubo.normal = glm::inverse(glm::transpose(ubo.model));
+			//ubo.isTaken = false;
+			ubo.roughness = 500.0f;
+			updateObject(statsText, ubo, currentImage);
+			ubo.model = glm::mat4(1.0f);
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, enterInTheStats * 100.0f, 0)) * ubo.model;
+			ubo.normal = glm::inverse(glm::transpose(ubo.model));
+			//ubo.isTaken = false;
+			ubo.roughness = 500.0f;
+			updateObject(statsObjects, ubo, currentImage);
+			if (controllerPlugged == 1) {
+				ubo.model = glm::mat4(1.0f);
 				ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 100.0f, 0)) * ubo.model;
-			}
-			ubo.normal = glm::inverse(glm::transpose(ubo.model));
-			//ubo.isTaken = false;
-			ubo.roughness = 500.0f;
-			updateObject(welcomeTextInTheGame, ubo, currentImage);
-			ubo.model = glm::mat4(1.0f);
-			if (!menuOpen) {
+				ubo.normal = glm::inverse(glm::transpose(ubo.model));
+				//ubo.isTaken = false;
+				ubo.roughness = 500.0f;
+				updateObject(statsEnter, ubo, currentImage);
+				ubo.model = glm::mat4(1.0f);
+				ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, (1 - enterInTheStats) * 100.0f, 0)) * ubo.model;
+				ubo.normal = glm::inverse(glm::transpose(ubo.model));
+				//ubo.isTaken = false;
+				ubo.roughness = 500.0f;
+				updateObject(statsEnterController, ubo, currentImage);
+				ubo.model = glm::mat4(1.0f);
 				ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 100.0f, 0)) * ubo.model;
+				ubo.normal = glm::inverse(glm::transpose(ubo.model));
+				//ubo.isTaken = false;
+				ubo.roughness = 500.0f;
+				updateObject(statsExit, ubo, currentImage);
+				ubo.model = glm::mat4(1.0f);
+				ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, enterInTheStats * 100.0f, 0)) * ubo.model;
+				ubo.normal = glm::inverse(glm::transpose(ubo.model));
+				//ubo.isTaken = false;
+				ubo.roughness = 500.0f;
+				updateObject(statsExitController, ubo, currentImage);
 			}
-			ubo.normal = glm::inverse(glm::transpose(ubo.model));
-			//ubo.isTaken = false;
-			ubo.roughness = 500.0f;
-			updateObject(goToSeeTheTutorial, ubo, currentImage);
-			ubo.model = glm::mat4(1.0f);
-			if (!menuOpen) {
+			else {
+				ubo.model = glm::mat4(1.0f);
+				ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, (1 - enterInTheStats) * 100.0f, 0)) * ubo.model;
+				ubo.normal = glm::inverse(glm::transpose(ubo.model));
+				//ubo.isTaken = false;
+				ubo.roughness = 500.0f;
+				updateObject(statsEnter, ubo, currentImage);
+				ubo.model = glm::mat4(1.0f);
 				ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 100.0f, 0)) * ubo.model;
+				ubo.normal = glm::inverse(glm::transpose(ubo.model));
+				//ubo.isTaken = false;
+				ubo.roughness = 500.0f;
+				updateObject(statsEnterController, ubo, currentImage);
+				ubo.model = glm::mat4(1.0f);
+				ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, enterInTheStats * 100.0f, 0)) * ubo.model;
+				ubo.normal = glm::inverse(glm::transpose(ubo.model));
+				//ubo.isTaken = false;
+				ubo.roughness = 500.0f;
+				updateObject(statsExit, ubo, currentImage);
+				ubo.model = glm::mat4(1.0f);
+				ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 100.0f, 0)) * ubo.model;
+				ubo.normal = glm::inverse(glm::transpose(ubo.model));
+				//ubo.isTaken = false;
+				ubo.roughness = 500.0f;
+				updateObject(statsExitController, ubo, currentImage);
 			}
+		}
+
+		if (win && enterInTheStats != 1) {
+			ubo.model = glm::mat4(1.0f);
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, statsForDoorsAtTheEnd[0] * 100.0f, 0)) * ubo.model;
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
 			//ubo.isTaken = false;
 			ubo.roughness = 500.0f;
-			updateObject(startPlayTheGame, ubo, currentImage);
+			updateObject(statsValueDoors3, ubo, currentImage);
+			ubo.model = glm::mat4(1.0f);
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, statsForDoorsAtTheEnd[1] * 100.0f, 0)) * ubo.model;
+			ubo.normal = glm::inverse(glm::transpose(ubo.model));
+			//ubo.isTaken = false;
+			ubo.roughness = 500.0f;
+			updateObject(statsValueDoors4, ubo, currentImage);
+			ubo.model = glm::mat4(1.0f);
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, statsForDoorsAtTheEnd[2] * 100.0f, 0)) * ubo.model;
+			ubo.normal = glm::inverse(glm::transpose(ubo.model));
+			//ubo.isTaken = false;
+			ubo.roughness = 500.0f;
+			updateObject(statsValueDoors5, ubo, currentImage);
+			ubo.model = glm::mat4(1.0f);
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, statsForKeysAtTheEnd * 100.0f, 0)) * ubo.model;
+			ubo.normal = glm::inverse(glm::transpose(ubo.model));
+			//ubo.isTaken = false;
+			ubo.roughness = 500.0f;
+			updateObject(statsValueKeys, ubo, currentImage);
+			ubo.model = glm::mat4(1.0f);
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, statsForFruitAtTheEnd[0] * 100.0f, 0)) * ubo.model;
+			ubo.normal = glm::inverse(glm::transpose(ubo.model));
+			//ubo.isTaken = false;
+			ubo.roughness = 500.0f;
+			updateObject(statsValueFruit0, ubo, currentImage);
+			ubo.model = glm::mat4(1.0f);
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, statsForFruitAtTheEnd[1] * 100.0f, 0)) * ubo.model;
+			ubo.normal = glm::inverse(glm::transpose(ubo.model));
+			//ubo.isTaken = false;
+			ubo.roughness = 500.0f;
+			updateObject(statsValueFruit1, ubo, currentImage);
+			ubo.model = glm::mat4(1.0f);
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, statsForLeversAtTheEnd[0] * 100.0f, 0)) * ubo.model;
+			ubo.normal = glm::inverse(glm::transpose(ubo.model));
+			//ubo.isTaken = false;
+			ubo.roughness = 500.0f;
+			updateObject(statsValueLevers1, ubo, currentImage);
+			ubo.model = glm::mat4(1.0f);
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, statsForLeversAtTheEnd[1] * 100.0f, 0)) * ubo.model;
+			ubo.normal = glm::inverse(glm::transpose(ubo.model));
+			//ubo.isTaken = false;
+			ubo.roughness = 500.0f;
+			updateObject(statsValueLevers2, ubo, currentImage);
+			ubo.model = glm::mat4(1.0f);
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, statsForLeversAtTheEnd[2] * 100.0f, 0)) * ubo.model;
+			ubo.normal = glm::inverse(glm::transpose(ubo.model));
+			//ubo.isTaken = false;
+			ubo.roughness = 500.0f;
+			updateObject(statsValueLevers3, ubo, currentImage);
+		}
+		else if (enterInTheStats == 1) {
+			ubo.model = glm::mat4(1.0f);
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 100.0f, 0)) * ubo.model;
+			ubo.normal = glm::inverse(glm::transpose(ubo.model));
+			//ubo.isTaken = false;
+			ubo.roughness = 500.0f;
+			updateObject(statsValueDoors3, ubo, currentImage);
+			ubo.model = glm::mat4(1.0f);
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 100.0f, 0)) * ubo.model;
+			ubo.normal = glm::inverse(glm::transpose(ubo.model));
+			//ubo.isTaken = false;
+			ubo.roughness = 500.0f;
+			updateObject(statsValueDoors4, ubo, currentImage);
+			ubo.model = glm::mat4(1.0f);
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 100.0f, 0)) * ubo.model;
+			ubo.normal = glm::inverse(glm::transpose(ubo.model));
+			//ubo.isTaken = false;
+			ubo.roughness = 500.0f;
+			updateObject(statsValueDoors5, ubo, currentImage);
+			ubo.model = glm::mat4(1.0f);
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 100.0f, 0)) * ubo.model;
+			ubo.normal = glm::inverse(glm::transpose(ubo.model));
+			//ubo.isTaken = false;
+			ubo.roughness = 500.0f;
+			updateObject(statsValueKeys, ubo, currentImage);
+			ubo.model = glm::mat4(1.0f);
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 100.0f, 0)) * ubo.model;
+			ubo.normal = glm::inverse(glm::transpose(ubo.model));
+			//ubo.isTaken = false;
+			ubo.roughness = 500.0f;
+			updateObject(statsValueFruit0, ubo, currentImage);
+			ubo.model = glm::mat4(1.0f);
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 100.0f, 0)) * ubo.model;
+			ubo.normal = glm::inverse(glm::transpose(ubo.model));
+			//ubo.isTaken = false;
+			ubo.roughness = 500.0f;
+			updateObject(statsValueFruit1, ubo, currentImage);
+			ubo.model = glm::mat4(1.0f);
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 100.0f, 0)) * ubo.model;
+			ubo.normal = glm::inverse(glm::transpose(ubo.model));
+			//ubo.isTaken = false;
+			ubo.roughness = 500.0f;
+			updateObject(statsValueLevers1, ubo, currentImage);
+			ubo.model = glm::mat4(1.0f);
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 100.0f, 0)) * ubo.model;
+			ubo.normal = glm::inverse(glm::transpose(ubo.model));
+			//ubo.isTaken = false;
+			ubo.roughness = 500.0f;
+			updateObject(statsValueLevers2, ubo, currentImage);
+			ubo.model = glm::mat4(1.0f);
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 100.0f, 0)) * ubo.model;
+			ubo.normal = glm::inverse(glm::transpose(ubo.model));
+			//ubo.isTaken = false;
+			ubo.roughness = 500.0f;
+			updateObject(statsValueLevers3, ubo, currentImage);
+		}
 	}
 
 
@@ -1899,6 +2204,13 @@ class MyProject : public BaseProject {
 		keyboardInput = false;
 		firstTimeChange = false;
 		switchInput = false;
+
+		//Stats
+		enterInTheStats = 1;
+		statsForDoorsAtTheEnd = { 1,1,1 };
+		statsForKeysAtTheEnd = 1;
+		statsForFruitAtTheEnd = { 1,1 };
+		statsForLeversAtTheEnd = { 1,1,1 };
 	}
 
 	/// <summary>
@@ -2051,8 +2363,10 @@ class MyProject : public BaseProject {
 
 
 
-		//lineOfSightDirection = glm::normalize(glm::vec3(glm::rotate(glm::mat4(1), lookYaw, glm::vec3(0, 1, 0)) * glm::vec4(0, 1.0f, 0, 1.0f)) - CamPos);
-		//lineOfSightDirection = glm::normalize(glm::vec3(lookYaw, lookPitch, lookRoll) - CamPos);
+		if (doneTutorialAgain || firstTimeDoingTheTutorial || menuOpen || win) {
+			lookYaw = 0.0f;
+			lookPitch = 0.0f;
+		}
 
 
 
@@ -2078,9 +2392,64 @@ class MyProject : public BaseProject {
 			oldPos = glm::vec3(500.0f, 199.5f, -495.0f);
 			lookYaw = 0.0f;
 			lookPitch = 0.0f;
+			handleStats();
+		}
+		if (win) {
+			lookYaw = 0.0f;
+			lookPitch = 0.0f;
+			int stateXInt = glfwGetKey(window, GLFW_KEY_X);
+			if (stateXInt == GLFW_PRESS)
+			{
+				stateX = true;
+			}
+			else
+			{
+				stateX = false;
+				firstX = true;
+			}
+			if (glfwGetKey(window, GLFW_KEY_X) && firstX) {
+				if (firstX) {
+					firstX = false;
+				}
+				if (enterInTheStats == 1) {
+					enterInTheStats--;
+				}
+				else {
+					enterInTheStats++;
+				}
+			}
 		}
 	}
 	
+	/// <summary>
+	/// Handle the stats to be shown.
+	/// </summary>
+	void handleStats() {
+		int temp = 0;
+		for (int i = 0; i < 5; i++) {
+			if (doorOpenOrNot[i] == 1) {
+				temp++;
+			}
+		}
+		temp = temp - 3;
+		statsForDoorsAtTheEnd[temp] = 0;
+		temp = 0;
+		for (int i = 0; i < 3; i++) {
+			if (leverUsedAtLeastOnce[i] == 1) {
+				temp++;
+			}
+		}
+		temp = temp - 1;
+		statsForLeversAtTheEnd[temp] = 0;
+		if (powerUpTakenOrNot != 0.0f) {
+			statsForFruitAtTheEnd[1] = 0;
+		}
+		else {
+			statsForFruitAtTheEnd[0] = 0;
+		}
+		statsForKeysAtTheEnd = 0;
+	}
+
 	/// <summary>
 	/// When click F11, set full screen.
 	/// </summary>
@@ -2259,6 +2628,7 @@ class MyProject : public BaseProject {
 			doorOpenOrNot[3] = 1;
 			leverUsedOrNot[2] = 1;
 			doorAlreadyOpened[3] = 1;
+			leverUsedAtLeastOnce[2] = 1;
 		}
 		else if (leverCouldBeUsed[2] == 1 && leverUsedOrNot[2] == 1) {
 			doorOpenOrNot[3] = 0;
@@ -2269,6 +2639,7 @@ class MyProject : public BaseProject {
 			doorOpenOrNot[2] = 1;
 			leverUsedOrNot[1] = 1;
 			doorAlreadyOpened[2] = 1;
+			leverUsedAtLeastOnce[1] = 1;
 		}
 		else if (leverCouldBeUsed[1] == 1 && leverUsedOrNot[1] == 1) {
 			doorOpenOrNot[2] = 0;
@@ -2279,6 +2650,7 @@ class MyProject : public BaseProject {
 			doorOpenOrNot[0] = 1;
 			leverUsedOrNot[0] = 1;
 			doorAlreadyOpened[0] = 1;
+			leverUsedAtLeastOnce[0] = 1;
 		}
 		else if (leverCouldBeUsed[0] == 1 && leverUsedOrNot[0] == 1) {
 			doorOpenOrNot[0] = 0;
