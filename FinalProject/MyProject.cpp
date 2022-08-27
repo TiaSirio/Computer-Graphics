@@ -237,6 +237,9 @@ static bool firstF11 = true;
 static bool stateX = false;
 static bool firstX = true;
 
+static bool stateL1 = false;
+static bool firstL1 = true;
+
 //Controller
 	//Variable that check if the controller is plugged or not
 int controllerPlugged = 0;
@@ -629,7 +632,7 @@ class MyProject : public BaseProject {
 		std::cout << "\nMovement keys:" << "\n\t Move left: A" << "\n\t Move right: D" << "\n\t Move forward: W" << "\n\t Move backward: S";
 		std::cout << "\nVisual keys:" << "\n\t Look left: Left" << "\n\t Look right: Right" << "\n\t Look forward: Top" << "\n\t Look backward: Bottom";
 		std::cout << "\nWindow keys:" << "\n\t FullScreen on and off: F11";
-		std::cout << "\nOther keys:" << "\n\t Interact with object: E" << "\n\t Restart game when ended: P" << "\n\t See again the tutorial: T\n" << "\n\t See the stats: X\n";
+		std::cout << "\nOther keys:" << "\n\t Interact with object: E - Square" << "\n\t Restart game when ended: P - Share" << "\n\t See again the tutorial: T - Option" << "\n\t See the stats: X - R1\n";
 	}
 
 	// Here you load and setup all your Vulkan objects
@@ -766,7 +769,6 @@ class MyProject : public BaseProject {
 	void descriptorLayoutsCleanup() {
 		descriptorSetLayoutGlobal.cleanup();
 		descriptorSetLayoutObject.cleanup();
-		//descriptorSetLayoutText.cleanup();
 	}
 
 	void descriptorsCleanup() {
@@ -836,6 +838,16 @@ class MyProject : public BaseProject {
 		statsEnterController.cleanup();
 		statsExit.cleanup();
 		statsExitController.cleanup();
+
+		statsValueDoors3.cleanup();
+		statsValueDoors4.cleanup();
+		statsValueDoors5.cleanup();
+		statsValueKeys.cleanup();
+		statsValueFruit0.cleanup();
+		statsValueFruit1.cleanup();
+		statsValueLevers1.cleanup();
+		statsValueLevers2.cleanup();
+		statsValueLevers3.cleanup();
 	}
 
 	// Here you destroy all the objects you created!		
@@ -944,6 +956,12 @@ class MyProject : public BaseProject {
 	void updateUniformBuffer(uint32_t currentImage) {
 		//Initializae controller keys
 		initializeInputKeys();
+
+		//Handle mapping of gamepad
+		//if (controllerPlugged == 1) {
+			//glfwUpdateGamepadMappings(mappings);
+			//loadFileContents();
+		//}
 
 		//Manage menu input and logic
 		if (menuOpen) {
@@ -2395,27 +2413,45 @@ class MyProject : public BaseProject {
 			handleStats();
 		}
 		if (win) {
-			lookYaw = 0.0f;
-			lookPitch = 0.0f;
-			int stateXInt = glfwGetKey(window, GLFW_KEY_X);
-			if (stateXInt == GLFW_PRESS)
-			{
-				stateX = true;
-			}
-			else
-			{
-				stateX = false;
-				firstX = true;
-			}
-			if (glfwGetKey(window, GLFW_KEY_X) && firstX) {
-				if (firstX) {
-					firstX = false;
+			if (controllerPlugged == 1) {
+				//L1
+				if (buttons[7] == GLFW_PRESS)
+				{
+					stateL1 = true;
 				}
-				if (enterInTheStats == 1) {
-					enterInTheStats--;
+				else
+				{
+					stateL1 = false;
+					firstL1 = true;
 				}
-				else {
-					enterInTheStats++;
+				if (buttons[7] == GLFW_PRESS && firstL1) {
+					if (firstL1) {
+						firstL1 = false;
+					}
+					tutorialLogic(tutorialElementsController, tutorialNextElementsController, skipElementController, true);
+				}
+			}
+			else {
+				int stateXInt = glfwGetKey(window, GLFW_KEY_X);
+				if (stateXInt == GLFW_PRESS)
+				{
+					stateX = true;
+				}
+				else
+				{
+					stateX = false;
+					firstX = true;
+				}
+				if (glfwGetKey(window, GLFW_KEY_X) && firstX) {
+					if (firstX) {
+						firstX = false;
+					}
+					if (enterInTheStats == 1) {
+						enterInTheStats--;
+					}
+					else {
+						enterInTheStats++;
+					}
 				}
 			}
 		}
@@ -2841,6 +2877,14 @@ class MyProject : public BaseProject {
 			sizeof(ubo), 0, &data);
 		memcpy(data, &ubo, sizeof(ubo));
 		vkUnmapMemory(device, object.descriptorSets[descriptorSetInstance].uniformBuffersMemory[0][currentImage]);
+	}
+
+	void loadFileContents() {
+		std::ifstream in("controller/gamecontrollerdb.txt");
+		std::string contents((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+
+		const char* mappings = contents.c_str();
+		glfwUpdateGamepadMappings(mappings);
 	}
 };
 

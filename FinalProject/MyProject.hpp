@@ -357,6 +357,9 @@ protected:
 
 	GLFWimage images[1];
 
+	//GamePad mapping
+	//const char* mappings;
+
 	// Lesson 12
     void initWindow() {
         glfwInit();
@@ -378,9 +381,18 @@ protected:
 		//glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 
 		//Load mappings of controllers
-		//const char* mappings = load_file_contents("controller/gamecontrollerdb.txt");
+		loadFileContents();
+		//const char* mappings = load_file_contents();
 
 		//glfwUpdateGamepadMappings(mappings);
+	}
+
+	void loadFileContents() {
+		std::ifstream in("controller/gamecontrollerdb.txt");
+		std::string contents((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+
+		const char* mappings = contents.c_str();
+		glfwUpdateGamepadMappings(mappings);
 	}
 
 	static void framebufferResizeCallback(GLFWwindow* window, int width, int height) {
