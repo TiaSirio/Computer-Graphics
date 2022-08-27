@@ -382,9 +382,6 @@ protected:
 
 		//Load mappings of controllers
 		loadFileContents();
-		//const char* mappings = load_file_contents();
-
-		//glfwUpdateGamepadMappings(mappings);
 	}
 
 	void loadFileContents() {

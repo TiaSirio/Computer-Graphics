@@ -1462,13 +1462,46 @@ class MyProject : public BaseProject {
 
 		if (controllerPlugged == 1) {
 			ubo.model = glm::mat4(1.0f);
-			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElementsController[0] * 100.0f, 0)) * ubo.model;
+			if (menuOpen) {
+				ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElementsController[0] * 100.0f, 0)) * ubo.model;
+			}
+			else if (tutorialElementsController[0] == 1 && moveSlowlyTutorialController[0] > -20.01f) {
+				ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(moveSlowlyTutorialController[0], 0, 0)) * ubo.model;
+				moveSlowlyTutorial[0] -= 0.075f;
+				moveSlowlyTutorialController[0] -= 0.075f;
+				seeTheNextElementOfTutorial = false;
+			}
+			else if (tutorialElementsController[0] == 1 && moveSlowlyTutorialController[0] <= -20.01f) {
+				ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(moveSlowlyTutorialController[0], 0, 0)) * ubo.model;
+			}
+			//ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElementsController[0] * 100.0f, 0)) * ubo.model;
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
 			//ubo.isTaken = false;
 			ubo.roughness = 500.0f;
 			updateObject(tutorial, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
-			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElementsController[1] * 100.0f, 0)) * ubo.model;
+			if (menuOpen || handlePreviousPosition(1, true)) {
+				ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 100.0f, 0)) * ubo.model;
+			}
+			else if (tutorialElementsController[1] == 0 && moveSlowlyTutorialController[1] > 0.01f) {
+				ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(moveSlowlyTutorialController[1], 0, 0)) * ubo.model;
+				moveSlowlyTutorial[1] -= 0.075f;
+				moveSlowlyTutorialController[1] -= 0.075f;
+			}
+			else if (tutorialElementsController[1] == 0 && moveSlowlyTutorialController[1] <= 0.01f) {
+				ubo.model = glm::mat4(1.0f);
+				seeTheNextElementOfTutorial = true;
+			}
+			else if (tutorialElementsController[1] == 1 && moveSlowlyTutorialController[1] > -20.01f) {
+				ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(tutorialElementsController[1] * moveSlowlyTutorialController[1], 0, 0)) * ubo.model;
+				moveSlowlyTutorial[1] -= 0.075f;
+				moveSlowlyTutorialController[1] -= 0.075f;
+				seeTheNextElementOfTutorial = false;
+			}
+			else if (moveSlowlyTutorialController[1] <= -20.01f) {
+				ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(tutorialElementsController[1] * moveSlowlyTutorialController[1], 0, 0)) * ubo.model;
+			}
+			//ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElementsController[1] * 100.0f, 0)) * ubo.model;
 			ubo.normal = glm::inverse(glm::transpose(ubo.model));
 			//ubo.isTaken = false;
 			ubo.roughness = 500.0f;
@@ -1494,7 +1527,7 @@ class MyProject : public BaseProject {
 			ubo.roughness = 500.0f;
 			updateObject(tutorial, ubo, currentImage);
 			ubo.model = glm::mat4(1.0f);
-			if (menuOpen || handlePreviousPosition(1)) {
+			if (menuOpen || handlePreviousPosition(1, false)) {
 				ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 100.0f, 0)) * ubo.model;
 			}
 			else if (tutorialElements[1] == 0 && moveSlowlyTutorial[1] > 0.01f) {
@@ -1522,37 +1555,163 @@ class MyProject : public BaseProject {
 			updateObject(windowTutorial, ubo, currentImage);
 		}
 		ubo.model = glm::mat4(1.0f);
-		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElementsController[2] * 100.0f, 0)) * ubo.model;
+		if (menuOpen || handlePreviousPosition(2, true) || controllerPlugged != 1) {
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 100.0f, 0)) * ubo.model;
+		}
+		else if (tutorialElementsController[2] == 0 && moveSlowlyTutorialController[2] > 0.01f) {
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(moveSlowlyTutorialController[2], 0, 0)) * ubo.model;
+			moveSlowlyTutorial[2] -= 0.075f;
+			moveSlowlyTutorialController[2] -= 0.075f;
+		}
+		else if (tutorialElementsController[2] == 0 && moveSlowlyTutorialController[2] <= 0.01f) {
+			ubo.model = glm::mat4(1.0f);
+			seeTheNextElementOfTutorial = true;
+		}
+		else if (tutorialElementsController[2] == 1 && moveSlowlyTutorialController[2] > -20.01f) {
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(tutorialElementsController[2] * moveSlowlyTutorialController[2], 0, 0)) * ubo.model;
+			moveSlowlyTutorial[2] -= 0.075f;
+			moveSlowlyTutorialController[2] -= 0.075f;
+			seeTheNextElementOfTutorial = false;
+		}
+		else if (moveSlowlyTutorialController[2] <= -20.01f) {
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(tutorialElementsController[2] * moveSlowlyTutorialController[2], 0, 0)) * ubo.model;
+		}
+		//ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElementsController[2] * 100.0f, 0)) * ubo.model;
 		ubo.normal = glm::inverse(glm::transpose(ubo.model));
 		//ubo.isTaken = false;
 		ubo.roughness = 500.0f;
 		updateObject(visualController, ubo, currentImage);
 		ubo.model = glm::mat4(1.0f);
-		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElementsController[3] * 100.0f, 0)) * ubo.model;
+		if (menuOpen || handlePreviousPosition(3, true) || controllerPlugged != 1) {
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 100.0f, 0)) * ubo.model;
+		}
+		else if (tutorialElementsController[3] == 0 && moveSlowlyTutorialController[3] > 0.01f) {
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(moveSlowlyTutorialController[3], 0, 0)) * ubo.model;
+			moveSlowlyTutorial[3] -= 0.075f;
+			moveSlowlyTutorialController[3] -= 0.075f;
+		}
+		else if (tutorialElementsController[3] == 0 && moveSlowlyTutorialController[3] <= 0.01f) {
+			ubo.model = glm::mat4(1.0f);
+			seeTheNextElementOfTutorial = true;
+		}
+		else if (tutorialElementsController[3] == 1 && moveSlowlyTutorialController[3] > -20.01f) {
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(tutorialElementsController[3] * moveSlowlyTutorialController[3], 0, 0)) * ubo.model;
+			moveSlowlyTutorial[3] -= 0.075f;
+			moveSlowlyTutorialController[3] -= 0.075f;
+			seeTheNextElementOfTutorial = false;
+		}
+		else if (moveSlowlyTutorialController[3] <= -20.01f) {
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(tutorialElementsController[3] * moveSlowlyTutorialController[3], 0, 0)) * ubo.model;
+		}
+		//ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElementsController[3] * 100.0f, 0)) * ubo.model;
 		ubo.normal = glm::inverse(glm::transpose(ubo.model));
 		//ubo.isTaken = false;
 		ubo.roughness = 500.0f;
 		updateObject(movementController, ubo, currentImage);
 		ubo.model = glm::mat4(1.0f);
-		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElementsController[4] * 100.0f, 0)) * ubo.model;
+		if (menuOpen || handlePreviousPosition(4, true) || controllerPlugged != 1) {
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 100.0f, 0)) * ubo.model;
+		}
+		else if (tutorialElementsController[4] == 0 && moveSlowlyTutorialController[4] > 0.01f) {
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(moveSlowlyTutorialController[4], 0, 0)) * ubo.model;
+			moveSlowlyTutorial[4] -= 0.075f;
+			moveSlowlyTutorialController[4] -= 0.075f;
+		}
+		else if (tutorialElementsController[4] == 0 && moveSlowlyTutorialController[4] <= 0.01f) {
+			ubo.model = glm::mat4(1.0f);
+			seeTheNextElementOfTutorial = true;
+		}
+		else if (tutorialElementsController[4] == 1 && moveSlowlyTutorialController[4] > -20.01f) {
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(tutorialElementsController[4] * moveSlowlyTutorialController[4], 0, 0)) * ubo.model;
+			moveSlowlyTutorial[4] -= 0.075f;
+			moveSlowlyTutorialController[4] -= 0.075f;
+			seeTheNextElementOfTutorial = false;
+		}
+		else if (moveSlowlyTutorialController[4] <= -20.01f) {
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(tutorialElementsController[4] * moveSlowlyTutorialController[4], 0, 0)) * ubo.model;
+		}
+		//ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElementsController[4] * 100.0f, 0)) * ubo.model;
 		ubo.normal = glm::inverse(glm::transpose(ubo.model));
 		//ubo.isTaken = false;
 		ubo.roughness = 500.0f;
 		updateObject(jumpController, ubo, currentImage);
 		ubo.model = glm::mat4(1.0f);
-		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElementsController[5] * 100.0f, 0)) * ubo.model;
+		if (menuOpen || handlePreviousPosition(5, true) || controllerPlugged != 1) {
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 100.0f, 0)) * ubo.model;
+		}
+		else if (tutorialElementsController[5] == 0 && moveSlowlyTutorialController[5] > 0.01f) {
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(moveSlowlyTutorialController[5], 0, 0)) * ubo.model;
+			moveSlowlyTutorial[5] -= 0.075f;
+			moveSlowlyTutorialController[5] -= 0.075f;
+		}
+		else if (tutorialElementsController[5] == 0 && moveSlowlyTutorialController[5] <= 0.01f) {
+			ubo.model = glm::mat4(1.0f);
+			seeTheNextElementOfTutorial = true;
+		}
+		else if (tutorialElementsController[5] == 1 && moveSlowlyTutorialController[5] > -20.01f) {
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(tutorialElementsController[5] * moveSlowlyTutorialController[5], 0, 0)) * ubo.model;
+			moveSlowlyTutorial[5] -= 0.075f;
+			moveSlowlyTutorialController[5] -= 0.075f;
+			seeTheNextElementOfTutorial = false;
+		}
+		else if (moveSlowlyTutorialController[5] <= -20.01f) {
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(tutorialElementsController[5] * moveSlowlyTutorialController[5], 0, 0)) * ubo.model;
+		}
+		//ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElementsController[5] * 100.0f, 0)) * ubo.model;
 		ubo.normal = glm::inverse(glm::transpose(ubo.model));
 		//ubo.isTaken = false;
 		ubo.roughness = 500.0f;
 		updateObject(interactionController, ubo, currentImage);
 		ubo.model = glm::mat4(1.0f);
-		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElementsController[6] * 100.0f, 0)) * ubo.model;
+		if (menuOpen || handlePreviousPosition(6, true) || controllerPlugged != 1) {
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 100.0f, 0)) * ubo.model;
+		}
+		else if (tutorialElementsController[6] == 0 && moveSlowlyTutorialController[6] > 0.01f) {
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(moveSlowlyTutorialController[6], 0, 0)) * ubo.model;
+			moveSlowlyTutorial[6] -= 0.075f;
+			moveSlowlyTutorialController[6] -= 0.075f;
+		}
+		else if (tutorialElementsController[6] == 0 && moveSlowlyTutorialController[6] <= 0.01f) {
+			ubo.model = glm::mat4(1.0f);
+			seeTheNextElementOfTutorial = true;
+		}
+		else if (tutorialElementsController[6] == 1 && moveSlowlyTutorialController[6] > -20.01f) {
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(tutorialElementsController[6] * moveSlowlyTutorialController[6], 0, 0)) * ubo.model;
+			moveSlowlyTutorial[6] -= 0.075f;
+			moveSlowlyTutorialController[6] -= 0.075f;
+			seeTheNextElementOfTutorial = false;
+		}
+		else if (moveSlowlyTutorialController[6] <= -20.01f) {
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(tutorialElementsController[6] * moveSlowlyTutorialController[6], 0, 0)) * ubo.model;
+		}
+		//ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElementsController[6] * 100.0f, 0)) * ubo.model;
 		ubo.normal = glm::inverse(glm::transpose(ubo.model));
 		//ubo.isTaken = false;
 		ubo.roughness = 500.0f;
 		updateObject(restartController, ubo, currentImage);
 		ubo.model = glm::mat4(1.0f);
-		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElementsController[7] * 100.0f, 0)) * ubo.model;
+		if (menuOpen || handlePreviousPosition(7, true) || controllerPlugged != 1) {
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 100.0f, 0)) * ubo.model;
+		}
+		else if (tutorialElementsController[7] == 0 && moveSlowlyTutorialController[7] > 0.01f) {
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(moveSlowlyTutorialController[7], 0, 0)) * ubo.model;
+			moveSlowlyTutorial[7] -= 0.075f;
+			moveSlowlyTutorialController[7] -= 0.075f;
+		}
+		else if (tutorialElementsController[7] == 0 && moveSlowlyTutorialController[7] <= 0.01f) {
+			ubo.model = glm::mat4(1.0f);
+			seeTheNextElementOfTutorial = true;
+		}
+		else if (tutorialElementsController[7] == 1 && moveSlowlyTutorialController[7] > -20.01f) {
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(tutorialElementsController[7] * moveSlowlyTutorialController[7], 0, 0)) * ubo.model;
+			moveSlowlyTutorial[7] -= 0.075f;
+			moveSlowlyTutorialController[7] -= 0.075f;
+			seeTheNextElementOfTutorial = false;
+		}
+		else if (moveSlowlyTutorialController[7] <= -20.01f) {
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(tutorialElementsController[7] * moveSlowlyTutorialController[7], 0, 0)) * ubo.model;
+		}
+		//ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, tutorialElementsController[7] * 100.0f, 0)) * ubo.model;
 		ubo.normal = glm::inverse(glm::transpose(ubo.model));
 		//ubo.isTaken = false;
 		ubo.roughness = 500.0f;
@@ -1577,7 +1736,7 @@ class MyProject : public BaseProject {
 		updateObject(skipController, ubo, currentImage);
 
 		ubo.model = glm::mat4(1.0f);
-		if (menuOpen || handlePreviousPosition(2)) {
+		if (menuOpen || handlePreviousPosition(2, false) || controllerPlugged == 1) {
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 100.0f, 0)) * ubo.model;
 		}
 		else if (tutorialElements[2] == 0 && moveSlowlyTutorial[2] > 0.01f) {
@@ -1604,7 +1763,7 @@ class MyProject : public BaseProject {
 		ubo.roughness = 500.0f;
 		updateObject(visual, ubo, currentImage);
 		ubo.model = glm::mat4(1.0f);
-		if (menuOpen || handlePreviousPosition(3)) {
+		if (menuOpen || handlePreviousPosition(3, false) || controllerPlugged == 1) {
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 100.0f, 0)) * ubo.model;
 		}
 		else if (tutorialElements[3] == 0 && moveSlowlyTutorial[3] > 0.01f) {
@@ -1631,7 +1790,7 @@ class MyProject : public BaseProject {
 		ubo.roughness = 500.0f;
 		updateObject(movement, ubo, currentImage);
 		ubo.model = glm::mat4(1.0f);
-		if (menuOpen || handlePreviousPosition(4)) {
+		if (menuOpen || handlePreviousPosition(4, false) || controllerPlugged == 1) {
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 100.0f, 0)) * ubo.model;
 		}
 		else if (tutorialElements[4] == 0 && moveSlowlyTutorial[4] > 0.01f) {
@@ -1658,7 +1817,7 @@ class MyProject : public BaseProject {
 		ubo.roughness = 500.0f;
 		updateObject(jumpObject, ubo, currentImage);
 		ubo.model = glm::mat4(1.0f);
-		if (menuOpen || handlePreviousPosition(5)) {
+		if (menuOpen || handlePreviousPosition(5, false) || controllerPlugged == 1) {
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 100.0f, 0)) * ubo.model;
 		}
 		else if (tutorialElements[5] == 0 && moveSlowlyTutorial[5] > 0.01f) {
@@ -1685,7 +1844,7 @@ class MyProject : public BaseProject {
 		ubo.roughness = 500.0f;
 		updateObject(interaction, ubo, currentImage);
 		ubo.model = glm::mat4(1.0f);
-		if (menuOpen || handlePreviousPosition(6)) {
+		if (menuOpen || handlePreviousPosition(6, false) || controllerPlugged == 1) {
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 100.0f, 0)) * ubo.model;
 		}
 		else if (tutorialElements[6] == 0 && moveSlowlyTutorial[6] > 0.01f) {
@@ -1712,7 +1871,7 @@ class MyProject : public BaseProject {
 		ubo.roughness = 500.0f;
 		updateObject(restart, ubo, currentImage);
 		ubo.model = glm::mat4(1.0f);
-		if (menuOpen || handlePreviousPosition(7)) {
+		if (menuOpen || handlePreviousPosition(7, false) || controllerPlugged == 1) {
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 100.0f, 0)) * ubo.model;
 		}
 		else if (tutorialElements[7] == 0 && moveSlowlyTutorial[7] > 0.01f) {
@@ -1982,8 +2141,8 @@ class MyProject : public BaseProject {
 
 
 
-	bool handlePreviousPosition(int numberOfText) {
-		if (controllerPlugged == 1) {
+	bool handlePreviousPosition(int numberOfText, bool controllerLogic) {
+		if (controllerLogic) {
 			for (int i = 0; i < tutorialElementsController.size(); i++) {
 				if (i == numberOfText) {
 					break;
@@ -2050,12 +2209,17 @@ class MyProject : public BaseProject {
 		glfwGetWindowSize(window, &width, &height);
 
 		//Handle position of the mouse with the controller
-		if (controllerPlugged == 1 && xpos < width && xpos > 0) {
-			//glfwSetCursorPos(window, xpos + round(axes[2] * 10.0) / 10.0, ypos + round(axes[3] * 10.0) / 10.0);
-			glfwSetCursorPos(window, xpos + round(axes[2] * 10.0) / 10.0, height / 2);
+		if (controllerPlugged == 1 && xpos >= 0 && xpos <= width && ypos >= 0 && ypos <= height) {
+			//glfwSetCursorPos(window, xpos + axes[2], ypos + axes[3]);
+			glfwSetCursorPos(window, xpos + axes[2], height / 2);
 		}
-
-		int state = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
+		int state;
+		if (controllerPlugged == 1) {
+			state = buttons[1];
+		}
+		else {
+			state = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
+		}
 		if (xpos < width / 2) {
 			if (state == GLFW_PRESS)
 			{
@@ -2126,14 +2290,14 @@ class MyProject : public BaseProject {
 				stateTutorial = false;
 				firstTutorial = true;
 			}
-			if (buttons[2] == GLFW_PRESS && firstTutorial) {
+			if (buttons[2] == GLFW_PRESS && firstTutorial && seeTheNextElementOfTutorial) {
 				if (firstTutorial) {
 					firstTutorial = false;
 				}
 				tutorialLogic(tutorialElementsController, tutorialNextElementsController, skipElementController, true);
 			}
 			//R1
-			else if (buttons[5] == GLFW_PRESS && firstTutorial) {
+			else if (buttons[5] == GLFW_PRESS && firstTutorial && seeTheNextElementOfTutorial) {
 				if (firstTutorial) {
 					firstTutorial = false;
 				}
@@ -2174,7 +2338,7 @@ class MyProject : public BaseProject {
 				}
 				tutorialLogic(tutorialElements, tutorialNextElements, skipElement, false);
 			}
-			else if (glfwGetKey(window, GLFW_KEY_ESCAPE) && firstTutorial) {
+			else if (glfwGetKey(window, GLFW_KEY_ESCAPE) && firstTutorial && seeTheNextElementOfTutorial) {
 				if (firstTutorial) {
 					firstTutorial = false;
 				}
@@ -2608,7 +2772,7 @@ class MyProject : public BaseProject {
 		if (win) {
 			if (controllerPlugged == 1) {
 				//L1
-				if (buttons[7] == GLFW_PRESS)
+				if (buttons[4] == GLFW_PRESS)
 				{
 					stateL1 = true;
 				}
@@ -2617,11 +2781,16 @@ class MyProject : public BaseProject {
 					stateL1 = false;
 					firstL1 = true;
 				}
-				if (buttons[7] == GLFW_PRESS && firstL1) {
+				if (buttons[4] == GLFW_PRESS && firstL1) {
 					if (firstL1) {
 						firstL1 = false;
 					}
-					tutorialLogic(tutorialElementsController, tutorialNextElementsController, skipElementController, true);
+					if (enterInTheStats == 1) {
+						enterInTheStats--;
+					}
+					else {
+						enterInTheStats++;
+					}
 				}
 			}
 			else {
