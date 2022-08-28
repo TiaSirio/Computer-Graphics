@@ -965,10 +965,9 @@ protected:
 		initializeInputKeys();
 
 		//Handle mapping of gamepad
-		//if (controllerPlugged == 1) {
-			//glfwUpdateGamepadMappings(mappings);
-			//loadFileContents();
-		//}
+		/*if (controllerPlugged == 1) {
+			loadFileContents();
+		}*/
 
 		//Manage menu input and logic
 		if (menuOpen) {
@@ -987,7 +986,9 @@ protected:
 		seeTutorialAgain();
 
 		//Manage the logic to restart the game
-		restartTheGame();
+		if (!firstTimeDoingTheTutorial && !doneTutorialAgain && !menuOpen) {
+			restartTheGame();
+		}
 
 		CharacterPos = updateCameraPosition(window);
 
