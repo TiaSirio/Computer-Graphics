@@ -22,20 +22,20 @@ namespace glm
 		T const s = sin(a);
 
 		vec<3, T, Q> axis(normalize(v));
-		vec<3, T, Q> temp((T(1) - c) * axis);
+		vec<3, T, Q> roundsProgression((T(1) - c) * axis);
 
 		mat<4, 4, T, Q> Rotate;
-		Rotate[0][0] = c + temp[0] * axis[0];
-		Rotate[0][1] = temp[0] * axis[1] + s * axis[2];
-		Rotate[0][2] = temp[0] * axis[2] - s * axis[1];
+		Rotate[0][0] = c + roundsProgression[0] * axis[0];
+		Rotate[0][1] = roundsProgression[0] * axis[1] + s * axis[2];
+		Rotate[0][2] = roundsProgression[0] * axis[2] - s * axis[1];
 
-		Rotate[1][0] = temp[1] * axis[0] - s * axis[2];
-		Rotate[1][1] = c + temp[1] * axis[1];
-		Rotate[1][2] = temp[1] * axis[2] + s * axis[0];
+		Rotate[1][0] = roundsProgression[1] * axis[0] - s * axis[2];
+		Rotate[1][1] = c + roundsProgression[1] * axis[1];
+		Rotate[1][2] = roundsProgression[1] * axis[2] + s * axis[0];
 
-		Rotate[2][0] = temp[2] * axis[0] + s * axis[1];
-		Rotate[2][1] = temp[2] * axis[1] - s * axis[0];
-		Rotate[2][2] = c + temp[2] * axis[2];
+		Rotate[2][0] = roundsProgression[2] * axis[0] + s * axis[1];
+		Rotate[2][1] = roundsProgression[2] * axis[1] - s * axis[0];
+		Rotate[2][2] = c + roundsProgression[2] * axis[2];
 
 		mat<4, 4, T, Q> Result;
 		Result[0] = m[0] * Rotate[0][0] + m[1] * Rotate[0][1] + m[2] * Rotate[0][2];

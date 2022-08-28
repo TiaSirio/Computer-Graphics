@@ -222,10 +222,10 @@ namespace glm
 		GLM_STATIC_ASSERT(std::numeric_limits<T>::is_iec559, "'next_float' only accept floating-point input");
 		assert(ULPs >= 0);
 
-		T temp = x;
+		T roundsProgression = x;
 		for(int i = 0; i < ULPs; ++i)
-			temp = next_float(temp);
-		return temp;
+			roundsProgression = next_float(roundsProgression);
+		return roundsProgression;
 	}
 
 	GLM_FUNC_QUALIFIER float prev_float(float x)
@@ -260,10 +260,10 @@ namespace glm
 		GLM_STATIC_ASSERT(std::numeric_limits<T>::is_iec559, "'prev_float' only accept floating-point input");
 		assert(ULPs >= 0);
 
-		T temp = x;
+		T roundsProgression = x;
 		for(int i = 0; i < ULPs; ++i)
-			temp = prev_float(temp);
-		return temp;
+			roundsProgression = prev_float(roundsProgression);
+		return roundsProgression;
 	}
 
 	GLM_FUNC_QUALIFIER int float_distance(float x, float y)

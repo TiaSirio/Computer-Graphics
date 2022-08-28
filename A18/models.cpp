@@ -11,6 +11,13 @@ std::vector<Vertex> M2_vertices;
 std::vector<Vertex> M3_vertices;
 std::vector<Vertex> M4_vertices;
 
+/// <summary>
+/// Retrieve the normal, given three vector
+/// </summary>
+/// <param name="vector0"></param>
+/// <param name="vector1"></param>
+/// <param name="vector2"></param>
+/// <returns>Return the correct normal</returns>
 glm::vec3 surface_normal(glm::vec3 vector0, glm::vec3 vector1, glm::vec3 vector2) {
 	glm::vec3 v1 = vector1 - vector0;
 	glm::vec3 v2 = vector2 - vector0;
@@ -31,7 +38,7 @@ void makeModels() {
 	// Resizes the vertices array. Repalce the values with the correct number of
 	// vertices
 
-	// Bottom face(y = -1.0f)
+	//Bottom face(y = -1.0f)
 	M1_vertices[arrayOfCube].pos = glm::vec3(-sizeCube, -sizeCube, sizeCube);
 	arrayOfCube++;
 	M1_vertices[arrayOfCube].pos = glm::vec3(sizeCube, -sizeCube, sizeCube);
@@ -49,7 +56,7 @@ void makeModels() {
 	M1_vertices[arrayOfCube - 2].norm = surface_normal(M1_vertices[arrayOfCube - 2].pos, M1_vertices[arrayOfCube - 3].pos, M1_vertices[arrayOfCube - 1].pos);
 	M1_vertices[arrayOfCube - 3].norm = surface_normal(M1_vertices[arrayOfCube - 3].pos, M1_vertices[arrayOfCube - 1].pos, M1_vertices[arrayOfCube - 2].pos);
 
-	// Top face (y = 1.0f)
+	//Top face (y = 1.0f)
 	M1_vertices[arrayOfCube].pos = glm::vec3(-sizeCube, sizeCube, -sizeCube);
 	arrayOfCube++;
 	M1_vertices[arrayOfCube].pos = glm::vec3(sizeCube, sizeCube, -sizeCube);
@@ -67,7 +74,7 @@ void makeModels() {
 	M1_vertices[arrayOfCube - 2].norm = surface_normal(M1_vertices[arrayOfCube - 2].pos, M1_vertices[arrayOfCube - 3].pos, M1_vertices[arrayOfCube - 1].pos);
 	M1_vertices[arrayOfCube - 3].norm = surface_normal(M1_vertices[arrayOfCube - 3].pos, M1_vertices[arrayOfCube - 1].pos, M1_vertices[arrayOfCube - 2].pos);
 
-	// Back face  (z = -1.0f)
+	//Back face (z = -1.0f)
 	M1_vertices[arrayOfCube].pos = glm::vec3(-sizeCube, -sizeCube, -sizeCube);
 	arrayOfCube++;
 	M1_vertices[arrayOfCube].pos = glm::vec3(sizeCube, -sizeCube, -sizeCube);
@@ -85,7 +92,7 @@ void makeModels() {
 	M1_vertices[arrayOfCube - 2].norm = surface_normal(M1_vertices[arrayOfCube - 2].pos, M1_vertices[arrayOfCube - 3].pos, M1_vertices[arrayOfCube - 1].pos);
 	M1_vertices[arrayOfCube - 3].norm = surface_normal(M1_vertices[arrayOfCube - 3].pos, M1_vertices[arrayOfCube - 1].pos, M1_vertices[arrayOfCube - 2].pos);
 
-	// Front face (z = 1.0f)
+	//Front face (z = 1.0f)
 	M1_vertices[arrayOfCube].pos = glm::vec3(-sizeCube, sizeCube, sizeCube);
 	arrayOfCube++;
 	M1_vertices[arrayOfCube].pos = glm::vec3(sizeCube, sizeCube, sizeCube);
@@ -103,7 +110,7 @@ void makeModels() {
 	M1_vertices[arrayOfCube - 2].norm = surface_normal(M1_vertices[arrayOfCube - 2].pos, M1_vertices[arrayOfCube - 3].pos, M1_vertices[arrayOfCube - 1].pos);
 	M1_vertices[arrayOfCube - 3].norm = surface_normal(M1_vertices[arrayOfCube - 3].pos, M1_vertices[arrayOfCube - 1].pos, M1_vertices[arrayOfCube - 2].pos);
 
-	// Right face (x = 1.0f)
+	//Right face (x = 1.0f)
 	M1_vertices[arrayOfCube].pos = glm::vec3(sizeCube, -sizeCube, -sizeCube);
 	arrayOfCube++;
 	M1_vertices[arrayOfCube].pos = glm::vec3(sizeCube, -sizeCube, sizeCube);
@@ -121,7 +128,7 @@ void makeModels() {
 	M1_vertices[arrayOfCube - 2].norm = surface_normal(M1_vertices[arrayOfCube - 2].pos, M1_vertices[arrayOfCube - 3].pos, M1_vertices[arrayOfCube - 1].pos);
 	M1_vertices[arrayOfCube - 3].norm = surface_normal(M1_vertices[arrayOfCube - 3].pos, M1_vertices[arrayOfCube - 1].pos, M1_vertices[arrayOfCube - 2].pos);
 
-	// Left face (x = -1.0f)
+	//Left face (x = -1.0f)
 	M1_vertices[arrayOfCube].pos = glm::vec3(-sizeCube, -sizeCube, sizeCube);
 	arrayOfCube++;
 	M1_vertices[arrayOfCube].pos = glm::vec3(-sizeCube, -sizeCube, -sizeCube);
@@ -150,7 +157,7 @@ void makeModels() {
 	for (int i = 0; i < 6; i++) {
 		startingOfFace = indicesCube;
 		for (int j = 0; j < 6; j++) {
-			//Take last two points
+			//For the first three value takes three points
 			if (j < 3) {
 				M1_indices[valueOfCubeIndices] = indicesCube;
 				indicesCube++;
@@ -160,7 +167,7 @@ void makeModels() {
 				M1_indices[valueOfCubeIndices] = startingOfFace;
 				indicesCube = startingOfFace + 4;
 			}
-			//For the first three value takes three points
+			//Take last two points
 			else {
 				M1_indices[valueOfCubeIndices] = indicesCube - 1;
 				indicesCube++;
@@ -187,23 +194,19 @@ void makeModels() {
 	// Resizes the vertices array. Repalce the values with the correct number of
 	// vertices
 	M2_vertices[0].pos = glm::vec3(xCylinder, yCylinder + heightCylinder, zCylinder);
-	//M2_vertices[0].norm = glm::vec3(0.0, 1.0, 0.0);
 
 	for (int i = 0; i < slicesCylinder; i++) {
 		M2_vertices[(i + 1)].pos = glm::vec3(xCylinder + radiusCylinder * cos(((float)i / slicesCylinder) * (2.0 * M_PI)), yCylinder + heightCylinder, zCylinder + radiusCylinder * sin(((float)i / slicesCylinder) * (2.0 * M_PI)));
-		//M2_vertices[(i + 1)].norm = glm::vec3(0.0, 1.0, 0.0);
 	}
 
 	M2_vertices[(slicesCylinder + 1)].pos = glm::vec3(xCylinder, yCylinder - heightCylinder, zCylinder);
-	//M2_vertices[(slicesCylinder + 1)].norm = glm::vec3(0.0, -1.0, 0.0);
 
 	for (int i = slicesCylinder + 1; i < (2 * slicesCylinder) + 1; i++) {
 		M2_vertices[(i + 1)].pos = glm::vec3(xCylinder + radiusCylinder * cos(((float)i / slicesCylinder) * (2.0 * M_PI)), yCylinder - heightCylinder, zCylinder + radiusCylinder * sin(((float)i / slicesCylinder) * (2.0 * M_PI)));
-		//M2_vertices[(i + 1)].norm = glm::vec3(0.0, -1.0, 0.0);
 	}
 
 
-	//One full rotation for the upper part
+	//One full rotation for the upper part (not vertical norm)
 	for (int i = (2 * slicesCylinder) + 1; i < (slicesCylinder * 3) + 1; i++) {
 		M2_vertices[(i + 1)].pos = glm::vec3(xCylinder + radiusCylinder * cos(((float)i / slicesCylinder) * (2.0 * M_PI)), yCylinder + heightCylinder, zCylinder + radiusCylinder * sin(((float)i / slicesCylinder) * (2.0 * M_PI)));
 		normCx = cos(((float)i / slicesCylinder) * (2.0 * M_PI));
@@ -211,7 +214,7 @@ void makeModels() {
 		M2_vertices[(i + 1)].norm = glm::vec3(normCx, 0.0, normCz);
 	}
 
-	//One full rotation for the lower part
+	//One full rotation for the lower part (not vertical norm)
 	for (int i = (slicesCylinder * 3) + 1; i < (slicesCylinder * 4) + 1; i++) {
 		M2_vertices[(i + 1)].pos = glm::vec3(xCylinder + radiusCylinder * cos(((float)i / slicesCylinder) * (2.0 * M_PI)), yCylinder - heightCylinder, zCylinder + radiusCylinder * sin(((float)i / slicesCylinder) * (2.0 * M_PI)));
 		normCx = cos(((float)i / slicesCylinder) * (2.0 * M_PI));
@@ -230,6 +233,7 @@ void makeModels() {
 	int valueIfCylinder = 0;
 
 	//Upper surface
+	//Indices + norm
 	for (int i = 0; i < slicesCylinder; i++) {
 		M2_indices[(i * 3) + 0] = 0;
 		M2_indices[(i * 3) + 1] = i + 1;
@@ -247,6 +251,7 @@ void makeModels() {
 	counterCylinder = slicesCylinder + 1;
 
 	//Lower surface
+	//Indices + norm
 	for (int i = slicesCylinder; i < 2 * slicesCylinder; i++) {
 		M2_indices[(i * 3) + 0] = slicesCylinder + 1;
 		M2_indices[(i * 3) + 1] = counterCylinder + 1;
@@ -273,6 +278,7 @@ void makeModels() {
 	counterCylinder = (2 * slicesCylinder) + 1;
 
 	//Triangles of the cylinder
+	//Indices (norm already calculated)
 	for (int i = 2 * slicesCylinder; i < 3 * slicesCylinder; i++) {
 		M2_indices[(i * 3) + 0] = counterCylinder + 1;
 		if (counterCylinder != (3 * slicesCylinder)) {
@@ -300,6 +306,7 @@ void makeModels() {
 	counter2Cylinder = (2 * slicesCylinder) + 1;
 
 	//Triangles of the cylinder
+	//Indices (norm already calculated)
 	for (int i = 3 * slicesCylinder; i < 4 * slicesCylinder; i++) {
 		M2_indices[(i * 3) + 0] = counterCylinder + 1;
 		if (counterCylinder == (4 * slicesCylinder)) {
@@ -369,6 +376,7 @@ void makeModels() {
 			yCircle = xAndyCircle * sin(sectorAngleCircle);
 			M3_vertices[valueOfArrayCircle].pos = glm::vec3(xCircle, yCircle, zCircle);
 
+			//Calculate the norm
 			xNormCircle = xCircle / radiusCircle;
 			yNormCircle = yCircle / radiusCircle;
 			zNormCircle = zCircle / radiusCircle;
@@ -381,8 +389,6 @@ void makeModels() {
 	// Resizes the indices array. Repalce the values with the correct number of
 	// indices (3 * number of triangles)
 	M3_indices.resize(3 * stackCountCricle * 2 * sectorCountCircle);
-
-	int valueIfCircle1, valueIfCircle2, valueIfCircle3;
 
 	for (int i = 0; i < stackCountCricle; ++i)
 	{
@@ -401,11 +407,7 @@ void makeModels() {
 				valueOfSecondArrayCircle++;
 				M3_indices[valueOfSecondArrayCircle] = currentStackCircle + 1;
 				valueOfSecondArrayCircle++;
-				//valueIfCircle1 = k1Circle;
-				//valueIfCircle2 = k2Circle;
-				//valueIfCircle3 = k1Circle + 1;
 			}
-
 			if (i != (stackCountCricle - 1))
 			{
 				M3_indices[valueOfSecondArrayCircle] = currentStackCircle + 1;
@@ -414,24 +416,7 @@ void makeModels() {
 				valueOfSecondArrayCircle++;
 				M3_indices[valueOfSecondArrayCircle] = nextStackCircle + 1;
 				valueOfSecondArrayCircle++;
-				//valueIfCircle1 = k1Circle + 1;
-				//valueIfCircle2 = k2Circle;
-				//valueIfCircle3 = k2Circle + 1;
 			}
-
-			/*firstCyl = M3_vertices[valueIfCircle1].pos;
-			secondCyl = M3_vertices[valueIfCircle2].pos;
-			thirdCyl = M3_vertices[valueIfCircle3].pos;
-
-			if (M3_vertices[valueIfCircle1].norm[0] == NULL) {
-				M3_vertices[valueIfCircle1].norm = surface_normal(firstCyl, secondCyl, thirdCyl);
-			}
-			if (M3_vertices[valueIfCircle2].norm[0] == NULL) {
-				M3_vertices[valueIfCircle2].norm = surface_normal(secondCyl, thirdCyl, firstCyl);
-			}
-			if (M3_vertices[valueIfCircle3].norm[0] == NULL) {
-				M3_vertices[valueIfCircle3].norm = surface_normal(thirdCyl, firstCyl, secondCyl);
-			}*/
 		}
 	}
 
@@ -439,7 +424,7 @@ void makeModels() {
 
 
 
-	const int slicesSpring = 10;//32;
+	const int slicesSpring = 10;
 	const int stepSpring = 3;
 	float internalSpringRadius = 0.24f;
 	float roundsSpring = 3.0f;
@@ -449,7 +434,7 @@ void makeModels() {
 	float totalSpringRadius = 0.8f;
 	bool firstIterationSpring = true;
 
-	float temp = 0.0f;
+	float roundsProgression = 0.0f;
 	float uSpringValue = 0.0f;
 	float vSpringValue = 0.0f;
 	float intermediateValueForXY = 0.0f;
@@ -457,7 +442,7 @@ void makeModels() {
 
 	//Add two comodity vertices + vertices for the spring + different vertices for the two plain surfaces (done to have different normal vectors)
 	M4_vertices.resize(3 * ((slicesSpring * (roundsSpring * 360 + stepSpring + slicesSpring))) + (3 * 2) + (3 * 2 * (slicesSpring + 1)));
-	//Indices for double spring rotation and for double plain surface
+	//Indices for double spring rotation plus indices for double plain surface
 	M4_indices.resize(2 * 3 * ((slicesSpring * ((roundsSpring * 360 + stepSpring + 1) + slicesSpring + 1)) / stepSpring) + (3 * 2 * (slicesSpring + 1)));
 
 	for (int i = -slicesSpring; i <= roundsSpring * 360 + stepSpring; i += stepSpring)
@@ -467,28 +452,29 @@ void makeModels() {
 		}
 		for (int j = 0; j < slicesSpring; j++)
 		{
-			temp = (float(i) / 360) + (float(j) / slicesSpring) * (stepSpring / 360);
-			temp = glm::max(0.0f, glm::min(float(roundsSpring), temp));
+			roundsProgression = (float(i) / 360) + (float(j) / slicesSpring) * (stepSpring / 360);
+			roundsProgression = glm::max(0.0f, glm::min(float(roundsSpring), roundsProgression));
 			//u in [0, 2*n*pi)
-			uSpringValue = temp * M_PI * 2;
+			uSpringValue = roundsProgression * M_PI * 2;
 			//v in [0, 2*pi)
 			vSpringValue = float(j) / slicesSpring * M_PI * 2;
 			//Intermediate value = R + (r * cos(v))
 			intermediateValueForXY = totalSpringRadius + internalSpringRadius * cos(vSpringValue);
 			if (firstIterationSpring) {
-				M4_vertices[valueOfArraySpring].pos = glm::vec3(intermediateValueForXY * cos(uSpringValue), intermediateValueForXY * sin(uSpringValue), internalSpringRadius * sin(vSpringValue) + heightSpring * temp / roundsSpring);
+				//For the third value I add the height * the percentage to end the spring
+				M4_vertices[valueOfArraySpring].pos = glm::vec3(intermediateValueForXY * cos(uSpringValue), intermediateValueForXY * sin(uSpringValue), internalSpringRadius * sin(vSpringValue) + heightSpring * roundsProgression / roundsSpring);
 				valueOfArraySpring++;
 				firstIterationSpring = false;
 			}
 			//x(u,v) = (R + (r * cos(v))) * cos(u)
 			//y(u,v) = (R + (r * cos(v))) * sin(u)
-			//z(u,v) = (r * sin(v)) + (h * temp)/rounds
-			M4_vertices[valueOfArraySpring].pos = glm::vec3(intermediateValueForXY * cos(uSpringValue), intermediateValueForXY * sin(uSpringValue), internalSpringRadius * sin(vSpringValue) + heightSpring * temp / roundsSpring);
+			//z(u,v) = (r * sin(v)) + (h * roundsProgr) / rounds
+			M4_vertices[valueOfArraySpring].pos = glm::vec3(intermediateValueForXY * cos(uSpringValue), intermediateValueForXY * sin(uSpringValue), internalSpringRadius * sin(vSpringValue) + heightSpring * roundsProgression / roundsSpring);
 			valueOfArraySpring++;
 		}
 	}
 
-	M4_vertices[valueOfArraySpring].pos = glm::vec3(intermediateValueForXY * cos(uSpringValue), intermediateValueForXY * sin(uSpringValue), internalSpringRadius * sin(vSpringValue) + heightSpring * temp / roundsSpring);
+	M4_vertices[valueOfArraySpring].pos = glm::vec3(intermediateValueForXY * cos(uSpringValue), intermediateValueForXY * sin(uSpringValue), internalSpringRadius * sin(vSpringValue) + heightSpring * roundsProgression / roundsSpring);
 
 	int valueSpring1, valueSpring2, valueSpring3;
 	int valueOfArrayForPlainSurfaces = valueOfArraySpring + 2;
@@ -502,20 +488,22 @@ void makeModels() {
 	//Created new points in order to have a distinct surface and have normal vectors pointing perpendicular to it
 	for (int j = 0; j < slicesSpring; j++)
 	{
-		temp = (float(-slicesSpring) / 360) + (float(j) / slicesSpring) * (stepSpring / 360);
-		temp = glm::max(0.0f, glm::min(float(roundsSpring), temp));
-		uSpringValue = temp * M_PI * 2;
+		roundsProgression = (float(-slicesSpring) / 360) + (float(j) / slicesSpring) * (stepSpring / 360);
+		roundsProgression = glm::max(0.0f, glm::min(float(roundsSpring), roundsProgression));
+		uSpringValue = roundsProgression * M_PI * 2;
 		vSpringValue = float(j) / slicesSpring * M_PI * 2;
 		intermediateValueForXY = totalSpringRadius + internalSpringRadius * cos(vSpringValue);
 		if (firstIterationSpring) {
-			M4_vertices[valueOfArrayForPlainSurfaces].pos = glm::vec3(intermediateValueForXY * cos(uSpringValue), intermediateValueForXY * sin(uSpringValue), internalSpringRadius * sin(vSpringValue) + heightSpring * temp / roundsSpring);
+			M4_vertices[valueOfArrayForPlainSurfaces].pos = glm::vec3(intermediateValueForXY * cos(uSpringValue), intermediateValueForXY * sin(uSpringValue), internalSpringRadius * sin(vSpringValue) + heightSpring * roundsProgression / roundsSpring);
 			valueOfArrayForPlainSurfaces++;
 			firstIterationSpring = false;
 		}
-		M4_vertices[valueOfArrayForPlainSurfaces].pos = glm::vec3(intermediateValueForXY * cos(uSpringValue), intermediateValueForXY * sin(uSpringValue), internalSpringRadius * sin(vSpringValue) + heightSpring * temp / roundsSpring);
+		M4_vertices[valueOfArrayForPlainSurfaces].pos = glm::vec3(intermediateValueForXY * cos(uSpringValue), intermediateValueForXY * sin(uSpringValue), internalSpringRadius * sin(vSpringValue) + heightSpring * roundsProgression / roundsSpring);
 		valueOfArrayForPlainSurfaces++;
 	}
 
+	//First plain surface
+	//Indices + norm
 	for (int i = 0; i < slicesSpring; i++)
 	{
 		//Cycle keeping one value unchanged
@@ -550,20 +538,22 @@ void makeModels() {
 	//Created new points in order to have a distinct surface and have normal vectors pointing perpendicular to it
 	for (int j = 0; j < slicesSpring; j++)
 	{
-		temp = (float(valueToStoreForSecondsurface) / 360) + (float(j) / slicesSpring) * (stepSpring / 360);
-		temp = glm::max(0.0f, glm::min(float(roundsSpring), temp));
-		uSpringValue = temp * M_PI * 2;
+		roundsProgression = (float(valueToStoreForSecondsurface) / 360) + (float(j) / slicesSpring) * (stepSpring / 360);
+		roundsProgression = glm::max(0.0f, glm::min(float(roundsSpring), roundsProgression));
+		uSpringValue = roundsProgression * M_PI * 2;
 		vSpringValue = float(j) / slicesSpring * M_PI * 2;
 		intermediateValueForXY = totalSpringRadius + internalSpringRadius * cos(vSpringValue);
 		if (firstIterationSpring) {
-			M4_vertices[valueOfArrayForPlainSurfaces].pos = glm::vec3(intermediateValueForXY * cos(uSpringValue), intermediateValueForXY * sin(uSpringValue), internalSpringRadius * sin(vSpringValue) + heightSpring * temp / roundsSpring);
+			M4_vertices[valueOfArrayForPlainSurfaces].pos = glm::vec3(intermediateValueForXY * cos(uSpringValue), intermediateValueForXY * sin(uSpringValue), internalSpringRadius * sin(vSpringValue) + heightSpring * roundsProgression / roundsSpring);
 			valueOfArrayForPlainSurfaces++;
 			firstIterationSpring = false;
 		}
-		M4_vertices[valueOfArrayForPlainSurfaces].pos = glm::vec3(intermediateValueForXY * cos(uSpringValue), intermediateValueForXY * sin(uSpringValue), internalSpringRadius * sin(vSpringValue) + heightSpring * temp / roundsSpring);
+		M4_vertices[valueOfArrayForPlainSurfaces].pos = glm::vec3(intermediateValueForXY * cos(uSpringValue), intermediateValueForXY * sin(uSpringValue), internalSpringRadius * sin(vSpringValue) + heightSpring * roundsProgression / roundsSpring);
 		valueOfArrayForPlainSurfaces++;
 	}
 
+	//Second plain surface
+	//Indices + norm
 	for (int i = 0; i < slicesSpring; i++)
 	{
 		//Cycle keeping one value unchanged
@@ -588,7 +578,7 @@ void makeModels() {
 	}
 
 	//First part of the spring
-	//for (int i = 0; i <= ((slicesSpring * ((roundsSpring * 360 + stepSpring) + slicesSpring - stepSpring + 1)) / stepSpring); i++)
+	//Indices + norm
 	for (int i = 0; i <= ((slicesSpring * ((roundsSpring * 360 + stepSpring) + slicesSpring - 1)) / stepSpring); i++)
 	{
 		//Take two value after a full turn
@@ -614,10 +604,10 @@ void makeModels() {
 	}
 
 	//Second part of the spring
-	//for (int i = 0; i <= ((slicesSpring * ((roundsSpring * 360 + stepSpring) + slicesSpring - stepSpring + 1)) / stepSpring); i++)
+	//Indices + norm
 	for (int i = 0; i <= ((slicesSpring * ((roundsSpring * 360 + stepSpring) + slicesSpring - 1)) / stepSpring); i++)
 	{
-		//For the last value i take the norm correspondent to slicesSpring precedent
+		//For the last value i take the norm correspondent to slicesSpring precedent, in order to have the correct norm
 		if (i == ((slicesSpring * ((roundsSpring * 360 + stepSpring) + slicesSpring - 1)) / stepSpring)) {
 			//Take two value in the actual turn
 			M4_indices[valueOfSecondArraySpring] = i;

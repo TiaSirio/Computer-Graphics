@@ -229,7 +229,7 @@ void makeModels() {
 		//First and last vertices have the same position
 		for (int j = 0; j <= sectorCountCircle; ++j)
 		{
-			// starting from 0 to 2pi
+			//Starting from 0 to 2pi
 			sectorAngleCircle = j * sectorStepCircle;
 
 			//r * cos(theta) * cos(phi)
@@ -289,24 +289,26 @@ void makeModels() {
 	float totalSpringRadius = 0.8f;
 	bool firstIteration = true;
 
-	float temp = 0.0f;
+	float roundsProgression = 0.0f;
 	float uSpringValue = 0.0f;
 	float vSpringValue = 0.0f;
 	float intermediateValueForXY = 0.0f;
 
 	//Add two comodity vertices
 	M4_vertices.resize(3 * (slices * (rounds * 360 + step)) + 3 * 2);
-	//Indices for double spring rotation and for double plain surface
+	//Indices for double spring rotation plus indices for double plain surface
 	M4_indices.resize((2 * 3 * ((slices * (rounds * 360 + step + slices)) / step)) + 2 * 3 * slices);
 
 	for (int i = -slices; i <= rounds * 360 + step; i += step)
 	{
 		for (int j = 0; j < slices; j++)
 		{
-			temp = float(i) / 360 + float(j) / slices * step / 360;
-			temp = glm::max(0.0f, glm::min(float(rounds), temp));
+			//Progression of the rounds
+			roundsProgression = float(i) / 360 + float(j) / slices * step / 360;
+			roundsProgression = glm::max(0.0f, glm::min(float(rounds), roundsProgression));
+			//std::cout << roundsProgression << "\n";
 			//u in [0, 2*n*pi)
-			uSpringValue = temp * M_PI * 2;
+			uSpringValue = 2 * roundsProgression * M_PI;
 			//v in [0, 2*pi)
 			vSpringValue = float(j) / slices * M_PI * 2;
 			//Intermediate value = R + (r * cos(v))
@@ -315,7 +317,8 @@ void makeModels() {
 			if (firstIteration) {
 				M4_vertices[(valueOfArray * 3) + 0] = intermediateValueForXY * cos(uSpringValue);
 				M4_vertices[(valueOfArray * 3) + 1] = intermediateValueForXY * sin(uSpringValue);
-				M4_vertices[(valueOfArray * 3) + 2] = internalSpringRadius * sin(vSpringValue) + heightSpring * temp / rounds;
+				//Add the height * the percentage to end the spring
+				M4_vertices[(valueOfArray * 3) + 2] = internalSpringRadius * sin(vSpringValue) + heightSpring * roundsProgression / rounds;
 				valueOfArray++;
 				firstIteration = false;
 			}
@@ -323,13 +326,8 @@ void makeModels() {
 			M4_vertices[(valueOfArray * 3) + 0] = intermediateValueForXY * cos(uSpringValue);
 			//y(u,v) = (R + (r * cos(v))) * sin(u)
 			M4_vertices[(valueOfArray * 3) + 1] = intermediateValueForXY * sin(uSpringValue);
-			
-			//Per una molla a foglio
-			//M4_vertices[(valueOfArray * 3) + 0] = cos(a1);
-			//M4_vertices[(valueOfArray * 3) + 1] = sin(a1);
-
-			//z(u,v) = (r * sin(v)) + (h * temp)/rounds
-			M4_vertices[(valueOfArray * 3) + 2] = internalSpringRadius * sin(vSpringValue) + heightSpring * temp / rounds;
+			//z(u,v) = (r * sin(v)) + (h * roundProgr) / rounds
+			M4_vertices[(valueOfArray * 3) + 2] = internalSpringRadius * sin(vSpringValue) + heightSpring * roundsProgression / rounds;
 			valueOfArray++;
 		}
 	}
@@ -337,7 +335,7 @@ void makeModels() {
 	//Last done to iterate in order to create the second plain surface
 	M4_vertices[(valueOfArray * 3) + 0] = intermediateValueForXY * cos(uSpringValue);
 	M4_vertices[(valueOfArray * 3) + 1] = intermediateValueForXY * sin(uSpringValue);
-	M4_vertices[(valueOfArray * 3) + 2] = internalSpringRadius * sin(vSpringValue) + heightSpring * temp / rounds;
+	M4_vertices[(valueOfArray * 3) + 2] = internalSpringRadius * sin(vSpringValue) + heightSpring * roundsProgression / rounds;
 
 	//First plain surface
 	for (int i = 1; i <= slices; ++i)

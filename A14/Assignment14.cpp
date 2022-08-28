@@ -235,6 +235,18 @@ private:
 
         vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.capabilities);
 
+        std::cout << "Capabilities:\n";
+        std::cout << "\tMin image count: " << details.capabilities.minImageCount << "\n";
+        std::cout << "\tMax image count: " << details.capabilities.maxImageCount << "\n";
+        //std::cout << "\tCurrent extent: " << details.capabilities.currentExtent << "\n";
+        //std::cout << "\tMin image extent: " << details.capabilities.minImageExtent << "\n";
+        //std::cout << "\Max image extent: " << details.capabilities.maxImageExtent << "\n";
+        std::cout << "\tMax image array layers: " << details.capabilities.maxImageArrayLayers << "\n";
+        std::cout << "\tSupported transforms: " << details.capabilities.supportedTransforms << "\n";
+        std::cout << "\tCurrent transforms: " << details.capabilities.currentTransform << "\n";
+        std::cout << "\tSupported composite alpha: " << details.capabilities.supportedCompositeAlpha << "\n";
+        std::cout << "\tSupported usage flags: " << details.capabilities.supportedUsageFlags << "\n";
+
         vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, nullptr);
 
         if (formatCount != 0) {

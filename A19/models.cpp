@@ -22,7 +22,7 @@ void makeModels() {
 	// Resizes the vertices array. Repalce the values with the correct number of
 	// vertices
 
-	// Front face (z = 1.0f)
+	//Front face (z = 1.0f)
 	M1_vertices[arrayOfCube].pos = glm::vec3(-sizeCube, sizeCube, sizeCube);
 	M1_vertices[arrayOfCube].norm = glm::vec3(0.0f, 0.0f, 1.0f);
 	M1_vertices[arrayOfCube].UV = glm::vec2(1 * (0.5) / 4, 1 * (0.5) / 4);
@@ -40,7 +40,7 @@ void makeModels() {
 	M1_vertices[arrayOfCube].UV = glm::vec2(1 * (0.5) / 4, 0.0);
 	arrayOfCube++;
 
-	// Top face (y = 1.0f)
+	//Top face (y = 1.0f)
 	M1_vertices[arrayOfCube].pos = glm::vec3(-sizeCube, sizeCube, -sizeCube);
 	M1_vertices[arrayOfCube].norm = glm::vec3(0.0f, 1.0f, 0.0f);
 	M1_vertices[arrayOfCube].UV = glm::vec2(1 * (0.5) / 4, 2 * (0.5) / 4);
@@ -58,7 +58,7 @@ void makeModels() {
 	M1_vertices[arrayOfCube].UV = glm::vec2(1 * (0.5) / 4, 1 * (0.5) / 4);
 	arrayOfCube++;
 
-	// Back face  (z = -1.0f)
+	//Back face  (z = -1.0f)
 	M1_vertices[arrayOfCube].pos = glm::vec3(-sizeCube, -sizeCube, -sizeCube);
 	M1_vertices[arrayOfCube].norm = glm::vec3(0.0f, 0.0f, -1.0f);
 	M1_vertices[arrayOfCube].UV = glm::vec2(1 * (0.5) / 4, 3 * (0.5) / 4);
@@ -76,7 +76,7 @@ void makeModels() {
 	M1_vertices[arrayOfCube].UV = glm::vec2(1 * (0.5) / 4, 2 * (0.5) / 4);
 	arrayOfCube++;
 
-	// Left face (x = -1.0f)
+	//Left face (x = -1.0f)
 	M1_vertices[arrayOfCube].pos = glm::vec3(-sizeCube, -sizeCube, sizeCube);
 	M1_vertices[arrayOfCube].norm = glm::vec3(-1.0f, 0.0f, 0.0f);
 	M1_vertices[arrayOfCube].UV = glm::vec2(0.0, 3 * (0.5) / 4);
@@ -94,7 +94,7 @@ void makeModels() {
 	M1_vertices[arrayOfCube].UV = glm::vec2(0.0, 2 * (0.5) / 4);
 	arrayOfCube++;
 
-	// Right face (x = 1.0f)
+	//Right face (x = 1.0f)
 	M1_vertices[arrayOfCube].pos = glm::vec3(sizeCube, -sizeCube, -sizeCube);
 	M1_vertices[arrayOfCube].norm = glm::vec3(1.0f, 0.0f, 0.0f);
 	M1_vertices[arrayOfCube].UV = glm::vec2(2 * (0.5) / 4, 3 * (0.5) / 4);
@@ -112,7 +112,7 @@ void makeModels() {
 	M1_vertices[arrayOfCube].UV = glm::vec2(2 * (0.5) / 4, 2 * (0.5) / 4);
 	arrayOfCube++;
 
-	// Bottom face(y = -1.0f)
+	//Bottom face(y = -1.0f)
 	M1_vertices[arrayOfCube].pos = glm::vec3(-sizeCube, -sizeCube, sizeCube);
 	M1_vertices[arrayOfCube].norm = glm::vec3(0.0f, -1.0f, 0.0f);
 	M1_vertices[arrayOfCube].UV = glm::vec2(1 * (0.5) / 4, 4 * (0.5) / 4);
@@ -140,7 +140,7 @@ void makeModels() {
 	for (int i = 0; i < 6; i++) {
 		startingOfFace = indicesCube;
 		for (int j = 0; j < 6; j++) {
-			//Take last two points
+			//For the first three value takes three points
 			if (j < 3) {
 				M1_indices[valueOfCubeIndices] = indicesCube;
 				indicesCube++;
@@ -150,7 +150,7 @@ void makeModels() {
 				M1_indices[valueOfCubeIndices] = startingOfFace;
 				indicesCube = startingOfFace + 4;
 			}
-			//For the first three value takes three points
+			//Take last two points
 			else {
 				M1_indices[valueOfCubeIndices] = indicesCube - 1;
 				indicesCube++;
@@ -183,6 +183,7 @@ void makeModels() {
 	M2_vertices[0].norm = glm::vec3(0.0, 1.0, 0.0);
 	M2_vertices[0].UV = glm::vec2(0.5 + (1 * (0.5) / 4), 1 * (0.5) / 4);
 
+	//One full rotation for the upper part (plain surface)
 	for (int i = 0; i < slicesCylinder; i++) {
 		M2_vertices[(i + 1)].pos = glm::vec3(xCylinder + radiusCylinder * cos(((float)i / slicesCylinder) * (2.0 * M_PI)), yCylinder + heightCylinder, zCylinder + radiusCylinder * sin(((float)i / slicesCylinder) * (2.0 * M_PI)));
 		M2_vertices[(i + 1)].norm = glm::vec3(0.0, 1.0, 0.0);
@@ -193,6 +194,7 @@ void makeModels() {
 	M2_vertices[(slicesCylinder + 1)].norm = glm::vec3(0.0, -1.0, 0.0);
 	M2_vertices[(slicesCylinder + 1)].UV = glm::vec2(0.5 + (3 * (0.5) / 4), 1 * (0.5) / 4);
 
+	//One full rotation for the lower part (plain surface)
 	for (int i = slicesCylinder + 1; i < (2 * slicesCylinder) + 1; i++) {
 		M2_vertices[(i + 1)].pos = glm::vec3(xCylinder + radiusCylinder * cos(((float)i / slicesCylinder) * (2.0 * M_PI)), yCylinder - heightCylinder, zCylinder + radiusCylinder * sin(((float)i / slicesCylinder) * (2.0 * M_PI)));
 		M2_vertices[(i + 1)].norm = glm::vec3(0.0, -1.0, 0.0);
@@ -233,6 +235,7 @@ void makeModels() {
 	int counterCylinder = 0;
 	int counter2Cylinder = 0;
 
+	//Upper plain surface
 	for (int i = 0; i < slicesCylinder; i++) {
 		M2_indices[(i * 3) + 0] = 0;
 		M2_indices[(i * 3) + 1] = i + 1;
@@ -241,6 +244,7 @@ void makeModels() {
 
 	counterCylinder = slicesCylinder + 1;
 
+	//Lower plain surface
 	for (int i = slicesCylinder; i < 2 * slicesCylinder; i++) {
 		M2_indices[(i * 3) + 0] = slicesCylinder + 1;
 		M2_indices[(i * 3) + 1] = counterCylinder + 1;
@@ -255,17 +259,18 @@ void makeModels() {
 
 	counterCylinder = (2 * slicesCylinder) + 1;
 
+	//Side part
 	for (int i = 2 * slicesCylinder; i < (3 * slicesCylinder) + 1; i++) {
 		M2_indices[(i * 3) + 0] = counterCylinder + 1;
 		M2_indices[(i * 3) + 1] = counterCylinder + 1 + 1;
-		//M2_indices[(i * 3) + 1] = (counter + 1) + 1;
 		M2_indices[(i * 3) + 2] = (slicesCylinder + 1) + counterCylinder + 1;
 		counterCylinder++;
 	}
 
 	counterCylinder = (3 * slicesCylinder) + 2;
 	counter2Cylinder = (2 * slicesCylinder) + 1;
-
+	
+	//Side part
 	for (int i = 3 * slicesCylinder; i < 4 * slicesCylinder; i++) {
 		M2_indices[(i * 3) + 0] = counterCylinder + 1;
 		M2_indices[(i * 3) + 1] = counterCylinder + 1 + 1;
