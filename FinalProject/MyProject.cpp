@@ -213,21 +213,6 @@ static glm::vec3 keyPositionStats = glm::vec3(500.0f, 200.5f, 500.0f);
 //Game input
 	//User see the tutorial
 static bool showTutorial = true;
-/*const char* keyW;
-const char* keyA;
-const char* keyS;
-const char* keyD;
-
-const char* keyUp;
-const char* keyDown;
-const char* keyLeft;
-const char* keyRight;
-
-const char* keyE;
-const char* keyP;
-const char* keyT;
-
-const char* keyF11;*/
 
 //Whenever there is a state + first, is done as a semaphore like logic to not spam key input of the user
 static bool stateF11 = false;
@@ -373,10 +358,6 @@ bool canStepPoint(float x, float y) {
 	float roundFirstDecimalX = round(x * 10.0) / 10.0;
 	float roundFirstDecimalY = round(y * 10.0) / 10.0;
 
-	//To move in the tutorial
-	/*if (roundX == 500 && roundY == -495) {
-		return true;
-	}*/
 
 	//It calculate the pixel in which the user is, according to a height map present in the resources.
 	int pixX = round(fmax(0.0f, fmin(mapWidth - 1, (x + 16.9) * mapWidth / 33.8)));
@@ -498,7 +479,6 @@ protected:
 	//Value needed for the descriptorSetLayout
 	std::vector<uint32_t> set1 = { 0,1 };
 	std::vector<VkDescriptorType> vkDescriptorType1 = { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER };
-	//std::vector<VkShaderStageFlagBits> vkShaderStageFlagBits = { VK_SHADER_STAGE_VERTEX_BIT, VK_SHADER_STAGE_FRAGMENT_BIT };
 	//The first value is to all because it is used for the roughness of the material
 	std::vector<VkShaderStageFlagBits> vkShaderStageFlagBits1 = { VK_SHADER_STAGE_ALL_GRAPHICS, VK_SHADER_STAGE_FRAGMENT_BIT };
 
@@ -539,7 +519,6 @@ protected:
 	Object torch;
 
 	Object tutorial;
-	//Object goalOfTheGame;
 	Object interaction;
 	Object movement;
 	Object visual;
@@ -596,9 +575,6 @@ protected:
 		windowHeight = 600;//1080;
 		windowTitle = "Labyrinth Escape";
 		initialBackgroundColor = { 1.0f, 0.3f, 0.0f, 1.0f };
-		//initialBackgroundColor = {1.0f, 1.0f, 0.0f, 1.0f};
-		//initialBackgroundColor = { 0.0f, 0.0f, 0.0f, 1.0f };
-		//initialBackgroundColor = { 0.0f, 0.0f, 1.0f, 1.0f };
 
 		//Done for DS_global
 		utils::addDescriptor();
@@ -611,28 +587,6 @@ protected:
 
 	//
 	void showTutorialInfo() {
-		/*keyW = glfwGetKeyName(GLFW_KEY_W, 0);
-		keyA = glfwGetKeyName(GLFW_KEY_A, 0);
-		keyS = glfwGetKeyName(GLFW_KEY_S, 0);
-		keyD = glfwGetKeyName(GLFW_KEY_D, 0);
-
-		keyUp = glfwGetKeyName(GLFW_KEY_UP, 0);
-		keyDown = glfwGetKeyName(GLFW_KEY_DOWN, 0);
-		keyLeft = glfwGetKeyName(GLFW_KEY_LEFT, 0);
-		keyRight = glfwGetKeyName(GLFW_KEY_RIGHT, 0);
-
-		keyE = glfwGetKeyName(GLFW_KEY_E, 0);
-		keyP = glfwGetKeyName(GLFW_KEY_P, 0);
-		keyT = glfwGetKeyName(GLFW_KEY_T, 0);
-
-		keyF11 = glfwGetKeyName(GLFW_KEY_F11, 0);
-
-		std::cout << "\nTutorial:\n";
-		std::cout << "\nMovement keys:" << "\n\t Move left: " << keyA << "\n\t Move right: " << keyD << "\n\t Move forward: " << keyW << "\n\t Move backward: " << keyS;
-		std::cout << "\nVisual keys:" << "\n\t Look left: " << keyLeft << "\n\t Look right: " << keyRight << "\n\t Look forward: " << keyUp << "\n\t Look backward: " << keyDown;
-		std::cout << "\nWindow keys:" << "\n\t FullScreen on and off: " << keyF11;
-		std::cout << "\nOther keys:" << "\n\t Interact with object: " << keyE << "\n\t Restart game when ended: " << keyP << "\n\t See again the tutorial: " << keyT;*/
-
 		std::cout << "\nTutorial:";
 		std::cout << "\nGoal of the game: reach the end of the labyrinth, behind the bronze room";
 		std::cout << "\nMovement keys:" << "\n\t Move left: A" << "\n\t Move right: D" << "\n\t Move forward: W" << "\n\t Move backward: S";
@@ -651,7 +605,7 @@ protected:
 		localPipelineInit();
 
 		//Character
-		objectInit(&mainCharacter, MODEL_PATH + "Character/Character.obj", TEXTURE_PATH + "GoldKeyColor.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
+		objectInit(&mainCharacter, MODEL_PATH + "Character/Character.obj", TEXTURE_PATH + "SkinColor.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
 
 		//Floor and ceiling
 		objectInit(&floorObject, MODEL_PATH + "FloorAndCeiling/Floor.obj", TEXTURE_PATH + "Floor.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
@@ -680,7 +634,6 @@ protected:
 
 		//Power up
 		objectInit(&powerUp, MODEL_PATH + "PowerUp/Juice.obj", TEXTURE_PATH + "Juice.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
-		//objectInit(&powerUp, MODEL_PATH + "PowerUp/PowerUp.obj", TEXTURE_PATH + "GoldKeyColor.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
 		objectInit(&powerUpBase, MODEL_PATH + "PowerUp/PowerUpBase.obj", TEXTURE_PATH + "Ceiling.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
 
 		//Win
@@ -689,7 +642,6 @@ protected:
 		objectInit(&winPlayAgainController, MODEL_PATH + "Win/WinPlayAgainController.obj", TEXTURE_PATH + "Tutorial.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
 
 		//Torch
-		//objectInit(&torch, MODEL_PATH + "Torch/Torch.obj", TEXTURE_PATH + "Torch.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
 		objectInit(&torch, MODEL_PATH + "Torch/Torch2.obj", TEXTURE_PATH + "Torch.png", descriptorSetLayoutObject.descriptorSetLayout, descriptorSetLayoutObject);
 
 		//Tutorial
@@ -1072,8 +1024,6 @@ protected:
 
 		//Gold key
 		ubo.model = glm::mat4(1.0f);
-		//ubo.model = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)) * ubo.model;
-		//ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0.2f, 0, 0)) * ubo.model;
 		if (doorOpenOrNot[4] == 1) {
 			//Make the key disappear from the screen
 			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0, keyTakenOrNot[0] * 1.01f, 0)) * ubo.model;
@@ -1081,10 +1031,6 @@ protected:
 		else if (keyTakenOrNot[0] == 1) {
 			//Make the key follow you
 			ubo.model = glm::translate(glm::mat4(1), goldKeyPos) * ubo.model;
-
-			//ubo.model = glm::inverse(glm::translate(glm::mat4(1.0f), goldKeyPos)) * ubo.model;
-			//ubo.model = glm::rotate(glm::mat4(1.0f), lookYaw, glm::vec3(0.0f, 1.0f, 0.0f)) * ubo.model;
-			//ubo.model = glm::translate(glm::mat4(1.0f), goldKeyPos) * ubo.model;
 		}
 		ubo.normal = glm::inverse(glm::transpose(ubo.model));
 		ubo.roughness = 50.0f;
@@ -2267,7 +2213,6 @@ protected:
 		jumpDown = false;
 
 		CamPos = glm::vec3(0);
-		//CamDir = glm::mat3(0);
 		CharacterPos = glm::mat4(0);
 
 
@@ -2448,11 +2393,6 @@ protected:
 
 
 
-		/*CamDir = glm::mat3(glm::rotate(glm::mat4(1.0f), lookYaw, glm::vec3(0.0f, 1.0f, 0.0f))) *
-			glm::mat3(glm::rotate(glm::mat4(1.0f), lookPitch, glm::vec3(1.0f, 0.0f, 0.0f)));*/
-
-
-
 		if (!canStep(pos.x, pos.z)) {
 			pos = oldPos;
 		}
@@ -2475,11 +2415,6 @@ protected:
 			glm::rotate(glm::mat4(1.0), -lookYaw, glm::vec3(0, 1, 0)) *
 			glm::translate(glm::mat4(1.0), -pos);
 		return out;
-
-		/*glm::mat4 out =
-			glm::transpose(glm::mat4(CamDir)) *
-			glm::translate(glm::mat4(1.0), -pos);
-		return out;*/
 	}
 
 	/// <summary>
@@ -2677,28 +2612,6 @@ protected:
 	/// <returns>The position of the key</returns>
 	glm::vec3 manageKeyPosition(glm::vec3 keyPosStatic) {
 		glm::vec3 positionTempKey = glm::vec3((pos.x - keyPosStatic.x), (pos.y - keyPosStatic.y) - 0.4f, (pos.z - keyPosStatic.z));
-		/*if (pos.x > oldPos.x) {
-			positionTempKey.x = (pos.x - keyPosStatic.x) + positionTempKey.x - 0.2f;
-			savePosKey.x = positionTempKey.x;
-		}
-		else if (pos.x < oldPos.x) {
-			positionTempKey.x = (pos.x - keyPosStatic.x) + positionTempKey.x + 0.2f;
-			savePosKey.x = positionTempKey.x;
-		}
-		else {
-			positionTempKey.x = savePosKey.x;
-		}
-		if (pos.z > oldPos.z) {
-			positionTempKey.z = (pos.z - keyPosStatic.z) + positionTempKey.z - 0.2f;
-			savePosKey.z = positionTempKey.z;
-		}
-		else if (pos.z < oldPos.z) {
-			positionTempKey.z = (pos.z - keyPosStatic.z) + positionTempKey.z + 0.2f;
-			savePosKey.z = positionTempKey.z;
-		}
-		else {
-			positionTempKey.z = savePosKey.z;
-		}*/
 		return positionTempKey;
 	}
 
