@@ -28,7 +28,7 @@ vec3 point_light_dir(vec3 pos, vec3 lightPos) {
 
 vec3 point_light_color(vec3 pos, vec3 lightPos, vec3 lightColor, float g, float beta) {
 	// Point light color
-	return lightColor * pow((g/(length(lightPos - pos))), beta);
+	return lightColor * pow(g/(length(lightPos - pos)), beta);
 }
 
 vec3 spot_light_dir(vec3 pos, vec3 lightPos) {
@@ -43,9 +43,9 @@ vec3 spot_light_color(vec3 pos, vec3 lightPos, vec3 lightColor, vec3 lightDir, f
 
 vec3 specular_light(vec3 lightPos, vec3 normal, vec3 lightDir, vec3 eyeDir) {
     vec3 reflectDir = -reflect(lightDir, normal);
-	//return vec3(pow(max(dot(eyeDir, reflectDir), 0.0f), 150.0f));
 	//Considering mS (Specular color) as white
-	return vec3(pow(max(dot(eyeDir, reflectDir), 0.0f), 100.0f));
+	//return vec3(pow(max(dot(eyeDir, reflectDir), 0.0f), 100.0f));
+	return vec3(pow(clamp(dot(eyeDir, reflectDir), 0.0f, 1.0f), 100.0f));
 }
 
 vec3 diffuse_nayar(vec3 N, vec3 V, vec3 Cd, float sigma, vec3 lightDir) {
@@ -63,33 +63,18 @@ vec3 diffuse_nayar(vec3 N, vec3 V, vec3 Cd, float sigma, vec3 lightDir) {
 	return (elementL * (a + b * g * sin(alpha) * tan(beta)));
 }
 
-//Not see the specular at the rear
-vec3 getCorrectNorm(vec3 norm, vec3 lightDir) {
-	if (dot(norm, lightDir) > 0) {
-		return norm;
-	}
-	return -norm;
-}
-
 void main() {
 	vec3 norm = normalize(fragNorm);
 	vec3 diffColor = texture(texSampler, fragTexCoord).rgb;
 	vec3 eyeDir = normalize(gubo.eyePos - fragViewDir);
 
-	/*vec3 topColor = vec3(0.005f, 0.015f, 0.015f);
-	vec3 botColor = vec3(0.015f, 0.015f, 0.005f);
-	vec3 HemiDir = vec3(0.0f, 1.0f, 0.0f);
-	vec3 topValue = ((dot(norm, HemiDir) + 1)/2) * topColor;
-	vec3 botValue = ((1 - dot(norm, HemiDir))/2) * botColor;*/
-
-
-
+	//Light1
 	vec3 lightPos1 = vec3(gubo.torchPos.x, gubo.torchPos.y, gubo.torchPos.z);
 	vec3 lightC1 = vec3(1.0f, 1.0f, 0.2f);
 	vec3 lightDirection1 = point_light_dir(fragViewDir, lightPos1);
-	//vec3 lightColor1 = point_light_color(fragViewDir, lightPos1, lightC1, 0.5f, 3.0f);
 	vec3 lightColor1 = point_light_color(fragViewDir, lightPos1, lightC1, 0.4f, 3.0f);
 	
+	//Light2
 	vec3 lightPos2 = vec3(490.0f, 200.0f, -490.0f);
 	vec3 lightC2 = vec3(1.0f, 1.0f, 0.2f);
 	vec3 lightDir2 = vec3(cos(radians(135.0f)), 0.0f, sin(radians(90.0f)));
@@ -97,17 +82,16 @@ void main() {
 	vec3 lightColor2 = spot_light_color(fragViewDir, lightPos2, lightC2, lightDir2, 2.0f, 0.0f, 0.9f, 0.92f);
 	
 	
-	
 	//Ambient
 	vec3 ambient = vec3(0.02f, 0.02f, 0.02f) * diffColor;
 	
-	
-	
+	//Diffuse + specular (light1)
 	vec3 diffuse1 = diffuse_nayar(norm, eyeDir, diffColor, ubo.roughness, lightDirection1);
 	vec3 specular1 = specular_light(lightPos1, norm, lightDirection1, eyeDir);
 
+	//Diffuse + specular (light2)
 	vec3 diffuse2 = diffuse_nayar(norm, eyeDir, diffColor, ubo.roughness, lightDirection2);
-	vec3 specular2 = specular_light(lightPos2, norm, lightDirection2, eyeDir);
+	//vec3 specular2 = specular_light(lightPos2, norm, lightDirection2, eyeDir);
 
 
 
@@ -116,5 +100,4 @@ void main() {
 	((diffuse2) * lightColor2) +
 	//((specular2 + diffuse2) * lightColor2) +
 	ambient, 1.0f);
-	//(topValue + botValue) * diffColor, 1.0f);
 }

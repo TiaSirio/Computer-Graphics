@@ -58,7 +58,6 @@ struct GlobalUniformBufferObject {
 struct UniformBufferObject {
 	alignas(16) glm::mat4 model;
 	alignas(16) glm::mat4 normal;
-	//alignas(16) bool isTaken;
 	alignas(16) float roughness;
 };
 
@@ -490,25 +489,25 @@ protected:
 	// Here you list all the Vulkan objects you need:
 
 	//Value needed for the descriptorSetLayout
-	std::vector<uint32_t> set = { 0,1 };
-	std::vector<VkDescriptorType> vkDescriptorType = { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER };
-	//std::vector<VkShaderStageFlagBits> vkShaderStageFlagBits = { VK_SHADER_STAGE_VERTEX_BIT, VK_SHADER_STAGE_FRAGMENT_BIT };
-	std::vector<VkShaderStageFlagBits> vkShaderStageFlagBits = { VK_SHADER_STAGE_ALL_GRAPHICS, VK_SHADER_STAGE_FRAGMENT_BIT };
+	std::vector<uint32_t> set0 = { 0 };
+	std::vector<VkDescriptorType> vkDescriptorType0 = { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER };
+	std::vector<VkShaderStageFlagBits> vkShaderStageFlagBits0 = { VK_SHADER_STAGE_ALL_GRAPHICS };
 
-	DescriptorSetLayoutObject descriptorSetLayoutObject = DescriptorSetLayoutObject(set, vkDescriptorType, vkShaderStageFlagBits);
+	DescriptorSetLayoutObject descriptorSetLayoutGlobal = DescriptorSetLayoutObject(set0, vkDescriptorType0, vkShaderStageFlagBits0);
 
 	//Value needed for the descriptorSetLayout
-	std::vector<uint32_t> set2 = { 0 };
-	std::vector<VkDescriptorType> vkDescriptorType2 = { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER };
-	std::vector<VkShaderStageFlagBits> vkShaderStageFlagBits2 = { VK_SHADER_STAGE_ALL_GRAPHICS };
+	std::vector<uint32_t> set1 = { 0,1 };
+	std::vector<VkDescriptorType> vkDescriptorType1 = { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER };
+	//std::vector<VkShaderStageFlagBits> vkShaderStageFlagBits = { VK_SHADER_STAGE_VERTEX_BIT, VK_SHADER_STAGE_FRAGMENT_BIT };
+	//The first value is to all because it is used for the roughness of the material
+	std::vector<VkShaderStageFlagBits> vkShaderStageFlagBits1 = { VK_SHADER_STAGE_ALL_GRAPHICS, VK_SHADER_STAGE_FRAGMENT_BIT };
 
-	DescriptorSetLayoutObject descriptorSetLayoutGlobal = DescriptorSetLayoutObject(set2, vkDescriptorType2, vkShaderStageFlagBits2);
+	DescriptorSetLayoutObject descriptorSetLayoutObject = DescriptorSetLayoutObject(set1, vkDescriptorType1, vkShaderStageFlagBits1);
 
 	// Pipelines [Shader couples]
 	Pipeline P1;
 
 	// Models, textures and Descriptors (values assigned to the uniforms)
-
 	Object mainCharacter;
 
 	Object floorObject;
@@ -646,8 +645,8 @@ protected:
 	void localInit() {
 
 		//Init of the two descriptor set layout (0,1)
-		descriptorSetLayoutInit(&descriptorSetLayoutObject);
 		descriptorSetLayoutInit(&descriptorSetLayoutGlobal);
+		descriptorSetLayoutInit(&descriptorSetLayoutObject);
 
 		localPipelineInit();
 
@@ -2337,7 +2336,7 @@ protected:
 
 
 		if (controllerPlugged == 1) {
-			lookYaw -= (round(axes[2] * 10.0) / 10.0) / 100.0;
+			lookYaw -= (round(axes[2] * 10.0) / 10.0) / 50.0;
 			//lookPitch -= (round(axes[3] * 10.0) / 10.0) / 100.0;
 
 			if ((round(axes[0] * 10.0) / 10.0) < -0.3f) {
@@ -2801,13 +2800,43 @@ protected:
 		descriptorSetLayoutObject->descriptorSetLayout.init(this, { elementOfDSL });
 	}
 
+	/// <summary>
+	/// Get the required size.
+	/// </summary>
+	/// <param name="descriptorSetElementType">The type of descriptor</param>
+	/// <param name="isAnObject">If is an object and needs a model.</param>
+	/// <returns>The required size</returns>
+	uint64_t getSizeForObject(DescriptorSetElementType descriptorSetElementType, bool isAnObject) {
+		if (descriptorSetElementType == TEXTURE) {
+			return 0;
+		}
+		else if (isAnObject) {
+			return sizeof(UniformBufferObject);
+		}
+		else {
+			return sizeof(GlobalUniformBufferObject);
+		}
+	}
+
+	/// <summary>
+	/// Return pointer of the texture.
+	/// </summary>
+	/// <param name="descriptorSetElementType">The type of descriptor</param>
+	/// <param name="object">The object from which take the texture</param>
+	/// <returns>The pointer of the texture</returns>
+	Texture* getPointerOfTexture(DescriptorSetElementType descriptorSetElementType, Object* object) {
+		if (descriptorSetElementType == TEXTURE) {
+			return &object->texture;
+		}
+		else {
+			return nullptr;
+		}
+	}
+
 	void objectInit(Object* object, std::string modelPath, std::string texturePath, DescriptorSetLayout descriptorSetLayout, DescriptorSetLayoutObject descriptorSetLayoutObject) {
 		object->model.init(this, modelPath);
 		object->texture.init(this, texturePath);
 		std::vector<DescriptorSetElement> descriptorSetElements;
-		/*for (int i = 0; i < 1000; i++) {
-			std::cout << descriptorSetLayoutObject.set.size();
-		}*/
 		descriptorSetElements.resize(descriptorSetLayoutObject.set.size());
 		for (int i = 0; i < descriptorSetLayoutObject.set.size(); i++) {
 			descriptorSetElements[i].binding = descriptorSetLayoutObject.set[i];
@@ -2854,39 +2883,6 @@ protected:
 			descriptorSetElements[i].tex = nullptr;
 		}
 		descriptorSet->init(this, &descriptorSetLayout, { descriptorSetElements });
-	}
-
-	/// <summary>
-	/// Get the required size.
-	/// </summary>
-	/// <param name="descriptorSetElementType">The type of descriptor</param>
-	/// <param name="isAnObject">If is an object and needs a model.</param>
-	/// <returns>The required size</returns>
-	uint64_t getSizeForObject(DescriptorSetElementType descriptorSetElementType, bool isAnObject) {
-		if (descriptorSetElementType == TEXTURE) {
-			return 0;
-		}
-		else if (isAnObject) {
-			return sizeof(UniformBufferObject);
-		}
-		else {
-			return sizeof(GlobalUniformBufferObject);
-		}
-	}
-
-	/// <summary>
-	/// Return pointer of the texture.
-	/// </summary>
-	/// <param name="descriptorSetElementType">The type of descriptor</param>
-	/// <param name="object">The object from which take the texture</param>
-	/// <returns>The pointer of the texture</returns>
-	Texture* getPointerOfTexture(DescriptorSetElementType descriptorSetElementType, Object* object) {
-		if (descriptorSetElementType == TEXTURE) {
-			return &object->texture;
-		}
-		else {
-			return nullptr;
-		}
 	}
 
 	//Draw the global descriptor set.

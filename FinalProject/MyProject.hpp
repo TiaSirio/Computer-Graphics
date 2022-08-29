@@ -894,7 +894,7 @@ protected:
 	// Lesson 19
     void createRenderPass() {
 		VkAttachmentDescription depthAttachment{};
-		depthAttachment.format = VK_FORMAT_D32_SFLOAT;
+		depthAttachment.format = findDepthFormat();//VK_FORMAT_D32_SFLOAT;
 		//depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
 		depthAttachment.samples = msaaSamples;
 		depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
@@ -1034,8 +1034,7 @@ protected:
 
 	// Lesson 22.1
 	void createDepthResources() {
-		VkFormat depthFormat = VK_FORMAT_D32_SFLOAT;
-		
+		VkFormat depthFormat = findDepthFormat();//VK_FORMAT_D32_SFLOAT;
 		createImage(swapChainExtent.width, swapChainExtent.height, 1,
 					msaaSamples, depthFormat,
 					VK_IMAGE_TILING_OPTIMAL,
@@ -1091,6 +1090,30 @@ protected:
 		}
 
 		vkBindImageMemory(device, image, imageMemory, 0);
+	}
+
+	VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features) {
+		for (VkFormat format : candidates) {
+			VkFormatProperties props;
+			vkGetPhysicalDeviceFormatProperties(physicalDevice, format, &props);
+
+			if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features) {
+				return format;
+			}
+			else if (tiling == VK_IMAGE_TILING_OPTIMAL && (props.optimalTilingFeatures & features) == features) {
+				return format;
+			}
+		}
+
+		throw std::runtime_error("failed to find supported format!");
+	}
+
+	VkFormat findDepthFormat() {
+		return findSupportedFormat(
+			{ VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT },
+			VK_IMAGE_TILING_OPTIMAL,
+			VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT
+		);
 	}
 
 	//Multisampling
@@ -1711,10 +1734,6 @@ protected:
 		}
 		
 		//Here we have to destroy graphicsPipeline and pipelineLayout
-
-		//Already cleaned
-		/*vkFreeCommandBuffers(device, commandPool,
-				static_cast<uint32_t>(commandBuffers.size()), commandBuffers.data());*/
 
 		vkDestroyRenderPass(device, renderPass, nullptr);
 

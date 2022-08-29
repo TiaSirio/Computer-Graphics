@@ -59,7 +59,7 @@ glm::mat4 LookAtMat(glm::vec3 Pos, glm::vec3 aim, float Roll) {
 
 
 	//Third working method
-	//U
+	//U (up vector)
 	glm::vec3 u = glm::vec3(0, 1, 0);
 
 	//Vz
