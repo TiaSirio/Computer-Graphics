@@ -34,11 +34,11 @@ This project was developed by as a part of a computer graphics course at Politec
 
 ## Screenshots
 
-![Screenshot 1](screen1.png)
+![Screenshot 1](https://github.com/TiaSirio/AssignementsComputerGraphics/blob/master/Screen1.png)
 
-![Screenshot 2](screen2.png)
+![Screenshot 2](https://github.com/TiaSirio/AssignementsComputerGraphics/blob/master/Screen2.png)
 
-![Screenshot 3](screen3.png)
+![Screenshot 3](https://github.com/TiaSirio/AssignementsComputerGraphics/blob/master/Screen3.png)
 
 ## Acknowledgements
 
