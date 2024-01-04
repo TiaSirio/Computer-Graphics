@@ -36,9 +36,9 @@ Explore our Vulkan Labyrinth Project, a visual journey into graphics programming
 
 Witness graphics concepts come to life in this immersive hands-on project.
 
-## University Course
+## University Course 📖
 
-
+This is the final project of the exam "Computer Graphics" for the Computer Science and Engineering degree at Polytechnic of Milano.
 
 ## Author 👨‍💻
 
@@ -93,3 +93,11 @@ This project was developed by as a part of a computer graphics course at Politec
 ## Acknowledgements
 
 - [Vulkan Tutorial](https://vulkan-tutorial.com/)
+
+## University Course 📖
+
+This is the final project of the exam "Computer Graphics" for the Computer Science and Engineering degree at Polytechnic of Milano.
+
+## Author 👨‍💻
+
+- Mattia Siriani
