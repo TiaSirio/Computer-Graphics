@@ -46,7 +46,7 @@ This is the final project of the exam "Computer Graphics" for the Computer Scien
 
 ## Documentation
 
-
+In the directory of every assignment there is a pdf file documenting the scope of the assignment.
 
 # Vulkan Labyrinth
 
