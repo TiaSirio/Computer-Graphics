@@ -88,6 +88,7 @@ The controls are explained in a tutorial inside the application.
 
 ## Acknowledgements 🤝
 
+- Prof. Gribaudo Marco
 - [Vulkan Tutorial](https://vulkan-tutorial.com/)
 
 ## University Course 📖
