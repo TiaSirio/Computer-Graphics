@@ -30,11 +30,9 @@ Welcome to the "Assignments Computer Graphics" repository! Here, you'll find a s
 
 ## Vulkan Labyrinth Project 🌀
 
-Explore our Vulkan Labyrinth Project, a visual journey into graphics programming.
+Try out the Labyrinth game. A game written using the Vulkan API, where the player must escape a labyrinth.
 
-- [Explore the Source Code](Vulkan_Labyrinth_Project)
-
-Witness graphics concepts come to life in this immersive hands-on project.
+The labyrinth project is available at this [link](https://github.com/TiaSirio/Labyrinth).
 
 ## University Course 📖
 
