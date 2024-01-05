@@ -40,7 +40,7 @@ This is the final project of the exam "Computer Graphics" for the Computer Scien
 
 ## Author 👨‍💻
 
-- Mattia Siriani
+- [TiaSirio](https://www.github.com/TiaSirio)
 
 ## Documentation 📄
 
