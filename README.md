@@ -44,15 +44,15 @@ This is the final project of the exam "Computer Graphics" for the Computer Scien
 
 - Mattia Siriani
 
-## Documentation
+## Documentation 📄
 
 In the directory of every assignment there is a pdf file documenting the scope of the assignment.
 
-# Vulkan Labyrinth
+# Vulkan Labyrinth 🌀
 
 This project is an implementation of a labyrinth using Vulkan. It was created as a way to explore the Vulkan graphics API and to showcase the power of real-time rendering in creating immersive environments.
 
-## Features
+## Features 🌟
 
 - First-person view
 - Real-time lighting
@@ -65,7 +65,7 @@ This project is an implementation of a labyrinth using Vulkan. It was created as
 - Window resize
 - Playable with controller
 
-## Requirements
+## Requirements ⚒️
 
 To run the application, you will need the following:
 
@@ -74,15 +74,11 @@ To run the application, you will need the following:
 - GLFW (a multi-platform library for OpenGL, OpenGL ES, and Vulkan)
 - GLM (a C++ mathematics library for graphics software)
 
-## Controls
+## Controls 🎮
 
 The controls are explained in a tutorial inside the application.
 
-## Credits
-
-This project was developed by as a part of a computer graphics course at Politecnico di Milano. 
-
-## Screenshots
+## Screenshots 📸
 
 ![Screenshot 1](https://github.com/TiaSirio/AssignementsComputerGraphics/blob/master/Screen1.png)
 
@@ -90,7 +86,7 @@ This project was developed by as a part of a computer graphics course at Politec
 
 ![Screenshot 3](https://github.com/TiaSirio/AssignementsComputerGraphics/blob/master/Screen3.png)
 
-## Acknowledgements
+## Acknowledgements 🤝
 
 - [Vulkan Tutorial](https://vulkan-tutorial.com/)
 
